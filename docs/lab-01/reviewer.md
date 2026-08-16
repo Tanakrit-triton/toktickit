@@ -19,10 +19,10 @@
 
 | PR | Branch | My verdict |
 |----|--------|-------------|
-| # | feature/1-project-foundation | |
-| # | feature/2-health-check | |
-| # | feature/3-category-seed | |
-| # | feature/4-category-list | |
+| #5 | feature/1-project-foundation | Approved |
+| #6 | feature/2-health-check | Approved |
+| #7 | feature/3-category-seed | Approved |
+| #8 | feature/4-category-list | Approved |
 
 **My comment:** nice work clearly detail gj!
 **Partner's response:** thank you!
