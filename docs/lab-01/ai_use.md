@@ -23,7 +23,7 @@ the whole project before touching any code, which helped me understand how
 the four issues connected before I got lost in the details. When I got stuck,
 I found it worked best to just paste the exact TODO comment or error message
 straight from my file instead of trying to describe the problem in my own
-words — I got way more accurate answers that way. One place I had to slow
+words, I got way more accurate answers that way. One place I had to slow
 down and double check rather than just accept was around the Git workflow,
 especially deciding when it was okay to merge my own PRs versus when I
 actually needed my partner to review first. I also ran into a random
