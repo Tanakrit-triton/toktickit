@@ -354,8 +354,10 @@ Full request and response shapes, parameter names, and error cases are specified
 | 200 | Successful retrieval, download, or soft removal |
 | 201 | Ticket or Attachment created |
 | 400 | Malformed request or invalid query parameter (BR-47) |
+| 403 | Requester in header exists but is no longer active (BR-13) |
 | 404 | Resource does not exist, or exists but is not owned by the selected Requester (BR-18) |
 | 409 | Attachment limit reached, or attempt to remove an already-removed attachment |
+| 410 | Download requested for a removed attachment |
 | 413 | Uploaded file exceeds 5 MB (BR-31) |
 | 415 | Unsupported attachment type (BR-30) |
 | 422 | Request is well-formed but fails field validation |
