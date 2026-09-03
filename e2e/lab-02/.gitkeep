@@ -1,0 +1,6 @@
+Playwright suites for Lab 2 live here (tests.md sections 2.5 and 2.6):
+
+  responsive.spec.ts            RSP-01 ... RSP-07
+  requester-ticket-flow.spec.ts E2E-01 ... E2E-05
+
+Screenshots are written to artifacts/lab-02/screenshots/ per ui-spec.md section 10.
