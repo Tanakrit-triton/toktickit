@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
+import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -41,5 +42,11 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Lab 2 -- versioned API. The unversioned Lab 1 route above is retained
+// unchanged alongside it (A-04) and is retired in a later sprint.
+
+app.use("/api/v1", referenceDataRouter);
 
 export default app;
