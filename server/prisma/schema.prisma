@@ -1,5 +1,6 @@
-// Prisma schema — datasource and generator are pre-wired.
-// Your DATABASE_URL lives in server/.env (copy it from .env.example).
+// TokTickIT data model.
+// Lab 2 schema per docs/lab-02/specification.md section 7.
+// DATABASE_URL lives in server/.env (copy it from .env.example).
 
 generator client {
   provider = "prisma-client-js"
@@ -11,18 +12,135 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Issue 3 — Create and seed IT request categories
-// Define a Category model with:
-//   id        Int      @id @default(autoincrement())
-//   name      String   @unique
-//   createdAt DateTime @default(now())
-// Then run:  npx prisma migrate dev --name init
-// TODO(Issue 3): add the Category model below.
+// Enums
+
+/// D-03. Requested by the Requester; IT Priority is a Lab 3 concern.
+enum RequestedPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+/// The complete D-02 vocabulary is declared although Lab 2 only ever writes
+/// NEW (DEC-06). Declaring it now avoids an enum migration against populated
+/// tables in Lab 3; the Lab 2 restriction is enforced in the service layer and
+/// asserted by test, not by narrowing the type.
+enum TicketStatus {
+  NEW
+  CLAIMED
+  IN_PROGRESS
+  PENDING_CONFIRMATION
+  RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
+}
+
+// ---------------------------------------------------------------------------
+// Reference data
+//
+// Integer primary keys (DEC-04). Reference data is public and carries no
+// ownership, so an unguessable key buys nothing; keeping Category on its
+// existing key also avoids a destructive migration of Lab 1 data (A-04).
 
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets Ticket[]
+}
+
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets Ticket[]
 }
 
 // ---------------------------------------------------------------------------
+// Ownership-bearing entities
+//
+// UUID primary keys (DEC-04). A sequential Ticket id would let one Requester
+// reach another's ticket by editing a number in the URL, which BR-18 exists to
+// prevent.
+
+/// The Lab 2 Development Requester. A test fixture, never a credential
+/// (BR-03, BR-11). Lab 3 replaces the selector with a real session (D-04).
+model RequesterUser {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets             Ticket[]
+  uploadedAttachments Attachment[] @relation("AttachmentUploadedBy")
+  removedAttachments  Attachment[] @relation("AttachmentRemovedBy")
+}
+
+model Ticket {
+  id                String            @id @default(uuid())
+  ticketNumber      String            @unique
+  requesterId       String
+  categoryId        Int
+  relatedSystemId   Int
+  summary           String
+  description       String
+  requestedPriority RequestedPriority
+  currentStatus     TicketStatus      @default(NEW)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  requester     RequesterUser @relation(fields: [requesterId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
+  attachments   Attachment[]
+
+  /// Every My Tickets query filters on requesterId and sorts by createdAt
+  /// descending by default, so this composite index serves the dominant
+  /// access path directly.
+  @@index([requesterId, createdAt(sort: Desc)])
+}
+
+/// Removal is soft (BR-35). Active is represented by removedAt IS NULL rather
+/// than a boolean flag: a nullable timestamp records both the fact and the time
+/// of removal without a second field that could disagree with it.
+model Attachment {
+  id               String    @id @default(uuid())
+  ticketId         String
+  originalFilename String
+  storedFilename   String
+  mimeType         String
+  sizeBytes        Int
+  uploadedById     String
+  uploadedAt       DateTime  @default(now())
+  removedAt        DateTime?
+  removedById      String?
+  removedReason    String?
+
+  ticket     Ticket         @relation(fields: [ticketId], references: [id])
+  uploadedBy RequesterUser  @relation("AttachmentUploadedBy", fields: [uploadedById], references: [id])
+  removedBy  RequesterUser? @relation("AttachmentRemovedBy", fields: [removedById], references: [id])
+
+  /// The attachment list is always fetched per ticket.
+  @@index([ticketId])
+}
+
+// ---------------------------------------------------------------------------
+
+/// One row per year. Read, incremented, and written inside the same
+/// transaction that inserts the Ticket, so no gap or duplicate can result from
+/// concurrent creation (BR-05). The sequence resets annually (BR-04).
+model TicketNumberSequence {
+  year      Int      @id
+  lastValue Int
+  updatedAt DateTime @updatedAt
+}
