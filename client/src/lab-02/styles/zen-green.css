@@ -358,3 +358,130 @@ body {
     width: 100%;
   }
 }
+
+/* --- 5.2 Create Ticket ---------------------------------------------------- */
+
+.zg-create-card {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.zg-group {
+  border: none;
+  margin: 0 0 var(--zg-space-5);
+  padding: 0;
+}
+
+.zg-legend {
+  font: var(--zg-font-h3);
+  color: var(--zg-text);
+  margin-bottom: var(--zg-space-3);
+  padding: 0;
+}
+
+.zg-group .zg-label {
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-grid-2,
+.zg-grid-3 {
+  display: grid;
+  gap: var(--zg-space-4);
+}
+
+.zg-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.zg-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Description resizes vertically only, so it cannot be dragged outside the
+   card (ui-spec 5.2). */
+textarea.zg-field {
+  resize: vertical;
+  max-width: 100%;
+}
+
+.zg-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--zg-space-3);
+  margin-top: var(--zg-space-6);
+}
+
+/* --- 5.3 Attachment selection --------------------------------------------- */
+
+.zg-dropzone {
+  border: var(--zg-border-width) dashed var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  padding: var(--zg-space-5);
+  text-align: center;
+}
+
+.zg-dropzone--disabled {
+  background: var(--zg-disabled-bg);
+  color: var(--zg-disabled-text);
+}
+
+.zg-file-input {
+  margin-top: var(--zg-space-3);
+  font: var(--zg-font-small);
+}
+
+.zg-attachment-list {
+  list-style: none;
+  margin: var(--zg-space-4) 0 0;
+  padding: 0;
+}
+
+.zg-attachment-row {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-3);
+  padding: var(--zg-space-3);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  margin-bottom: var(--zg-space-2);
+  background: var(--zg-surface);
+}
+
+.zg-attachment-row--invalid {
+  background: var(--zg-error-bg);
+  border-color: var(--zg-error);
+}
+
+.zg-attachment-name {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Success panel -------------------------------------------------------- */
+
+.zg-created {
+  background: var(--zg-pale);
+  text-align: center;
+}
+
+.zg-created-mark {
+  font: var(--zg-font-h1);
+  color: var(--zg-success);
+  margin: 0;
+}
+
+.zg-created-number {
+  font: var(--zg-font-h2);
+  color: var(--zg-text);
+  margin: var(--zg-space-2) 0;
+}
+
+.zg-created .zg-actions {
+  justify-content: center;
+}
+
+@media (max-width: 767.98px) {
+  .zg-grid-2,
+  .zg-grid-3 { grid-template-columns: minmax(0, 1fr); }
+
+  .zg-actions {
+    flex-direction: column-reverse;
+  }
+
+  .zg-actions .zg-btn { width: 100%; justify-content: center; }
+}

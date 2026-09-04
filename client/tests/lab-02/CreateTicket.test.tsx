@@ -43,6 +43,10 @@ function renderScreen() {
   );
 }
 
+// userEvent is set up with delay: null throughout. Its default inter-keystroke
+// delay makes typing a 90-character Description take seconds in jsdom, which
+// put these tests close enough to the 5s timeout to pass or fail by timing.
+// A test that depends on machine speed is a flaky test.
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByTestId("field-category"), String(CATEGORIES[1].id));
   await user.selectOptions(screen.getByTestId("field-related-system"), String(SYSTEMS[0].id));
@@ -106,7 +110,7 @@ describe("CreateTicket (UI-10 - AC-11)", () => {
 describe("CreateTicket (UI-11 - AC-12)", () => {
   it("blocks submission with an empty Summary and sends no create request", async () => {
     const create = vi.spyOn(api, "createTicket");
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -117,7 +121,7 @@ describe("CreateTicket (UI-11 - AC-12)", () => {
   });
 
   it("renders the Summary message adjacent to the Summary field", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -132,7 +136,7 @@ describe("CreateTicket (UI-11 - AC-12)", () => {
 
 describe("CreateTicket (UI-12 - AC-14)", () => {
   it("renders a message beside every failing field, not one summary at the top", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -146,7 +150,7 @@ describe("CreateTicket (UI-12 - AC-14)", () => {
   });
 
   it("moves focus to the first failing field", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -158,13 +162,13 @@ describe("CreateTicket (UI-12 - AC-14)", () => {
 
 describe("CreateTicket (UI-13 - AC-15)", () => {
   it("disables Submit while a creation is in flight and issues no second request", async () => {
-    let release: (v: unknown) => void = () => {};
+    let release: (v: api.Ticket) => void = () => {};
     const create = vi
       .spyOn(api, "createTicket")
       .mockReturnValue(new Promise((resolve) => {
         release = resolve;
-      }) as ReturnType<typeof api.createTicket>);
-    const user = userEvent.setup();
+      }));
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -201,7 +205,7 @@ describe("CreateTicket (UI-13 - AC-15)", () => {
 describe("CreateTicket (UI-14 - AC-16)", () => {
   it("keeps every entered value and re-enables Submit after a failed creation", async () => {
     vi.spyOn(api, "createTicket").mockRejectedValue(new Error("Network request failed"));
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -238,7 +242,7 @@ describe("CreateTicket (UI-15 - AC-07)", () => {
       createdAt: "2026-09-04T00:00:00.000Z",
       updatedAt: "2026-09-04T00:00:00.000Z",
     });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
@@ -271,7 +275,7 @@ describe("CreateTicket (UI-15 - AC-07)", () => {
       createdAt: "2026-09-04T00:00:00.000Z",
       updatedAt: "2026-09-04T00:00:00.000Z",
     });
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
 
     renderScreen();
     await screen.findByTestId("field-category");
