@@ -103,8 +103,9 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
   }
 
   // requesterId is never read from the body. Ownership comes from the header
-  // alone (BR-08); a client-supplied value is ignored rather than rejected,
-  // because unknown body properties are ignored per api-spec.md 1.5.
+  // alone, and a client-supplied value is ignored outright rather than
+  // compared against it (BR-08): consistency-checking would invite clients to
+  // send the field, and ownership must have exactly one source.
   try {
     const created = await prisma.$transaction(async (tx) => {
       // The sequence row is read, advanced, and written inside the same

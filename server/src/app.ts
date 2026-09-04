@@ -3,9 +3,6 @@ import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 import { ticketsRouter } from "./lab-02/tickets.routes.js";
-// getPrisma() is your lazy database handle. Call it INSIDE a route when you
-// need the DB (Issue 4). It is intentionally unused until then.
-void getPrisma;
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
