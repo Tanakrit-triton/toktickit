@@ -3,6 +3,7 @@ import { getPrisma } from "../prisma.js";
 import { buildError, type ErrorDetails } from "./errors.js";
 import { requireRequester } from "./requester-context.js";
 import { allocateTicketNumber } from "./ticket-number.js";
+import { parseTicketListQuery } from "./ticket-query.js";
 import {
   validateDescription,
   validateReferenceId,
@@ -144,5 +145,104 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
     res.status(201).json({ data: toTicketResponse(created as TicketWithRelations) });
   } catch {
     res.status(500).json(buildError("INTERNAL_ERROR", "The ticket could not be created. Try again."));
+  }
+});
+
+
+/**
+ * GET /api/v1/tickets -- the selected Requester's Tickets, paginated
+ * (FR-16 to FR-20).
+ */
+ticketsRouter.get("/tickets", requireRequester, async (req: Request, res: Response) => {
+  const prisma = getPrisma();
+  const requester = req.requester!;
+
+  const parsed = parseTicketListQuery(req.query as Record<string, unknown>);
+  if (!parsed.ok) {
+    res.status(400).json(buildError("BAD_REQUEST", parsed.message));
+    return;
+  }
+  const { q, categoryId, relatedSystemId, requestedPriority, sortBy, sortOrder, page, pageSize } =
+    parsed.query;
+
+  // requesterId is applied here and cannot be overridden by any parameter, so
+  // scoping is a property of the query rather than a filter a client could
+  // drop (BR-16, BR-17).
+  const where = {
+    requesterId: requester.id,
+    ...(categoryId === undefined ? {} : { categoryId }),
+    ...(relatedSystemId === undefined ? {} : { relatedSystemId }),
+    ...(requestedPriority === undefined ? {} : { requestedPriority }),
+    ...(q === undefined
+      ? {}
+      : {
+          OR: [
+            { ticketNumber: { contains: q, mode: "insensitive" as const } },
+            { summary: { contains: q, mode: "insensitive" as const } },
+          ],
+        }),
+  };
+
+  try {
+    // requestedPriority orders by severity because the Postgres enum sorts by
+    // declaration order and RequestedPriority is declared LOW, MEDIUM, HIGH,
+    // URGENT (BR-44). Reordering that enum would silently change this sort.
+    //
+    // id ascending is applied as a secondary key on every sort, so a query
+    // whose primary key ties -- priority, most obviously -- still returns a
+    // total order and paging cannot skip or repeat a row (BR-43).
+    const orderBy = [{ [sortBy]: sortOrder }, { id: "asc" as const }];
+
+    const [totalItems, rows] = await prisma.$transaction([
+      prisma.ticket.count({ where }),
+      prisma.ticket.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          ticketNumber: true,
+          summary: true,
+          requestedPriority: true,
+          currentStatus: true,
+          createdAt: true,
+          updatedAt: true,
+          category: { select: { id: true, name: true } },
+          relatedSystem: { select: { id: true, name: true } },
+          // Active attachments only: a removed attachment keeps its metadata
+          // but stops counting (BR-32, BR-40). Always zero until #18.
+          _count: { select: { attachments: { where: { removedAt: null } } } },
+        },
+      }),
+    ]);
+
+    // description is deliberately absent from list items; it is available from
+    // Ticket Detail.
+    const data = rows.map((row) => ({
+      id: row.id,
+      ticketNumber: row.ticketNumber,
+      summary: row.summary,
+      category: row.category,
+      relatedSystem: row.relatedSystem,
+      requestedPriority: row.requestedPriority,
+      currentStatus: row.currentStatus,
+      attachmentCount: row._count.attachments,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    }));
+
+    res.status(200).json({
+      data,
+      meta: {
+        page,
+        pageSize,
+        totalItems,
+        // Zero pages when nothing matches, rather than one empty page.
+        totalPages: Math.ceil(totalItems / pageSize),
+      },
+    });
+  } catch {
+    res.status(500).json(buildError("INTERNAL_ERROR", "Could not load your tickets. Try again."));
   }
 });
