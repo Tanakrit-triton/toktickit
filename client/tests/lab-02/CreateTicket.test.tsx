@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
 import { CreateTicket } from "../../src/lab-02/screens/CreateTicket.js";
+import { AttachmentSelection, type SelectedFile } from "../../src/lab-02/components/AttachmentSelection.js";
 import * as api from "../../src/lab-02/api.js";
 
 // UI-10 .. UI-15 from docs/lab-02/tests.md section 2.3.
@@ -287,5 +288,69 @@ describe("CreateTicket (UI-15 - AC-07)", () => {
 
     expect(await screen.findByTestId("field-summary")).toHaveValue("");
     expect(screen.getByTestId("field-description")).toHaveValue("");
+  });
+});
+
+describe("CreateTicket (UI-30 - AC-17)", () => {
+  // AC-17 is selection-time file validation, which is Create Ticket behaviour,
+  // so it belongs to #16 rather than to #18's AttachmentSection suite. It is
+  // exercised through the component that owns the rule, with upload available,
+  // because the Create Ticket screen itself currently withholds selection --
+  // see UI-31.
+  it("accepts a permitted file and rejects an impermissible one with a reason", async () => {
+    const user = userEvent.setup({ delay: null });
+    let current: SelectedFile[] = [];
+
+    render(<AttachmentSelection files={[]} onChange={(next) => { current = next; }} uploadAvailable />);
+
+    const good = new File(["png bytes"], "screenshot.png", { type: "image/png" });
+    const bad = new File(["exe bytes"], "payload.exe", { type: "application/x-msdownload" });
+    await user.upload(screen.getByTestId("field-attachments"), [good, bad]);
+
+    expect(current).toHaveLength(2);
+    expect(current[0].file.name).toBe("screenshot.png");
+    expect(current[0].error).toBeNull();
+    expect(current[1].file.name).toBe("payload.exe");
+    expect(current[1].error).toMatch(/type not permitted/i);
+  });
+
+  it("rejects a file over 5 MB with a reason naming the size", async () => {
+    const user = userEvent.setup({ delay: null });
+    let current: SelectedFile[] = [];
+
+    render(<AttachmentSelection files={[]} onChange={(next) => { current = next; }} uploadAvailable />);
+
+    const oversized = new File([new ArrayBuffer(5 * 1024 * 1024 + 1)], "scan.pdf", {
+      type: "application/pdf",
+    });
+    await user.upload(screen.getByTestId("field-attachments"), oversized);
+
+    expect(current[0].error).toMatch(/exceeds 5 MB/i);
+  });
+
+  it("keeps a rejected file visible rather than discarding it", async () => {
+    const rejected: SelectedFile[] = [
+      {
+        file: new File(["x"], "payload.exe", { type: "application/x-msdownload" }),
+        error: "File type not permitted",
+      },
+    ];
+
+    render(<AttachmentSelection files={rejected} onChange={vi.fn()} uploadAvailable />);
+
+    expect(screen.getByTestId("attachment-row-invalid")).toBeInTheDocument();
+    expect(screen.getByTestId("attachment-error")).toHaveTextContent("File type not permitted");
+  });
+});
+
+describe("CreateTicket (UI-31 - temporary constraint, removed by #18)", () => {
+  it("offers no file selection and says where attachments are added instead", async () => {
+    renderScreen();
+    await screen.findByTestId("field-category");
+
+    // Upload is #18. Accepting a file this screen cannot send would let a
+    // Requester believe evidence was attached when nothing was transmitted.
+    expect(screen.queryByTestId("field-attachments")).not.toBeInTheDocument();
+    expect(screen.getByTestId("attachment-deferred")).toHaveTextContent(/Ticket Detail/i);
   });
 });

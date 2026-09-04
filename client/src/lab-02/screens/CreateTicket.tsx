@@ -195,13 +195,20 @@ export function CreateTicket() {
         <p className="zg-created-number">{created.ticketNumber}</p>
         <p className="zg-helper">Keep this number to refer to your request.</p>
         <div className="zg-actions">
-          <Link
+          {/*
+            Ticket Detail is Issue #18 and nothing serves /tickets/{id} yet, so
+            a link would silently redirect to the list. Presented as disabled
+            with the reason stated, rather than appearing to work.
+          */}
+          <button
+            type="button"
             className="zg-btn zg-btn--primary"
             data-testid="btn-view-ticket"
-            to={`/tickets/${created.id}`}
+            disabled
+            title="Ticket Detail arrives in a later change"
           >
             View Ticket
-          </Link>
+          </button>
           <button
             type="button"
             className="zg-btn zg-btn--secondary"
@@ -348,7 +355,12 @@ export function CreateTicket() {
       </fieldset>
 
       {/* 4. Attachments. Selection and validation only; upload is #18. */}
-      <AttachmentSelection files={files} onChange={setFiles} disabled={submitting} />
+      <AttachmentSelection
+        files={files}
+        onChange={setFiles}
+        disabled={submitting}
+        uploadAvailable={false}
+      />
 
       {/* API failure callout sits above the actions, with every entered value
           left untouched (ui-spec 5.2, AC-16). */}

@@ -57,9 +57,20 @@ export interface AttachmentSelectionProps {
   files: SelectedFile[];
   onChange: (files: SelectedFile[]) => void;
   disabled?: boolean;
+  /**
+   * False while the upload endpoint does not exist (Issue #18). The control
+   * then offers no selection at all rather than accepting files it cannot
+   * send, which would let a Requester believe evidence was attached.
+   */
+  uploadAvailable?: boolean;
 }
 
-export function AttachmentSelection({ files, onChange, disabled = false }: AttachmentSelectionProps) {
+export function AttachmentSelection({
+  files,
+  onChange,
+  disabled = false,
+  uploadAvailable = true,
+}: AttachmentSelectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Only valid files count toward the limit; a rejected one stays visible but
@@ -78,6 +89,17 @@ export function AttachmentSelection({ files, onChange, disabled = false }: Attac
     <fieldset className="zg-group" data-testid="attachment-selection">
       <legend className="zg-legend">Attachments</legend>
 
+      {/*
+        Upload is Issue #18. Until it lands this screen offers no selection at
+        all: accepting a file it cannot send would let a Requester believe
+        evidence was attached when nothing was transmitted. Recorded as a
+        temporary constraint in specification.md section 11 (A-06).
+      */}
+      {!uploadAvailable ? (
+        <p className="zg-helper" data-testid="attachment-deferred">
+          Attachments are added from Ticket Detail once the ticket has been created.
+        </p>
+      ) : (
       <div className={limitReached ? "zg-dropzone zg-dropzone--disabled" : "zg-dropzone"}>
         {limitReached ? (
           <p className="zg-helper" data-testid="attachment-limit-reached">
@@ -93,13 +115,17 @@ export function AttachmentSelection({ files, onChange, disabled = false }: Attac
               multiple
               className="zg-file-input"
               data-testid="field-attachments"
-              accept=".jpg,.jpeg,.png,.webp,.pdf"
+              // No accept filter: it would make the browser hide
+              // impermissible files, so the "File type not permitted" state
+              // ui-spec 5.3 specifies could never be reached. validateSelection
+              // is the single gate, and it reports the reason (BR-30).
               disabled={disabled}
               onChange={(e) => handleFiles(e.target.files)}
             />
           </>
         )}
       </div>
+      )}
 
       {files.length > 0 && (
         <ul className="zg-attachment-list">
