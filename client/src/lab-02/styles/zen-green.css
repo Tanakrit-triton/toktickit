@@ -255,3 +255,102 @@ body {
   background: var(--zg-readonly-bg);
   border-radius: var(--zg-radius-md);
 }
+
+/* --- 4. Application shell ------------------------------------------------- */
+
+.zg-header {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-4);
+  flex-wrap: wrap;
+  padding: var(--zg-space-3) var(--zg-space-4);
+  background: var(--zg-primary);
+  color: var(--zg-surface);
+}
+
+.zg-brand {
+  font: var(--zg-font-h2);
+  color: var(--zg-surface);
+}
+
+.zg-nav-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-4);
+  flex: 1;
+  justify-content: space-between;
+}
+
+.zg-nav {
+  display: flex;
+  gap: var(--zg-space-4);
+}
+
+.zg-nav-link {
+  color: var(--zg-surface);
+  text-decoration: none;
+  padding: var(--zg-space-2) var(--zg-space-1);
+  border-bottom: 3px solid transparent;
+}
+
+/* Active indication is a border plus aria-current, never colour alone. */
+.zg-nav-link[aria-current="page"] {
+  border-bottom-color: var(--zg-surface);
+}
+
+.zg-nav-link:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+}
+
+.zg-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-3);
+  font: var(--zg-font-small);
+  color: var(--zg-surface);
+}
+
+.zg-identity-action {
+  color: var(--zg-surface);
+  text-decoration: underline;
+}
+
+.zg-nav-toggle {
+  display: none;
+  min-height: 44px;
+  padding: var(--zg-space-2) var(--zg-space-3);
+  font: var(--zg-font-label);
+  color: var(--zg-surface);
+  background: transparent;
+  border: var(--zg-border-width) solid var(--zg-surface);
+  border-radius: var(--zg-radius-md);
+  cursor: pointer;
+}
+
+.zg-main {
+  padding: var(--zg-space-6) var(--zg-space-4);
+}
+
+/* Bootstrap's md breakpoint, reused rather than replaced (ui-spec section 7). */
+@media (max-width: 767.98px) {
+  .zg-nav-toggle {
+    display: inline-flex;
+  }
+
+  .zg-nav-panel {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zg-space-3);
+  }
+
+  .zg-nav-panel--open {
+    display: flex;
+  }
+
+  .zg-nav {
+    flex-direction: column;
+    width: 100%;
+  }
+}
