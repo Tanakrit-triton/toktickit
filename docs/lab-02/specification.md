@@ -138,7 +138,7 @@ Explicitly out of scope for Lab 2. Any of these appearing in the implementation 
 | BR-02 | A new Ticket begins with Current Status `New`. |
 | BR-03 | Lab 2 uses a Development Requester selector instead of login. The selected identity is for testing only and is not authentication. |
 | BR-04 | The Ticket Number format is `TKT-YYYY-NNNNN`, where `YYYY` is the creation year and `NNNNN` is a zero-padded sequence that resets annually. Inherited from D-10. |
-| BR-05 | The Ticket Number is allocated inside the same database transaction that inserts the Ticket, so that no gap or duplicate can result from concurrent creation. |
+| BR-05 | Ticket Number allocation must be atomic with respect to concurrent creation: two Tickets created simultaneously must never receive the same number, and a failed creation must not consume a number. Being inside a transaction is necessary but not sufficient — at READ COMMITTED, a value computed in application code from a prior read can be duplicated by a concurrent caller. The sequence is therefore incremented by a single atomic database operation whose returned value is used. Proved by API-41. |
 | BR-06 | Ticket Date is the system-recorded creation timestamp. It is not editable by the Requester. |
 | BR-07 | Ticket Number, Ticket Date, Requester, and Current Status are read-only on every screen in Lab 2. |
 | BR-08 | The Requester of a Ticket is taken from the selected Development Requester context on the server side. A `requesterId` supplied by the client is ignored outright. It is **not** consistency-checked: comparing it would invite clients to send it, and any field a client is invited to send is a field a later change might be tempted to trust. Ownership has exactly one source. |
@@ -480,6 +480,17 @@ The SDS conflict rule requires that a feature specification may extend the SDS b
 |---|---|---|---|
 | DEV-01 | **D-09** — KMUTT palette: Orange `#FA4616`, Yellow `#FFC72C`, Blue Grey `#7B8189` | Lab 2 uses the Zen Green palette mandated by the Lab 2 handout: `#006B3C`, `#0B7A46`, `#EAF6EF`, `#F5F7F6` | The handout fixes these tokens and grades against them. The conflict is confined to colour values; the accessibility rule that status and priority are never conveyed by colour alone is preserved unchanged. Requires a D-09 amendment before the system-level baseline is used for a later sprint. |
 | DEV-02 | **D-06** — Attachment storage on SeaweedFS via an S3-compatible adapter, PostgreSQL holding metadata only | Lab 2 stores attachment binaries on the local filesystem under `server/storage/attachments/`, with PostgreSQL holding metadata only | The metadata boundary from D-06 is preserved, so only the storage adapter changes. Standing up SeaweedFS is disproportionate to a single-sprint Requester slice. The upload and download paths are written behind one storage interface so that the S3 adapter can be substituted without touching route or service code. |
+
+
+### Amendments to approved business rules
+
+A rule in Section 5 was changed after approval. Recorded here rather than left
+to a diff, because the Section 5 rules are the approved baseline the sprint is
+graded against.
+
+| ID | Rule | Change | Reason |
+|---|---|---|---|
+| AMD-01 | **BR-05** — Ticket Number allocation | Was: "The Ticket Number is allocated inside the same database transaction that inserts the Ticket, so that no gap or duplicate can result from concurrent creation." Now states the required property — allocation must be atomic with respect to concurrent creation — with the transaction and the atomic increment as how that property is met. | The original wording named a mechanism and assumed a guarantee that mechanism does not deliver. It was implemented faithfully: the read, the sequence write, and the insert all ran inside one `prisma.$transaction`. It still permitted duplicate allocation, because the successor was computed in application code from a prior read, and at READ COMMITTED two concurrent callers reach the same value. Eight parallel creations failed six times, each with a `500` where the unique constraint caught the duplicate. A rule that can be satisfied to the letter while the defect it exists to prevent remains reachable is a defective rule, so it was changed from naming a mechanism to stating the property, with the mechanism demoted to how the property is met. API-41 now proves the property directly. |
 
 ### Decisions taken within this sprint
 
