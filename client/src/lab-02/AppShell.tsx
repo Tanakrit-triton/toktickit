@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 import { useRequester } from "./RequesterContext.js";
 import { RequesterSelection } from "./screens/RequesterSelection.js";
 
@@ -54,12 +55,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           className={navOpen ? "zg-nav-panel zg-nav-panel--open" : "zg-nav-panel"}
         >
         <nav className="zg-nav" aria-label="Main">
-          <a className="zg-nav-link" href="/tickets" aria-current="page">
+          {/* NavLink sets aria-current="page" on the active route itself, so
+              active indication follows the URL rather than a hardcoded prop.
+              The 3px white underline comes from the [aria-current] rule in
+              the stylesheet, so state is never signalled by colour alone. */}
+          <NavLink className="zg-nav-link" to="/tickets" end>
             My Tickets
-          </a>
-          <a className="zg-nav-link" href="/tickets/new">
+          </NavLink>
+          <NavLink className="zg-nav-link" to="/tickets/new">
             Create Ticket
-          </a>
+          </NavLink>
         </nav>
 
         <div className="zg-identity">

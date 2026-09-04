@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
 import { AppShell } from "../../src/lab-02/AppShell.js";
 import * as api from "../../src/lab-02/api.js";
@@ -15,7 +16,13 @@ const SELECTED_KEY = "toktickit.selectedRequester";
 function renderShell(children = <p>My Tickets</p>) {
   return render(
     <RequesterProvider>
-      <AppShell>{children}</AppShell>
+      {/* AppShell renders NavLink, which needs router context. The shell is
+          always mounted inside a Router in the application (see AppRoutes),
+          so supplying one here matches how it actually runs. UI-29 is what
+          proves the real route tree wires it up. */}
+      <MemoryRouter initialEntries={["/tickets"]}>
+        <AppShell>{children}</AppShell>
+      </MemoryRouter>
     </RequesterProvider>,
   );
 }
