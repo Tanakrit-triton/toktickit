@@ -12,3 +12,6 @@ server/prisma/*.db
 # logs & OS
 *.log
 .DS_Store
+# attachment binaries (DEV-02: local filesystem stands in for SeaweedFS).
+# Metadata lives in PostgreSQL; the files themselves are never committed.
+server/storage/
