@@ -246,3 +246,105 @@ ticketsRouter.get("/tickets", requireRequester, async (req: Request, res: Respon
     res.status(500).json(buildError("INTERNAL_ERROR", "Could not load your tickets. Try again."));
   }
 });
+
+const UUID_PATTERN =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/** Attachment metadata as api-spec 4.2 defines it. storedFilename never appears (BR-28). */
+function toAttachmentResponse(row: {
+  id: string;
+  ticketId: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedAt: Date;
+  removedAt: Date | null;
+  removedReason: string | null;
+  uploadedBy?: { id: string; fullName: string };
+}) {
+  return {
+    id: row.id,
+    ticketId: row.ticketId,
+    originalFilename: row.originalFilename,
+    mimeType: row.mimeType,
+    sizeBytes: row.sizeBytes,
+    ...(row.uploadedBy ? { uploadedBy: row.uploadedBy } : {}),
+    uploadedAt: row.uploadedAt.toISOString(),
+    status: row.removedAt === null ? "ACTIVE" : "REMOVED",
+    removedAt: row.removedAt === null ? null : row.removedAt.toISOString(),
+    removedReason: row.removedReason,
+  };
+}
+
+/**
+ * The single refusal used for everything a Requester may not reach.
+ *
+ * A foreign resource and a missing one produce byte-identical bodies. Any
+ * difference would confirm that the resource exists, which is exactly what
+ * BR-18 forbids and DEC-01 chose 404 over 403 to avoid.
+ */
+function refuse(res: Response): void {
+  res.status(404).json(buildError("NOT_FOUND", "The requested resource does not exist."));
+}
+
+/** GET /api/v1/tickets/{ticketId} -- one owned Ticket with its attachments (FR-24). */
+ticketsRouter.get("/tickets/:ticketId", requireRequester, async (req: Request, res: Response) => {
+  const prisma = getPrisma();
+  const requester = req.requester!;
+  const { ticketId } = req.params;
+
+  if (!UUID_PATTERN.test(ticketId)) {
+    // Malformed is a 400: the server could not interpret the request at all,
+    // which is a different thing from a well-formed request for something the
+    // Requester may not have.
+    res.status(400).json(buildError("BAD_REQUEST", "The ticket identifier is not valid."));
+    return;
+  }
+
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: {
+        id: true,
+        ticketNumber: true,
+        requesterId: true,
+        summary: true,
+        description: true,
+        requestedPriority: true,
+        currentStatus: true,
+        createdAt: true,
+        updatedAt: true,
+        requester: { select: { id: true, fullName: true } },
+        category: { select: { id: true, name: true } },
+        relatedSystem: { select: { id: true, name: true } },
+        attachments: {
+          orderBy: { uploadedAt: "asc" },
+          select: {
+            id: true,
+            ticketId: true,
+            originalFilename: true,
+            mimeType: true,
+            sizeBytes: true,
+            uploadedAt: true,
+            removedAt: true,
+            removedReason: true,
+          },
+        },
+      },
+    });
+
+    if (ticket === null || ticket.requesterId !== requester.id) {
+      refuse(res);
+      return;
+    }
+
+    res.status(200).json({
+      data: {
+        ...toTicketResponse(ticket as unknown as TicketWithRelations),
+        attachments: ticket.attachments.map(toAttachmentResponse),
+      },
+    });
+  } catch {
+    res.status(500).json(buildError("INTERNAL_ERROR", "Could not load the ticket. Try again."));
+  }
+});
