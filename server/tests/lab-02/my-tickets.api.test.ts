@@ -325,3 +325,32 @@ describe("GET /api/v1/tickets (API-19 - BR-43)", () => {
     );
   });
 });
+
+describe("GET /api/v1/tickets (API-42 - FR-18)", () => {
+  it("returns only Tickets on the filtered Related System", async () => {
+    // Every fixture ticket uses the same Related System, so a filter that was
+    // silently ignored would return all twelve and look identical to a filter
+    // that worked. The negative case below is what separates them.
+    const matching = await get(`?relatedSystemId=${systemA}&pageSize=50`);
+
+    expect(matching.status).toBe(200);
+    expect(matching.body.meta.totalItems).toBe(TOTAL);
+    for (const ticket of matching.body.data) {
+      expect(ticket.relatedSystem.id).toBe(systemA);
+    }
+  });
+
+  it("returns nothing for a Related System no Ticket uses", async () => {
+    const other = await prisma.relatedSystem.findFirst({
+      where: { isActive: true, id: { not: systemA } },
+      orderBy: { name: "asc" },
+    });
+    expect(other, "seed must provide a second Related System").not.toBeNull();
+
+    const response = await get(`?relatedSystemId=${other!.id}&pageSize=50`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.meta.totalItems).toBe(0);
+    expect(response.body.data).toEqual([]);
+  });
+});

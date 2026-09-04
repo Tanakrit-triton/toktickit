@@ -223,3 +223,84 @@ describe("MyTickets (UI-26 - FR-33)", () => {
     expect(rendered).not.toMatch(/routes\.ts/);
   });
 });
+
+describe("MyTickets (UI-32 - AC-40)", () => {
+  // ui-spec 5.4 requires cards below 768px, not a table that scrolls
+  // sideways. The difference is in the DOM, not only in styling: a table
+  // hidden by CSS is still a table to assistive technology, so the switch is
+  // driven from matchMedia and asserted here. The layout at a real viewport is
+  // RSP-04 in #19; this proves the component chooses correctly.
+  function setViewport(isMobile: boolean) {
+    window.matchMedia = ((query: string) => ({
+      matches: isMobile && query.includes("max-width"),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+  }
+
+  it("renders cards and no table below 768px", async () => {
+    setViewport(true);
+    vi.spyOn(api, "fetchTickets").mockResolvedValue(POPULATED);
+
+    renderScreen();
+
+    const card = await screen.findByTestId("ticket-card-TKT-2026-00042");
+    expect(card).toBeInTheDocument();
+    expect(screen.queryByTestId("ticket-table")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ticket-row-TKT-2026-00042")).not.toBeInTheDocument();
+
+    // Every fact the desktop row carries is still present on the card.
+    expect(card).toHaveTextContent("TKT-2026-00042");
+    expect(card).toHaveTextContent("Laptop battery drains within one hour");
+    expect(card).toHaveTextContent("Hardware");
+    expect(card).toHaveTextContent(/high/i);
+    expect(card).toHaveTextContent(/new/i);
+  });
+
+  it("renders the table and no cards at desktop width", async () => {
+    setViewport(false);
+    vi.spyOn(api, "fetchTickets").mockResolvedValue(POPULATED);
+
+    renderScreen();
+
+    await screen.findByTestId("ticket-row-TKT-2026-00042");
+    expect(screen.getByTestId("ticket-table")).toBeInTheDocument();
+    expect(screen.queryByTestId("ticket-card-TKT-2026-00042")).not.toBeInTheDocument();
+  });
+});
+
+describe("MyTickets (UI-33 - FR-20)", () => {
+  it("requests the chosen page size and returns to page 1", async () => {
+    const fetchTickets = vi.spyOn(api, "fetchTickets").mockResolvedValue(POPULATED);
+    const user = userEvent.setup({ delay: null });
+
+    renderScreen();
+    await screen.findByTestId("ticket-row-TKT-2026-00042");
+
+    await user.selectOptions(screen.getByTestId("field-page-size"), "50");
+
+    await waitFor(() => {
+      const last = fetchTickets.mock.calls[fetchTickets.mock.calls.length - 1][1];
+      expect(last.pageSize).toBe(50);
+      // Page 4 of a ten-per-page result does not exist at fifty per page.
+      expect(last.page).toBe(1);
+    });
+  });
+
+  it("offers exactly the three permitted page sizes", async () => {
+    vi.spyOn(api, "fetchTickets").mockResolvedValue(POPULATED);
+
+    renderScreen();
+    await screen.findByTestId("ticket-row-TKT-2026-00042");
+
+    const options = Array.from(
+      screen.getByTestId("field-page-size").querySelectorAll("option"),
+    ).map((o) => o.value);
+    expect(options).toEqual(["10", "20", "50"]);
+  });
+});
