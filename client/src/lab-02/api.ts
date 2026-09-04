@@ -181,3 +181,99 @@ export async function fetchTickets(
   }
   return (await response.json()) as TicketListPage;
 }
+
+export interface Attachment {
+  id: string;
+  ticketId: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedAt: string;
+  status: "ACTIVE" | "REMOVED";
+  removedAt: string | null;
+  removedReason: string | null;
+  uploadedBy?: { id: string; fullName: string };
+}
+
+export interface TicketDetail extends Ticket {
+  attachments: Attachment[];
+}
+
+/** GET /api/v1/tickets/{id} -- Scoped. A foreign ticket is refused as a miss. */
+export async function fetchTicket(requesterId: string, ticketId: string): Promise<TicketDetail> {
+  const response = await fetch(`${API_BASE}/api/v1/tickets/${ticketId}`, {
+    headers: { "X-Dev-Requester-Id": requesterId },
+  });
+  if (!response.ok) {
+    throw new Error(`ticket request failed with ${response.status}`);
+  }
+  return ((await response.json()) as { data: TicketDetail }).data;
+}
+
+/**
+ * A refusal the caller can act on without seeing the status code. The UI needs
+ * to distinguish "too big", "wrong type" and "too many" to word its message,
+ * and must not render the server's text verbatim (BR-28).
+ */
+export type UploadRefusal = "TOO_LARGE" | "UNSUPPORTED_TYPE" | "LIMIT_REACHED" | "FAILED";
+
+export class AttachmentUploadError extends Error {
+  constructor(readonly refusal: UploadRefusal) {
+    super("attachment upload refused");
+    this.name = "AttachmentUploadError";
+  }
+}
+
+/** POST /api/v1/tickets/{id}/attachments -- Scoped, multipart. */
+export async function uploadAttachment(
+  requesterId: string,
+  ticketId: string,
+  file: File,
+): Promise<Attachment> {
+  const form = new FormData();
+  form.append("file", file);
+
+  const response = await fetch(`${API_BASE}/api/v1/tickets/${ticketId}/attachments`, {
+    method: "POST",
+    headers: { "X-Dev-Requester-Id": requesterId },
+    body: form,
+  });
+
+  if (!response.ok) {
+    const refusal: UploadRefusal =
+      response.status === 413
+        ? "TOO_LARGE"
+        : response.status === 415
+          ? "UNSUPPORTED_TYPE"
+          : response.status === 409
+            ? "LIMIT_REACHED"
+            : "FAILED";
+    throw new AttachmentUploadError(refusal);
+  }
+  return ((await response.json()) as { data: Attachment }).data;
+}
+
+/** DELETE /api/v1/attachments/{id} -- Scoped soft removal. */
+export async function removeAttachment(
+  requesterId: string,
+  attachmentId: string,
+  removalReason: string,
+): Promise<Attachment> {
+  const response = await fetch(`${API_BASE}/api/v1/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Dev-Requester-Id": requesterId,
+    },
+    body: JSON.stringify({ removalReason }),
+  });
+  if (!response.ok) {
+    throw new Error(`attachment removal failed with ${response.status}`);
+  }
+  return ((await response.json()) as { data: Attachment }).data;
+}
+
+/** The download is a plain navigation so the browser handles the save dialogue. */
+export function attachmentDownloadUrl(attachmentId: string): string {
+  return `${API_BASE}/api/v1/attachments/${attachmentId}/download`;
+}
