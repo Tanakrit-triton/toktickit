@@ -105,7 +105,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | API-36 | API | BR-32 | Removed frees a slot | After removing one of five, a new upload succeeds | `attachments.api.test.ts` | |
 | API-37 | API | BR-28 | No internal leakage | `storedFilename` and file paths appear in no response body | `attachments.api.test.ts` | |
 
-### 2.3 UI component — `client/src/tests/lab-02/`
+### 2.3 UI component — `client/tests/lab-02/`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Final |
 |---|---|---|---|---|---|---|
@@ -138,7 +138,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-27 | UI | AC-26 | Read-only detail | No input, textarea, or edit control is present in the ticket region | `RequesterTicketDetail.test.tsx` | |
 | UI-28 | UI | Scope §3 | Exclusion guard | No comment box, internal note, Actions Taken, or status control is rendered | `RequesterTicketDetail.test.tsx` | |
 
-### 2.4 UI style — `client/src/tests/lab-02/theme.style.test.tsx`
+### 2.4 UI style — `client/tests/lab-02/theme.style.test.tsx`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Final |
 |---|---|---|---|---|---|---|

@@ -219,3 +219,39 @@ body {
   padding: var(--zg-space-2) var(--zg-space-4);
   text-align: center;
 }
+
+/* --- 5.1 Development Requester Selection ---------------------------------
+ * Centred card, maximum width 480px, on the page background.
+ */
+
+.zg-selection-screen {
+  display: flex;
+  justify-content: center;
+  padding: var(--zg-space-7) var(--zg-space-4);
+}
+
+.zg-selection-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.zg-title {
+  font: var(--zg-font-h1);
+  color: var(--zg-text);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-selection-continue {
+  margin-top: var(--zg-space-5);
+  width: 100%;
+}
+
+/* Occupies the space the dropdown will take, so the card does not jump when
+   the request settles. */
+.zg-skeleton {
+  display: block;
+  height: 46px;
+  margin: var(--zg-space-4) 0 var(--zg-space-2);
+  background: var(--zg-readonly-bg);
+  border-radius: var(--zg-radius-md);
+}
