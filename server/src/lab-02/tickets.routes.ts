@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { buildError, type ErrorDetails } from "./errors.js";
 import { requireRequester } from "./requester-context.js";
-import { formatTicketNumber, nextSequence } from "./ticket-number.js";
+import { allocateTicketNumber } from "./ticket-number.js";
 import {
   validateDescription,
   validateReferenceId,
@@ -108,23 +108,14 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
   // send the field, and ownership must have exactly one source.
   try {
     const created = await prisma.$transaction(async (tx) => {
-      // The sequence row is read, advanced, and written inside the same
-      // transaction as the insert, so concurrent creation cannot produce a gap
-      // or a duplicate (BR-05).
-      const now = new Date();
-      const current = await tx.ticketNumberSequence.findUnique({
-        where: { year: now.getUTCFullYear() },
-      });
-      const next = nextSequence(current, now);
-      await tx.ticketNumberSequence.upsert({
-        where: { year: next.year },
-        update: { lastValue: next.lastValue },
-        create: { year: next.year, lastValue: next.lastValue },
-      });
+      // Allocated inside this transaction, and incremented atomically in the
+      // database rather than computed from a stale read, so concurrent
+      // creation cannot produce a duplicate or a gap (BR-05).
+      const ticketNumber = await allocateTicketNumber(tx, new Date());
 
       return tx.ticket.create({
         data: {
-          ticketNumber: formatTicketNumber(next.year, next.lastValue),
+          ticketNumber,
           requesterId: requester.id,
           categoryId: body.categoryId as number,
           relatedSystemId: body.relatedSystemId as number,

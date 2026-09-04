@@ -44,8 +44,8 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Final |
 |---|---|---|---|---|---|---|
 | UT-01 | Unit | AC-09, BR-04 | Ticket number format | Matches `TKT-YYYY-NNNNN` for the current year | `ticket-number.unit.test.ts` | |
-| UT-02 | Unit | AC-10 | Sequence increments | Two consecutive allocations differ by one | `ticket-number.unit.test.ts` | |
-| UT-03 | Unit | BR-04 | Annual reset | Sequence restarts at 1 when the year changes | `ticket-number.unit.test.ts` | |
+| UT-02 | API | AC-10 | Sequence increments | Two consecutive allocations differ by one | `ticket-number.api.test.ts` | |
+| UT-03 | API | BR-04 | Annual reset | The first allocation of a year starts at 1, leaving the previous year untouched | `ticket-number.api.test.ts` | |
 | UT-04 | Unit | AC-13, BR-19 | Summary lower bound | 9 characters after trimming is rejected; 10 is accepted | `validation.unit.test.ts` | |
 | UT-05 | Unit | BR-19 | Summary upper bound | 150 accepted, 151 rejected | `validation.unit.test.ts` | |
 | UT-06 | Unit | BR-20 | Description bounds | 19 rejected, 20 accepted, 5000 accepted, 5001 rejected | `validation.unit.test.ts` | |
@@ -76,6 +76,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | API-38 | API | AC-11 | Active Categories | Only active Categories returned; inactive absent | `reference-data.api.test.ts` | |
 | API-39 | API | AC-11 | Active Related Systems | Only active Related Systems returned | `reference-data.api.test.ts` | |
 | API-40 | API | AC-01, BR-10 | Active Requesters | Seeded inactive Requester is absent from the response | `reference-data.api.test.ts` | |
+| API-41 | API | BR-05 | **Concurrent allocation** | Eight parallel creations all succeed, with distinct numbers forming an unbroken run and the sequence row ending at the highest | `create-ticket.api.test.ts` | |
 | API-10 | API | AC-18 | Requester scoping | Only the header Requester's Tickets are returned | `my-tickets.api.test.ts` | |
 | API-11 | API | AC-19 | Search by summary | Only matching Tickets returned, case-insensitive | `my-tickets.api.test.ts` | |
 | API-12 | API | BR-45 | Search by ticket number | Partial ticket-number match returns the Ticket | `my-tickets.api.test.ts` | |
@@ -348,7 +349,7 @@ opening the application.
 | Item | Reason | Where it goes |
 |---|---|---|
 | Attachment type validation uses extension plus declared MIME type, not content sniffing | A forged MIME type on a permitted extension would pass. Content-based detection is disproportionate at lab scale, and the stored file is never executed or rendered inline. | Lab 3, alongside real authentication |
-| No concurrency test on ticket-number allocation | BR-05 places allocation inside the insert transaction, which is correct by construction. Proving it under real contention needs a load harness outside this sprint's scope. | Deferred; assumption A-03 in `specification.md` |
+| Ticket-number allocation is proved under concurrency, but not at load | API-41 fires eight parallel creations and asserts distinct, contiguous numbers. That is enough to catch the read-then-write race it was written to expose, and it did: the previous implementation failed six of eight. It is not a load test, and it does not exercise the row-lock behaviour under sustained contention. | Revisit only if load testing is introduced |
 | No visual regression baselines | Screenshots are captured and inspected against the Section 4 checklist by a human. Pixel-diff baselines would fail on every intentional style change during the sprint. | Considered once the theme stabilises |
 | Only `NEW` status is exercised | Every other D-02 status is out of Lab 2 scope. UI-28 asserts that no status control exists, which guards the exclusion. | Lab 3 |
 | Accessibility checks are targeted, not a full audit | STY-07, STY-10, and STY-12 cover labels, focus, and keyboard reach. A complete WCAG audit is beyond a single sprint. | Later hardening sprint |
