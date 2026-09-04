@@ -34,12 +34,29 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
+// A non-empty result is asserted before anything else in every case below.
+//
+// Without it these assertions pass on an empty array and prove nothing:
+// toHaveLength(n) where n is read from the same source succeeds at 0 === 0, a
+// not.toContain check succeeds against no elements, and a for...of loop over
+// the rows runs zero times. This suite was green against a database whose
+// Requesters were all inactive, which is a database that renders an empty
+// selector.
+function expectNonEmpty(data: unknown, what: string): asserts data is unknown[] {
+  expect(Array.isArray(data), `${what}: response.data must be an array`).toBe(true);
+  expect(
+    (data as unknown[]).length,
+    `${what}: expected at least one row. An empty result makes every assertion below vacuous, so it is a failure here, not a pass.`,
+  ).toBeGreaterThan(0);
+}
+
 describe("GET /api/v1/categories (API-38 - AC-11)", () => {
   it("returns active Categories only, inactive absent, sorted by name", async () => {
     const response = await request(app).get("/api/v1/categories");
 
     expect(response.status).toBe(200);
     expect(Object.keys(response.body)).toEqual(["data"]);
+    expectNonEmpty(response.body.data, "categories");
 
     const names = response.body.data.map((c: { name: string }) => c.name);
     expect(names).not.toContain(INACTIVE_CATEGORY);
@@ -49,6 +66,8 @@ describe("GET /api/v1/categories (API-38 - AC-11)", () => {
 
   it("exposes only id and name on each Category", async () => {
     const response = await request(app).get("/api/v1/categories");
+
+    expectNonEmpty(response.body.data, "categories");
 
     for (const category of response.body.data) {
       expect(Object.keys(category).sort()).toEqual(["id", "name"]);
@@ -62,6 +81,7 @@ describe("GET /api/v1/related-systems (API-39 - AC-11)", () => {
 
     expect(response.status).toBe(200);
     expect(Object.keys(response.body)).toEqual(["data"]);
+    expectNonEmpty(response.body.data, "related systems");
 
     const names = response.body.data.map((s: { name: string }) => s.name);
     expect(names).not.toContain(INACTIVE_SYSTEM);
@@ -80,6 +100,8 @@ describe("GET /api/v1/dev-requesters (API-40 - AC-01, BR-10)", () => {
     const response = await request(app).get("/api/v1/dev-requesters");
 
     expect(response.status).toBe(200);
+    expectNonEmpty(response.body.data, "dev requesters");
+
     const ids = response.body.data.map((r: { id: string }) => r.id);
     expect(ids).not.toContain(inactive!.id);
   });
@@ -87,15 +109,27 @@ describe("GET /api/v1/dev-requesters (API-40 - AC-01, BR-10)", () => {
   it("returns every active Requester, sorted by fullName", async () => {
     const activeCount = await prisma.requesterUser.count({ where: { isActive: true } });
 
+    // The seed guarantees four active Requesters. Asserting that here rather
+    // than only comparing the response to the database count means a database
+    // with no active Requester fails the test instead of satisfying it.
+    expect(
+      activeCount,
+      "seed must provide at least one active Requester fixture",
+    ).toBeGreaterThan(0);
+
     const response = await request(app).get("/api/v1/dev-requesters");
 
+    expectNonEmpty(response.body.data, "dev requesters");
     expect(response.body.data).toHaveLength(activeCount);
+
     const names = response.body.data.map((r: { fullName: string }) => r.fullName);
     expect(names).toEqual([...names].sort());
   });
 
   it("exposes only id, fullName, and email on each Requester", async () => {
     const response = await request(app).get("/api/v1/dev-requesters");
+
+    expectNonEmpty(response.body.data, "dev requesters");
 
     for (const requester of response.body.data) {
       expect(Object.keys(requester).sort()).toEqual(["email", "fullName", "id"]);
