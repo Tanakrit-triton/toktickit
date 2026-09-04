@@ -250,3 +250,37 @@ describe("POST /api/v1/tickets (API-09 - BR-13)", () => {
     expect(owned).toBe(0);
   });
 });
+
+describe("POST /api/v1/tickets (API-41 - BR-05)", () => {
+  // Concurrent allocation. BR-05 requires that no gap or duplicate can result
+  // from concurrent creation, which the transaction alone does not deliver: a
+  // value computed in application code from a stale read lets two requests
+  // reach the same number, and only the unique constraint stops one of them
+  // reaching the table.
+  const PARALLEL = 8;
+
+  it("gives every concurrent creation a distinct number and leaves no gap", async () => {
+    const responses = await Promise.all(
+      Array.from({ length: PARALLEL }, () => post(validBody())),
+    );
+
+    const failed = responses.filter((r) => r.status !== 201);
+    expect(
+      failed.map((r) => `${r.status} ${JSON.stringify(r.body)}`),
+      "every concurrent creation must succeed, not lose a race",
+    ).toEqual([]);
+
+    const numbers = responses.map((r) => r.body.data.ticketNumber as string);
+    expect(new Set(numbers).size, "ticket numbers must be distinct").toBe(PARALLEL);
+
+    // Contiguous: the allocated suffixes form an unbroken run, so no value was
+    // consumed and thrown away.
+    const suffixes = numbers.map((n) => Number(n.slice(-5))).sort((a, b) => a - b);
+    expect(suffixes[suffixes.length - 1] - suffixes[0]).toBe(PARALLEL - 1);
+
+    const sequence = await prisma.ticketNumberSequence.findUnique({
+      where: { year: new Date().getUTCFullYear() },
+    });
+    expect(sequence!.lastValue).toBe(suffixes[suffixes.length - 1]);
+  });
+});
