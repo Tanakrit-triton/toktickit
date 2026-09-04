@@ -133,7 +133,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-21 | UI | AC-34 | Reason required | Confirming with an empty reason is blocked with a field message | `AttachmentSection.test.tsx` | |
 | UI-22 | UI | AC-24 | Empty state | "not created any tickets yet" plus a Create Ticket action | `MyTickets.test.tsx` | |
 | UI-23 | UI | AC-25 | No-results state | "No tickets match" plus a Clear Filters action | `MyTickets.test.tsx` | |
-| UI-24 | UI | AC-25 | States are distinct | Empty and no-results differ in both wording and offered action | `MyTickets.test.tsx` | |
+| UI-24 | UI | AC-25 | States are distinct | Empty and no-results differ in both wording and offered action, asserted by comparing the two rendered states | `MyTickets.test.tsx` | |
 | UI-25 | UI | FR-21 | Clear Filters | Resets search, filters, and sort to defaults and refetches | `MyTickets.test.tsx` | |
 | UI-26 | UI | FR-33 | List loading | Loading state rendered while the request is in flight | `MyTickets.test.tsx` | |
 | UI-27 | UI | AC-26 | Read-only detail | No input, textarea, or edit control is present in the ticket region | `RequesterTicketDetail.test.tsx` | |
