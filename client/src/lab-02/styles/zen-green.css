@@ -614,5 +614,53 @@ textarea.zg-field {
 
 @media (max-width: 767.98px) {
   .zg-control-bar { flex-direction: column; align-items: stretch; }
+
+  /* flex: 1 1 180px sets a 180px BASIS, which is a height once the bar
+     stacks. Each control was reserving 180px of vertical space and pushing
+     the ticket list off the screen. */
+  .zg-control-bar .zg-label { flex: 0 0 auto; }
   .zg-list-header { flex-direction: column; align-items: stretch; }
+}
+
+/* --- 5.4 My Tickets, mobile cards ----------------------------------------- */
+
+.zg-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--zg-space-3);
+}
+
+.zg-ticket-card {
+  display: block;
+  /* Touch target minimum from ui-spec 7; the whole card becomes the link
+     target once Ticket Detail exists (#18). */
+  min-height: 44px;
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-4);
+}
+
+.zg-card-top,
+.zg-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zg-space-3);
+}
+
+.zg-card-summary {
+  margin: var(--zg-space-2) 0;
+  color: var(--zg-text);
+}
+
+.zg-ticket-card .zg-helper {
+  margin: 0;
+}
+
+.zg-card-bottom {
+  margin-top: var(--zg-space-3);
 }

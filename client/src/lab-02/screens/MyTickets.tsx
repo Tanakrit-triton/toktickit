@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import * as api from "../api.js";
 import type { ReferenceItem, TicketListPage, TicketListParams } from "../api.js";
 import { useRequester } from "../RequesterContext.js";
+import { MOBILE_QUERY, useMediaQuery } from "../useMediaQuery.js";
 
 // My Tickets -- ui-spec.md section 5.4.
 
@@ -97,6 +98,7 @@ function toParams(f: Filters): TicketListParams {
 
 export function MyTickets() {
   const { requester } = useRequester();
+  const isMobile = useMediaQuery(MOBILE_QUERY);
   const [filters, setFilters] = useState<Filters>(DEFAULTS);
   const [debouncedQ, setDebouncedQ] = useState("");
   const [categories, setCategories] = useState<ReferenceItem[]>([]);
@@ -350,6 +352,37 @@ export function MyTickets() {
 
       {!loading && !failed && rows.length > 0 && (
         <>
+          {isMobile ? (
+            /* Cards below 768px, not a table that scrolls sideways: AC-40 asks
+               for cards "rather than a table", and a table hidden by CSS is
+               still a table in the accessibility tree.
+
+               ui-spec 5.4 makes the whole card the link target. Ticket Detail
+               is #18 and nothing serves /tickets/{id} yet, so the card is an
+               article rather than a link -- the same reasoning A-06 records for
+               the Ticket Number column and for View Ticket. The 44px minimum
+               touch height is already in place for when it becomes a link. */
+            <ul className="zg-card-list" data-testid="ticket-card-list">
+              {rows.map((t) => (
+                <li key={t.id}>
+                  <article className="zg-ticket-card" data-testid={`ticket-card-${t.ticketNumber}`}>
+                    <div className="zg-card-top">
+                      <span className="zg-mono">{t.ticketNumber}</span>
+                      {badge("priority", t.requestedPriority, PRIORITY_LABEL[t.requestedPriority] ?? t.requestedPriority, PRIORITY_GLYPH[t.requestedPriority])}
+                    </div>
+                    <p className="zg-card-summary" title={t.summary}>{t.summary}</p>
+                    <p className="zg-helper">
+                      {t.category.name} &middot; {t.relatedSystem.name}
+                    </p>
+                    <div className="zg-card-bottom">
+                      {badge("status", t.currentStatus, "New")}
+                      <span className="zg-helper">{lastUpdated(t.updatedAt)}</span>
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          ) : (
           <div className="zg-table-scroll">
             <table className="zg-table" data-testid="ticket-table">
               <thead>
@@ -383,6 +416,7 @@ export function MyTickets() {
               </tbody>
             </table>
           </div>
+          )}
 
           <div className="zg-pagination" data-testid="pagination">
             <button
