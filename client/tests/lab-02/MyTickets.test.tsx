@@ -123,6 +123,13 @@ describe("MyTickets (UI-24 - AC-25)", () => {
     const user = userEvent.setup({ delay: null });
 
     renderScreen();
+    // The category options arrive from a separate fetch. Selecting before it
+    // resolves is a race in the test, not in the screen.
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("filter-category").querySelectorAll("option").length,
+      ).toBeGreaterThan(1),
+    );
     await user.selectOptions(screen.getByTestId("filter-category"), "2");
 
     const noResults = await screen.findByTestId("state-no-results", {}, { timeout: 5000 });
