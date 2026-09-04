@@ -25,7 +25,7 @@ No other model or AI service was used in this sprint.
 
 ## 2. Key prompts
 
-Nine prompts, quoted from the session. Long prompts are abridged with an
+Fourteen prompts, quoted from the session. Long prompts are abridged with an
 ellipsis; nothing is reworded or reconstructed.
 
 | # | Prompt | What it was for | What came back |
@@ -39,6 +39,11 @@ ellipsis; nothing is reworded or reconstructed.
 | 7 | "On `feat/lab-02-data-model`, implement Issue #13 only. Review `server/prisma/schema.prisma` and `server/prisma/seed.ts` first - drafts already placed there against `specification.md` Section 7. Use them as the starting point, flag anything contradicting the spec." | Build the data model starting from drafts said to be waiting in the working tree. | **The drafts did not exist.** Both files were still the Lab 1 versions, and a search across every branch, the stash list, and the full history of both files found no reference to `RequesterUser`, `RelatedSystem`, `Ticket`, `Attachment`, or `TicketNumberSequence`. Reported the false premise, then wrote both from section 7 rather than blocking, since section 7 specifies the schema exhaustively. Separately caught a **migration that would have failed on every existing database** - see 3.2. |
 | 8 | "Migration and seed are verified against the live database ... Push `feat/lab-02-data-model` and open a PR for #13 ... Then start Issue #14." | Ship the data model and begin the reference-data API. | PR opened. Two defects surfaced while building #14: a **test race against the Lab 1 suite** (see 3.3), and Issue #14 claiming two covering tests it structurally could not host - API-08 and API-09 test the Requester middleware, but every endpoint in #14's scope is unscoped, so there was no route to exercise the guard against. Both flagged rather than worked around silently. |
 | 9 | "Start Issue #15 on `feat/lab-02-requester-context` ... Every colour must come from the `ui-spec.md` Section 1.1 table. No colour may appear in any stylesheet or component that is absent from it." | Build the Zen Green theme, the selector screen, and the app shell. | Work **stopped before writing anything** to report a blocking dependency: `tests.md` places the UI tests at `client/src/tests/lab-02/`, but the vitest include that collects that path lives on a branch outside this one's ancestry, so the nine tests would have collected as zero while appearing to pass. Asked rather than choosing. Colour conformance was then enforced by a script diffing every hex literal in the client against the section 1.1 table parsed out of the spec, rather than by inspection. |
+| 10 | "Implement Issue #16 in full - API then UI. Read api-spec.md Section 3.1 and ui-spec.md Section 5.2 as your contract. List ambiguities before writing code. ... Watch for assertions deriving their expected value from the same source they test. Counts come from constants in the test file, not `prisma.ticket.count()`." | Build ticket creation, with the vacuous-pass problem named in advance. | Eight contract ambiguities listed before coding, two of them contradictions between documents. Found that `accept=".jpg,..."` on the file input made the "File type not permitted" state ui-spec 5.3 specifies **unreachable** through the picker. Also found two defects in my own tests: `userEvent`'s default keystroke delay made two cases pass or fail by machine load, and a regex built by string concatenation lost its escape and would have accepted a malformed ticket number. |
+| 11 | "Show me the ticket number allocation code ... Is the sequence read and the ticket inserted inside a single `prisma.$transaction`, or are they separate queries? ... If it is not transactional, say so plainly." | Verify BR-05 rather than trust the comment claiming it. | It **was** transactional, and that was not enough. The successor was computed in JavaScript from a prior read, so two concurrent callers reach the same number; only the unique constraint stopped the duplicate, at the cost of a 500. Eight parallel creations failed six times. The rule itself was the defect, and BR-05 was rewritten to state the required property rather than name a mechanism (AMD-01). |
+| 12 | "Implement Issue #17 in full - My Tickets API and UI. ... Invalid query parameters are rejected, never defaulted (BR-47). Requested Priority sorts by severity, not alphabetically (BR-44). ... Pimchanok Sonthi is the empty-list fixture - use her to prove the empty state, never create a ticket for her." | Build the list, with the fixture discipline stated up front. | Delivered. The severity sort turned out to be load-bearing on the Postgres enum's declaration order, which is recorded in the route because reordering the enum would silently change the sort with no schema test failing. A later instruction to add the mobile card layout found that the control bar reserved 180px of vertical space per control on a 390px viewport, pushing the first ticket to y=774 - every DOM assertion passed while the visible screen showed only filters. |
+| 13 | "Implement Issue #18 in full - Ticket Detail and the attachment lifecycle. ... Every ownership-protected endpoint needs a negative test proving Requester B cannot reach Requester A's resource. A 404 for a non-existent ticket and a 404 for another Requester's ticket must be byte-identical." | Build the attachment lifecycle with ownership proved, not assumed. | Delivered. Three tests **passed before the feature existed**: two asserted only absence, and one compared two empty bodies. Each was strengthened to pin the response to our own handler before asserting anything about it. Separately, ui-spec 5.5 specified an attachment state the data model cannot support, and the specification was corrected rather than the implementation stretched. |
+| 14 | "Implement Issue #19 in full - E2E, responsive, screenshots, and delivery evidence. ... E2E-05 must verify port 3000 is actually closed before asserting the failure state - killing the npm wrapper leaves `tsx watch` listening." | Close the sprint with end-to-end proof and the submission evidence. | Delivered. The instruction was itself a correction of a defect found earlier in the session, and it was right: without the check, E2E-05 would submit against a healthy API and record a false pass. RSP-06 then failed for a good reason - Change Requester has no bounding box on mobile because the navigation collapses exactly as ui-spec 4 specifies - so the test was wrong, not the product. |
 
 ---
 
@@ -121,7 +126,60 @@ than serialising a five-file suite.
 
 ---
 
-## 4. Reflection
+---
+
+## 4. Three approved rules were unsatisfiable as written
+
+The single most useful thing to come out of the sprint is not in the prompt
+table. Three rules from documents I wrote, reviewed, and approved **before any
+code existed** turned out to describe things the system could not do. Each was
+found by attempting the implementation. None was found by reading.
+
+| Rule | What it said | Why it could not hold |
+|---|---|---|
+| **BR-05** | "The Ticket Number is allocated inside the same database transaction that inserts the Ticket, so that no gap or duplicate can result from concurrent creation." | Implemented exactly, and duplicates were still reachable. The successor was computed in application code from a prior read, so at READ COMMITTED two callers reach the same number. Eight parallel creations failed six times. The rule named a mechanism and assumed a guarantee that mechanism does not deliver. Amended as AMD-01 to state the property, with the mechanism demoted to how the property is met. |
+| **DEC-04** | "Primary keys use UUID for all Lab 2 models", while `api-spec.md` 1.2 specified integer ids for `Category` and `RelatedSystem` in the same sprint. | Two approved documents contradicting each other, both on the same open Pull Request, neither flagging it. Following DEC-04 meant a destructive migration of live Lab 1 data and a broken Lab 1 suite. Narrowed to ownership-bearing entities. |
+| **ui-spec 5.5** | An "Unavailable" attachment state "shown when an upload failed after the Ticket was created". | A failed upload persists nothing: no row, no file, no record on the ticket that the attempt happened. A Ticket Detail screen loaded afterwards has nothing to render it from. Satisfying the wording would have required inventing rows describing files that were never stored. Narrowed to the session that attempted the upload. |
+
+### What this says about the specification-first approach
+
+The sprint's premise is that writing the specification first prevents defects,
+and it did: the four documents caught a great deal before any code existed. But
+all three failures above survived that process, and the pattern is consistent.
+Each one **reads as correct**. BR-05 names a real mechanism that really is
+necessary. DEC-04 states a real security principle. The Unavailable state
+describes something a user would genuinely want. Reviewing prose against prose
+cannot distinguish a rule that is correct from one that is merely plausible,
+because both are grammatical, both cite the right identifiers, and both sound
+like what an experienced engineer would write.
+
+What separated them was execution. The concurrency test failed six times out of
+eight. The migration would not apply. The state had no data to render from.
+None of that is visible on the page.
+
+The lesson I take is narrower than "specifications do not work". It is that a
+rule naming a **mechanism** is weaker than one stating a **property**, because
+a mechanism can be implemented faithfully while the property it was chosen for
+goes unmet -- and nothing in a document review will reveal the gap. BR-05 now
+states the property and names the test that proves it. That is the form the
+rest should have taken.
+
+### What the model contributed, and where it was wrong
+
+It found all three, and it found them by building rather than by reviewing. It
+also produced defects of exactly the same kind in its own work: three tests in
+#18 passed before the feature existed, because they asserted only that
+something was absent, and an empty response satisfies that. Two tests in #16
+passed or failed by machine load. A regex built by string concatenation lost
+its escape and would have accepted a malformed ticket number.
+
+The through-line is that an assertion which cannot fail is worthless whoever
+writes it, and the only reliable way to tell is to run it against a state where
+it should fail. The habit that caught every one of these -- committing tests
+red, in their own commit, and reading the failure message rather than the exit
+code -- is worth more than any of the individual fixes.
+
+## 5. Reflection
 
 The most useful thing the model did this sprint was not writing code. It was
 reading four documents against each other and finding that two of them disagreed
