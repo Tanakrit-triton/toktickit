@@ -42,7 +42,7 @@ function validBody(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const post = (body: unknown, header: string | null = requesterId) => {
+const post = (body: Record<string, unknown>, header: string | null = requesterId) => {
   const req = request(app).post("/api/v1/tickets");
   return header === null ? req.send(body) : req.set("X-Dev-Requester-Id", header).send(body);
 };
@@ -59,7 +59,7 @@ beforeAll(async () => {
 
   const inactive = await prisma.requesterUser.findFirst({ where: { isActive: false } });
   expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
-  inactiveRequesterId = inactive.id;
+  inactiveRequesterId = inactive!.id;
 
   const category = await prisma.category.findFirst({
     where: { isActive: true },
@@ -71,10 +71,10 @@ beforeAll(async () => {
   });
   expect(category, "seed must provide an active Category").not.toBeNull();
   expect(system, "seed must provide an active Related System").not.toBeNull();
-  categoryId = category.id;
-  categoryName = category.name;
-  relatedSystemId = system.id;
-  relatedSystemName = system.name;
+  categoryId = category!.id;
+  categoryName = category!.name;
+  relatedSystemId = system!.id;
+  relatedSystemName = system!.name;
 
   const retired = await prisma.category.upsert({
     where: { name: INACTIVE_CATEGORY },
@@ -98,13 +98,16 @@ describe("POST /api/v1/tickets (API-01 - AC-07, AC-09)", () => {
     const ticket = response.body.data;
 
     const year = new Date().getUTCFullYear();
-    expect(ticket.ticketNumber).toMatch(new RegExp("^TKT-" + year + "-\d{5}$"));
+    // Literal regex: a pattern built by string concatenation loses its
+    // escapes and silently matches the wrong thing.
+    expect(ticket.ticketNumber).toMatch(/^TKT-\d{4}-\d{5}$/);
+    expect(ticket.ticketNumber.startsWith("TKT-" + year + "-")).toBe(true);
 
     const saved = await prisma.ticket.findUnique({
       where: { ticketNumber: ticket.ticketNumber },
     });
     expect(saved, "the returned Ticket Number must identify a stored row").not.toBeNull();
-    expect(saved.id).toBe(ticket.id);
+    expect(saved!.id).toBe(ticket.id);
 
     expect(ticket.category).toEqual({ id: categoryId, name: categoryName });
     expect(ticket.relatedSystem).toEqual({ id: relatedSystemId, name: relatedSystemName });
@@ -123,8 +126,8 @@ describe("POST /api/v1/tickets (API-02 - AC-08)", () => {
     const saved = await prisma.ticket.findUnique({
       where: { ticketNumber: response.body.data.ticketNumber },
     });
-    expect(saved.requesterId).toBe(requesterId);
-    expect(saved.currentStatus).toBe("NEW");
+    expect(saved!.requesterId).toBe(requesterId);
+    expect(saved!.currentStatus).toBe("NEW");
   });
 });
 
@@ -141,10 +144,10 @@ describe("POST /api/v1/tickets (API-03 - AC-10)", () => {
 
 describe("POST /api/v1/tickets (API-04 - AC-12, AC-13)", () => {
   it("rejects a missing summary with a field-level message", async () => {
-    const body = validBody();
-    delete body.summary;
+    const { summary, ...withoutSummary } = validBody();
+    void summary;
 
-    const response = await post(body);
+    const response = await post(withoutSummary);
 
     expect(response.status).toBe(422);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -191,8 +194,8 @@ describe("POST /api/v1/tickets (API-06 - BR-08)", () => {
     const saved = await prisma.ticket.findUnique({
       where: { ticketNumber: response.body.data.ticketNumber },
     });
-    expect(saved.requesterId).toBe(requesterId);
-    expect(saved.requesterId).not.toBe(otherRequesterId);
+    expect(saved!.requesterId).toBe(requesterId);
+    expect(saved!.requesterId).not.toBe(otherRequesterId);
   });
 });
 
