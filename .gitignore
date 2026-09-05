@@ -15,3 +15,7 @@ server/prisma/*.db
 # attachment binaries (DEV-02: local filesystem stands in for SeaweedFS).
 # Metadata lives in PostgreSQL; the files themselves are never committed.
 server/storage/
+# playwright generated output (screenshots under artifacts/ are committed evidence)
+/test-results/
+/artifacts/lab-02/playwright-report/
+/playwright/.cache/

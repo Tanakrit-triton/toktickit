@@ -19,7 +19,7 @@ X-Dev-Requester-Id: <uuid>
 
 This header is a **Lab 2 test fixture, not a credential** (BR-03, BR-11). It is unsigned and trivially forgeable. It exists so that ownership rules can be built and tested before Lab 3 introduces the authenticated session defined in D-04. When Lab 3 lands, this header is removed and the identity source becomes the session cookie; no route signature changes (DEC-02).
 
-Endpoints that require the header are marked **Scoped** below. A Scoped request without the header is rejected with `428`.
+Endpoints that require the header are marked **Scoped** below. A Scoped request without the header is rejected with `428`, and so is one whose header names a Requester that does not exist: both leave the request with no usable identity, and the client reaction is identical in each case — return to the Development Requester Selection screen. `404` is reserved for resource existence and ownership (DEC-01), so it is never used to report an unresolvable header.
 
 ### 1.2 Identifier types
 
@@ -457,7 +457,7 @@ Every Scoped endpoint has a matching negative test asserting that Requester B ca
 | `413` | `FILE_TOO_LARGE` | Upload exceeds 5 MB |
 | `415` | `UNSUPPORTED_FILE_TYPE` | Extension or MIME type not permitted, or the two disagree |
 | `422` | `VALIDATION_ERROR` | Well-formed request that fails field validation; `details` is populated |
-| `428` | `REQUESTER_NOT_SELECTED` | Scoped request sent without `X-Dev-Requester-Id` |
+| `428` | `REQUESTER_NOT_SELECTED` | Scoped request sent without `X-Dev-Requester-Id`, or with a header naming a Requester that does not exist |
 | `500` | `INTERNAL_ERROR` | Unexpected server error, reported safely with no internal detail |
 
 ### Distinction between 400 and 422
