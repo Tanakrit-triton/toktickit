@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { AppShell } from "./AppShell.js";
 import { MyTickets } from "./screens/MyTickets.js";
+import { RequesterTicketDetail } from "./screens/RequesterTicketDetail.js";
 import { CreateTicket } from "./screens/CreateTicket.js";
 import LegacyLab01App from "../App.js";
 
@@ -40,6 +41,7 @@ export function AppRoutes() {
       >
         <Route path="/tickets" element={<MyTickets />} />
         <Route path="/tickets/new" element={<CreateTicket />} />
+        <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
       </Route>
 
       {/* Any unknown path behaves as the application root. */}

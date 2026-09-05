@@ -273,7 +273,22 @@ Every value renders in the read-only state. No input, no edit button, no status 
 | Uploading | Filename, determinate progress bar, "Uploading…", no action buttons |
 | Invalid | Filename, `--zg-error` message naming the reason, Dismiss tertiary button. Never persisted. |
 | Removed | Filename and size in `--zg-text-muted`, a "Removed" badge, the removal reason, the removal timestamp. **No Download button.** Left border 3px `--zg-border` to set it apart visually as well as by badge (AC-35). |
-| Unavailable | Shown when an upload failed after the Ticket was created. Filename, "Upload failed", and a Retry tertiary button. |
+| Unavailable | Shown when an upload fails **during the current session**, on the screen where it was attempted. Filename, "Upload failed", and a Retry tertiary button. The row exists only in that session's state and is gone on reload. |
+
+> **Correction to the Unavailable state.** This row originally read "Shown when
+> an upload failed after the Ticket was created", which described a state the
+> data model cannot support. A failed upload persists nothing: no row is
+> written, no file is stored, and the ticket carries no record that the attempt
+> happened. A Ticket Detail screen loaded afterwards therefore has nothing to
+> render the state from, and no amount of implementation could make it appear.
+>
+> The state is real and useful within the session that attempted the upload,
+> where the filename and the failure are still in memory, so it is narrowed to
+> that rather than removed. Making it survive a reload would need a persisted
+> record of failed attempts, which nothing in Lab 2 specifies and which would
+> mean writing rows for files that were never stored.
+>
+> Corrected while implementing #18, which is where the gap surfaced.
 
 **Removal flow** — Remove opens a modal: the filename, a required "Reason for removal" textarea (5–200 characters, validated), Cancel (secondary), and Remove (destructive). The modal traps focus, closes on Escape, and returns focus to the triggering button. Removal is never a single unconfirmed click (BR-37).
 

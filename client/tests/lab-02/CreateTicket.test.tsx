@@ -292,11 +292,9 @@ describe("CreateTicket (UI-15 - AC-07)", () => {
 });
 
 describe("CreateTicket (UI-30 - AC-17)", () => {
-  // AC-17 is selection-time file validation, which is Create Ticket behaviour,
-  // so it belongs to #16 rather than to #18's AttachmentSection suite. It is
-  // exercised through the component that owns the rule, with upload available,
-  // because the Create Ticket screen itself currently withholds selection --
-  // see UI-31.
+  // AC-17 is selection-time validation on the Create Ticket screen. Selection
+  // is available again now that #18 serves the upload endpoint, so the rule is
+  // exercised through the component that owns it.
   it("accepts a permitted file and rejects an impermissible one with a reason", async () => {
     const user = userEvent.setup({ delay: null });
     let current: SelectedFile[] = [];
@@ -343,14 +341,85 @@ describe("CreateTicket (UI-30 - AC-17)", () => {
   });
 });
 
-describe("CreateTicket (UI-31 - temporary constraint, removed by #18)", () => {
-  it("offers no file selection and says where attachments are added instead", async () => {
+describe("CreateTicket (UI-16 - AC-38)", () => {
+  const TICKET = {
+    id: "t1",
+    ticketNumber: "TKT-2026-00042",
+    ticketDate: "2026-09-04T00:00:00.000Z",
+    requester: { id: ALICE.id, fullName: ALICE.fullName },
+    category: CATEGORIES[1],
+    relatedSystem: SYSTEMS[0],
+    summary: VALID_SUMMARY,
+    requestedPriority: "HIGH",
+    description: VALID_DESCRIPTION,
+    currentStatus: "NEW",
+    createdAt: "2026-09-04T00:00:00.000Z",
+    updatedAt: "2026-09-04T00:00:00.000Z",
+  };
+
+  it("keeps the Ticket, names each failed attachment, and directs the retry", async () => {
+    vi.spyOn(api, "createTicket").mockResolvedValue(TICKET);
+    vi.spyOn(api, "uploadAttachment")
+      .mockResolvedValueOnce({
+        id: "ok-1",
+        ticketId: TICKET.id,
+        originalFilename: "good.png",
+        mimeType: "image/png",
+        sizeBytes: 10,
+        uploadedAt: "2026-09-04T00:00:00.000Z",
+        status: "ACTIVE",
+        removedAt: null,
+        removedReason: null,
+      })
+      .mockRejectedValueOnce(new api.AttachmentUploadError("FAILED"));
+    const user = userEvent.setup({ delay: null });
+
     renderScreen();
     await screen.findByTestId("field-category");
+    await fillValidForm(user);
 
-    // Upload is #18. Accepting a file this screen cannot send would let a
-    // Requester believe evidence was attached when nothing was transmitted.
-    expect(screen.queryByTestId("field-attachments")).not.toBeInTheDocument();
-    expect(screen.getByTestId("attachment-deferred")).toHaveTextContent(/Ticket Detail/i);
+    await user.upload(screen.getByTestId("field-attachments"), [
+      new File(["a"], "good.png", { type: "image/png" }),
+      new File(["b"], "doomed.png", { type: "image/png" }),
+    ]);
+    await user.click(screen.getByTestId("btn-submit-ticket"));
+
+    // The Ticket is never rolled back because an attachment failed: the
+    // problem report has value on its own (BR-42, AC-38).
+    const panel = await screen.findByTestId("state-created");
+    expect(panel).toHaveTextContent("TKT-2026-00042");
+
+    const partial = await screen.findByTestId("state-partial-success");
+    expect(partial).toHaveTextContent("doomed.png");
+    expect(partial).not.toHaveTextContent("good.png");
+    expect(partial).toHaveTextContent(/retry these attachments from ticket detail/i);
+  });
+
+  it("shows no partial-success warning when every attachment succeeds", async () => {
+    vi.spyOn(api, "createTicket").mockResolvedValue(TICKET);
+    vi.spyOn(api, "uploadAttachment").mockResolvedValue({
+      id: "ok-1",
+      ticketId: TICKET.id,
+      originalFilename: "good.png",
+      mimeType: "image/png",
+      sizeBytes: 10,
+      uploadedAt: "2026-09-04T00:00:00.000Z",
+      status: "ACTIVE",
+      removedAt: null,
+      removedReason: null,
+    });
+    const user = userEvent.setup({ delay: null });
+
+    renderScreen();
+    await screen.findByTestId("field-category");
+    await fillValidForm(user);
+    await user.upload(
+      screen.getByTestId("field-attachments"),
+      new File(["a"], "good.png", { type: "image/png" }),
+    );
+    await user.click(screen.getByTestId("btn-submit-ticket"));
+
+    await screen.findByTestId("state-created");
+    expect(screen.queryByTestId("state-partial-success")).not.toBeInTheDocument();
   });
 });

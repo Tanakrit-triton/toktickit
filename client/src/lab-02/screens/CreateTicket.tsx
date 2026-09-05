@@ -95,6 +95,7 @@ export function CreateTicket() {
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
   const [created, setCreated] = useState<Ticket | null>(null);
+  const [failedUploads, setFailedUploads] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -161,6 +162,23 @@ export function CreateTicket() {
         summary: fields.summary.trim(),
         description: fields.description.trim(),
       });
+
+      // Creation and upload are separate calls (BR-41). The Ticket is
+      // committed first, then each accepted file is uploaded against it. A
+      // failure here never rolls the Ticket back: the problem report has value
+      // on its own, and discarding it to preserve attachment atomicity would
+      // lose more than it protects (BR-42, AC-38).
+      const failures: string[] = [];
+      for (const selected of files) {
+        if (selected.error !== null) continue;
+        try {
+          await api.uploadAttachment(requester.id, ticket.id, selected.file);
+        } catch {
+          failures.push(selected.file.name);
+        }
+      }
+
+      setFailedUploads(failures);
       setCreated(ticket);
     } catch (error) {
       if (error instanceof api.TicketValidationError) {
@@ -184,6 +202,7 @@ export function CreateTicket() {
     setFields(EMPTY);
     setErrors({});
     setFiles([]);
+    setFailedUploads([]);
     setFailed(false);
   }
 
@@ -194,21 +213,29 @@ export function CreateTicket() {
         <h1 className="zg-title">Ticket created</h1>
         <p className="zg-created-number">{created.ticketNumber}</p>
         <p className="zg-helper">Keep this number to refer to your request.</p>
+
+        {/* Partial success: the Ticket was saved and some attachments were not
+            (BR-42, AC-38). Named individually, because "some attachments
+            failed" leaves the Requester to work out which. */}
+        {failedUploads.length > 0 && (
+          <div className="zg-callout-warning" data-testid="state-partial-success" role="alert">
+            <p>The ticket was saved. Retry these attachments from Ticket Detail.</p>
+            <ul>
+              {failedUploads.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="zg-actions">
-          {/*
-            Ticket Detail is Issue #18 and nothing serves /tickets/{id} yet, so
-            a link would silently redirect to the list. Presented as disabled
-            with the reason stated, rather than appearing to work.
-          */}
-          <button
-            type="button"
+          <Link
             className="zg-btn zg-btn--primary"
             data-testid="btn-view-ticket"
-            disabled
-            title="Ticket Detail arrives in a later change"
+            to={`/tickets/${created.id}`}
           >
             View Ticket
-          </button>
+          </Link>
           <button
             type="button"
             className="zg-btn zg-btn--secondary"
@@ -354,12 +381,11 @@ export function CreateTicket() {
         </label>
       </fieldset>
 
-      {/* 4. Attachments. Selection and validation only; upload is #18. */}
+      {/* 4. Attachments. Selected files are uploaded after creation (BR-41). */}
       <AttachmentSelection
         files={files}
         onChange={setFiles}
         disabled={submitting}
-        uploadAvailable={false}
       />
 
       {/* API failure callout sits above the actions, with every entered value

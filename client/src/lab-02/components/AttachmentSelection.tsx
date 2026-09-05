@@ -89,12 +89,7 @@ export function AttachmentSelection({
     <fieldset className="zg-group" data-testid="attachment-selection">
       <legend className="zg-legend">Attachments</legend>
 
-      {/*
-        Upload is Issue #18. Until it lands this screen offers no selection at
-        all: accepting a file it cannot send would let a Requester believe
-        evidence was attached when nothing was transmitted. Recorded as a
-        temporary constraint in specification.md section 11 (A-06).
-      */}
+      {/* uploadAvailable is retained for callers that cannot upload yet. */}
       {!uploadAvailable ? (
         <p className="zg-helper" data-testid="attachment-deferred">
           Attachments are added from Ticket Detail once the ticket has been created.

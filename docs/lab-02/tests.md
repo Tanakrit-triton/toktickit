@@ -141,7 +141,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-28 | UI | Scope §3 | Exclusion guard | No comment box, internal note, Actions Taken, or status control is rendered | `RequesterTicketDetail.test.tsx` | |
 | UI-29 | UI | AC-02 | **Route guard is installed** | Opening `/tickets` or `/tickets/new` with no selection renders the Selection screen; `/` redirects to `/tickets`; `/lab-01` renders outside the shell | `routing.test.tsx` | |
 | UI-30 | UI | AC-17 | **Selection validation** | A permitted file is accepted; an impermissible type and an oversized file are each rejected with a reason, and stay visible | `CreateTicket.test.tsx` | |
-| UI-31 | UI | A-06 | Attachment constraint | Create Ticket offers no selection and states that attachments are added from Ticket Detail | `CreateTicket.test.tsx` | |
+| UI-31 | UI | A-06 | ~~Attachment constraint~~ | **Retired with A-06 by #18.** Create Ticket offers selection again, so the constraint this asserted no longer exists. | removed | n/a |
 | UI-32 | UI | AC-40 | **Mobile card layout** | Below 768px the screen renders cards and no table; at desktop width the table and no cards | `MyTickets.test.tsx` | |
 | UI-33 | UI | FR-20 | Page size selector | Choosing a page size requests it and returns to page 1; exactly 10, 20 and 50 are offered | `MyTickets.test.tsx` | |
 
@@ -217,7 +217,7 @@ what was found later stays visible.
 |---|---|---|
 | UI-29 | UI-07 proved the route guard worked but not that it was installed, and the application had shipped with the shell unmounted | Yes |
 | UI-30 | AC-17 was claimed by #16 while its only planned test, UI-17, sat in #18's file | Yes |
-| UI-31 | A temporary constraint (A-06) needed asserting, not just documenting | Yes |
+| UI-31 | A temporary constraint (A-06) needed asserting, not just documenting | Yes, and retired by #18 when the constraint was lifted |
 | UI-32 | AC-40 had no component-level test, and the screen was rendering a horizontally scrolling table instead of the cards ui-spec 5.4 specifies | Yes |
 | UI-33 | The page-size selector was implemented and untested | No — closes a coverage gap |
 | API-41 | BR-05 was assumed correct by construction and was not | Yes |

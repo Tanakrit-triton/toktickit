@@ -664,3 +664,77 @@ textarea.zg-field {
 .zg-card-bottom {
   margin-top: var(--zg-space-3);
 }
+
+/* --- 5.5 Requester Ticket Detail ------------------------------------------ */
+
+.zg-section-title {
+  font: var(--zg-font-h2);
+  color: var(--zg-text);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-readonly-field {
+  display: block;
+  margin-bottom: var(--zg-space-4);
+}
+
+/* Read-only means "you may read this value", so it stays legible rather than
+   greyed into illegibility (ui-spec 2). */
+.zg-readonly-value {
+  display: block;
+  background: var(--zg-readonly-bg);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-text);
+  padding: var(--zg-space-3);
+}
+
+/* Line breaks preserved and wrapped; never truncated (ui-spec 5.5). */
+.zg-preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.zg-badge--status-removed {
+  background: var(--zg-disabled-bg);
+  color: var(--zg-text-muted);
+}
+
+/* A removed attachment is set apart visually as well as by its badge, so the
+   distinction survives greyscale (ui-spec 5.5, AC-35). */
+.zg-attachment-row--removed {
+  border-left: 3px solid var(--zg-border);
+  background: var(--zg-disabled-bg);
+  color: var(--zg-text-muted);
+}
+
+.zg-callout-warning {
+  background: var(--zg-warning-bg);
+  border: var(--zg-border-width) solid var(--zg-warning);
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-warning);
+  padding: var(--zg-space-4);
+  margin: var(--zg-space-4) 0;
+  text-align: left;
+}
+
+/* --- Removal modal -------------------------------------------------------- */
+
+.zg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--zg-space-4);
+  background: rgba(27, 42, 34, 0.45);
+}
+
+.zg-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--zg-surface);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-5);
+}
