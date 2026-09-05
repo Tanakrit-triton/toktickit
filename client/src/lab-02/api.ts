@@ -119,3 +119,65 @@ export async function createTicket(
   }
   return ((await response.json()) as { data: Ticket }).data;
 }
+
+export interface TicketListItem {
+  id: string;
+  ticketNumber: string;
+  summary: string;
+  category: ReferenceItem;
+  relatedSystem: ReferenceItem;
+  requestedPriority: string;
+  currentStatus: string;
+  attachmentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketListMeta {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface TicketListPage {
+  data: TicketListItem[];
+  meta: TicketListMeta;
+}
+
+export interface TicketListParams {
+  q?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  requestedPriority?: string;
+  sortBy: string;
+  sortOrder: string;
+  page: number;
+  pageSize: number;
+}
+
+/**
+ * GET /api/v1/tickets -- Scoped.
+ *
+ * Only defined parameters are sent. The server rejects unknown or empty ones
+ * rather than defaulting them (BR-47), so sending `q=` for an empty search box
+ * would be a 400 rather than "no search".
+ */
+export async function fetchTickets(
+  requesterId: string,
+  params: TicketListParams,
+): Promise<TicketListPage> {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+
+  const response = await fetch(`${API_BASE}/api/v1/tickets?${search.toString()}`, {
+    headers: { "X-Dev-Requester-Id": requesterId },
+  });
+
+  if (!response.ok) {
+    throw new Error(`ticket list failed with ${response.status}`);
+  }
+  return (await response.json()) as TicketListPage;
+}

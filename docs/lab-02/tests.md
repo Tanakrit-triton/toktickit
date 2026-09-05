@@ -77,6 +77,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | API-39 | API | AC-11 | Active Related Systems | Only active Related Systems returned | `reference-data.api.test.ts` | |
 | API-40 | API | AC-01, BR-10 | Active Requesters | Seeded inactive Requester is absent from the response | `reference-data.api.test.ts` | |
 | API-41 | API | BR-05 | **Concurrent allocation** | Eight parallel creations all succeed, with distinct numbers forming an unbroken run and the sequence row ending at the highest | `create-ticket.api.test.ts` | |
+| API-42 | API | FR-18 | Related System filter | Only Tickets on the filtered Related System are returned, and a system no Ticket uses returns none | `my-tickets.api.test.ts` | |
 | API-10 | API | AC-18 | Requester scoping | Only the header Requester's Tickets are returned | `my-tickets.api.test.ts` | |
 | API-11 | API | AC-19 | Search by summary | Only matching Tickets returned, case-insensitive | `my-tickets.api.test.ts` | |
 | API-12 | API | BR-45 | Search by ticket number | Partial ticket-number match returns the Ticket | `my-tickets.api.test.ts` | |
@@ -133,7 +134,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-21 | UI | AC-34 | Reason required | Confirming with an empty reason is blocked with a field message | `AttachmentSection.test.tsx` | |
 | UI-22 | UI | AC-24 | Empty state | "not created any tickets yet" plus a Create Ticket action | `MyTickets.test.tsx` | |
 | UI-23 | UI | AC-25 | No-results state | "No tickets match" plus a Clear Filters action | `MyTickets.test.tsx` | |
-| UI-24 | UI | AC-25 | States are distinct | Empty and no-results differ in both wording and offered action | `MyTickets.test.tsx` | |
+| UI-24 | UI | AC-25 | States are distinct | Empty and no-results differ in both wording and offered action, asserted by comparing the two rendered states | `MyTickets.test.tsx` | |
 | UI-25 | UI | FR-21 | Clear Filters | Resets search, filters, and sort to defaults and refetches | `MyTickets.test.tsx` | |
 | UI-26 | UI | FR-33 | List loading | Loading state rendered while the request is in flight | `MyTickets.test.tsx` | |
 | UI-27 | UI | AC-26 | Read-only detail | No input, textarea, or edit control is present in the ticket region | `RequesterTicketDetail.test.tsx` | |
@@ -141,6 +142,8 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-29 | UI | AC-02 | **Route guard is installed** | Opening `/tickets` or `/tickets/new` with no selection renders the Selection screen; `/` redirects to `/tickets`; `/lab-01` renders outside the shell | `routing.test.tsx` | |
 | UI-30 | UI | AC-17 | **Selection validation** | A permitted file is accepted; an impermissible type and an oversized file are each rejected with a reason, and stay visible | `CreateTicket.test.tsx` | |
 | UI-31 | UI | A-06 | Attachment constraint | Create Ticket offers no selection and states that attachments are added from Ticket Detail | `CreateTicket.test.tsx` | |
+| UI-32 | UI | AC-40 | **Mobile card layout** | Below 768px the screen renders cards and no table; at desktop width the table and no cards | `MyTickets.test.tsx` | |
+| UI-33 | UI | FR-20 | Page size selector | Choosing a page size requests it and returns to page 1; exactly 10, 20 and 50 are offered | `MyTickets.test.tsx` | |
 
 UI-07 and UI-29 are deliberately not redundant. UI-07 renders `AppShell`
 directly and proves the guard **mechanism**: the shell replaces its children
@@ -203,6 +206,29 @@ badge, which is why they sit with #19 rather than with the theme work.
 
 ---
 
+
+### Tests added after the plan was written
+
+The ids below were not in the original plan. They are listed here rather than
+folded silently into Section 2, so the difference between what was planned and
+what was found later stays visible.
+
+| Id | Added because | Was it red first? |
+|---|---|---|
+| UI-29 | UI-07 proved the route guard worked but not that it was installed, and the application had shipped with the shell unmounted | Yes |
+| UI-30 | AC-17 was claimed by #16 while its only planned test, UI-17, sat in #18's file | Yes |
+| UI-31 | A temporary constraint (A-06) needed asserting, not just documenting | Yes |
+| UI-32 | AC-40 had no component-level test, and the screen was rendering a horizontally scrolling table instead of the cards ui-spec 5.4 specifies | Yes |
+| UI-33 | The page-size selector was implemented and untested | No — closes a coverage gap |
+| API-41 | BR-05 was assumed correct by construction and was not | Yes |
+| API-42 | The Related System filter was implemented and untested | No — closes a coverage gap |
+
+Two of these pass on arrival. That is stated rather than hidden: a test written
+after the behaviour it covers cannot drive the code, and recording it as though
+it had would misrepresent the history.
+
+---
+
 ## 3. Acceptance-Criterion Traceability
 
 Every criterion maps to at least one planned test. No criterion is unmapped.
@@ -248,7 +274,7 @@ Every criterion maps to at least one planned test. No criterion is unmapped.
 | AC-37 | API-33, API-34 |
 | AC-38 | UI-16 |
 | AC-39 | RSP-01, RSP-02, RSP-03 |
-| AC-40 | RSP-04, RSP-05 |
+| AC-40 | UI-32, RSP-04, RSP-05 |
 | AC-41 | STY-01, STY-02 |
 | AC-42 | STY-10, STY-12 |
 | AC-43 | STY-08, STY-09 |

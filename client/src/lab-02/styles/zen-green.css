@@ -485,3 +485,182 @@ textarea.zg-field {
 
   .zg-actions .zg-btn { width: 100%; justify-content: center; }
 }
+
+/* --- 5.4 My Tickets ------------------------------------------------------- */
+
+.zg-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zg-space-4);
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-control-bar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--zg-space-4);
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-4);
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-control-bar .zg-label {
+  margin-bottom: 0;
+  flex: 1 1 180px;
+}
+
+/* Wide content scrolls inside its own container, never the page (ui-spec 7). */
+.zg-table-scroll {
+  overflow-x: auto;
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+}
+
+.zg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--zg-font-body);
+}
+
+.zg-table th {
+  text-align: left;
+  font: var(--zg-font-label);
+  background: var(--zg-pale);
+  color: var(--zg-text);
+  padding: var(--zg-space-3) var(--zg-space-4);
+}
+
+.zg-table td {
+  padding: var(--zg-space-3) var(--zg-space-4);
+  border-top: var(--zg-border-width) solid var(--zg-border);
+  color: var(--zg-text);
+}
+
+.zg-table tbody tr:hover {
+  background: var(--zg-pale);
+}
+
+.zg-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.zg-truncate {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 6. Badges ------------------------------------------------------------ */
+
+.zg-badge {
+  display: inline-block;
+  border-radius: var(--zg-radius-sm);
+  font: var(--zg-font-small);
+  font-weight: 600;
+  padding: var(--zg-space-1) var(--zg-space-3);
+  white-space: nowrap;
+}
+
+.zg-badge--priority-low { background: var(--zg-readonly-bg); color: var(--zg-text-muted); }
+.zg-badge--priority-medium { background: var(--zg-pale); color: var(--zg-primary); }
+.zg-badge--priority-high { background: var(--zg-warning-bg); color: var(--zg-warning); }
+.zg-badge--priority-urgent { background: var(--zg-error-bg); color: var(--zg-error); }
+.zg-badge--status-new { background: var(--zg-pale); color: var(--zg-secondary); }
+
+/* --- States and pagination ------------------------------------------------ */
+
+.zg-state {
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-7) var(--zg-space-5);
+  text-align: center;
+}
+
+.zg-state .zg-btn { margin-top: var(--zg-space-4); }
+
+.zg-skeleton-list {
+  display: grid;
+  gap: var(--zg-space-2);
+}
+
+.zg-skeleton-row {
+  display: block;
+  height: 44px;
+  background: var(--zg-readonly-bg);
+  border-radius: var(--zg-radius-md);
+}
+
+.zg-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--zg-space-3);
+  margin-top: var(--zg-space-4);
+}
+
+.zg-page-size { margin-bottom: 0; }
+
+/* Tablet drops Related System; everything else is retained (ui-spec 5.4). */
+@media (max-width: 991.98px) {
+  .zg-col-system { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  .zg-control-bar { flex-direction: column; align-items: stretch; }
+
+  /* flex: 1 1 180px sets a 180px BASIS, which is a height once the bar
+     stacks. Each control was reserving 180px of vertical space and pushing
+     the ticket list off the screen. */
+  .zg-control-bar .zg-label { flex: 0 0 auto; }
+  .zg-list-header { flex-direction: column; align-items: stretch; }
+}
+
+/* --- 5.4 My Tickets, mobile cards ----------------------------------------- */
+
+.zg-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--zg-space-3);
+}
+
+.zg-ticket-card {
+  display: block;
+  /* Touch target minimum from ui-spec 7; the whole card becomes the link
+     target once Ticket Detail exists (#18). */
+  min-height: 44px;
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-4);
+}
+
+.zg-card-top,
+.zg-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zg-space-3);
+}
+
+.zg-card-summary {
+  margin: var(--zg-space-2) 0;
+  color: var(--zg-text);
+}
+
+.zg-ticket-card .zg-helper {
+  margin: 0;
+}
+
+.zg-card-bottom {
+  margin-top: var(--zg-space-3);
+}
