@@ -294,7 +294,15 @@ Completed against the screenshots in `artifacts/lab-02/screenshots/`. Every row 
 Run from the repository root. These are the commands referenced by the Definition of Done and reproduced in `README.md`.
 
 ```bash
-# Database — required before API and E2E suites
+# One-time - install dependencies at all three levels
+npm install                 # repository root: Playwright
+cd server && npm install
+cd ../client && npm install
+
+# One-time - download the Playwright browser
+npm run test:e2e:install    # from the repository root
+
+# Database - required before the API and E2E suites
 cd server
 npx prisma migrate deploy
 npm run prisma:seed
@@ -307,9 +315,20 @@ npm test
 cd client
 npm test
 
-# Responsive and E2E (Playwright) — needs server and client running
-npx playwright test e2e/lab-02
+# Responsive and E2E (Playwright) - needs the server and client running
+# Run from the repository root, not from client/ or server/.
+npm run test:e2e            # equivalently: npx playwright test e2e/lab-02
 ```
+
+### Where the configuration lives
+
+| Suite | Config | Collected from |
+|---|---|---|
+| Unit, API | `server/vitest.config.ts` | `server/tests/**/*.test.ts` |
+| UI component, UI style | `client/vite.config.ts` | `client/tests/**/*.test.{ts,tsx}` and `client/src/tests/**/*.test.{ts,tsx}` |
+| Responsive, E2E | `playwright.config.ts` (repository root) | `e2e/**` |
+
+The Playwright config declares the three viewport projects fixed by `ui-spec.md` section 10 - desktop 1440x900, tablet 834x1112, mobile 390x844 - so a spec written once runs at all three widths, and the project name prefixes each captured screenshot.
 
 Screenshots are written to `artifacts/lab-02/screenshots/` by the responsive suite.
 
