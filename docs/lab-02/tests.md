@@ -105,7 +105,7 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | API-36 | API | BR-32 | Removed frees a slot | After removing one of five, a new upload succeeds | `attachments.api.test.ts` | |
 | API-37 | API | BR-28 | No internal leakage | `storedFilename` and file paths appear in no response body | `attachments.api.test.ts` | |
 
-### 2.3 UI component — `client/src/tests/lab-02/`
+### 2.3 UI component — `client/tests/lab-02/`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Final |
 |---|---|---|---|---|---|---|
@@ -137,8 +137,16 @@ API and E2E tests run against a dedicated test database, migrated and seeded bef
 | UI-26 | UI | FR-33 | List loading | Loading state rendered while the request is in flight | `MyTickets.test.tsx` | |
 | UI-27 | UI | AC-26 | Read-only detail | No input, textarea, or edit control is present in the ticket region | `RequesterTicketDetail.test.tsx` | |
 | UI-28 | UI | Scope §3 | Exclusion guard | No comment box, internal note, Actions Taken, or status control is rendered | `RequesterTicketDetail.test.tsx` | |
+| UI-29 | UI | AC-02 | **Route guard is installed** | Opening `/tickets` or `/tickets/new` with no selection renders the Selection screen; `/` redirects to `/tickets`; `/lab-01` renders outside the shell | `routing.test.tsx` | |
 
-### 2.4 UI style — `client/src/tests/lab-02/theme.style.test.tsx`
+UI-07 and UI-29 are deliberately not redundant. UI-07 renders `AppShell`
+directly and proves the guard **mechanism**: the shell replaces its children
+with the Selection screen when no Requester is selected. UI-29 renders the real
+route tree and proves the guard is **installed**. UI-07 passed for an entire
+issue while `AppShell` was never mounted by the application at all, so the
+mechanism was correct and unreachable at the same time.
+
+### 2.4 UI style — `client/tests/lab-02/theme.style.test.tsx`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Final |
 |---|---|---|---|---|---|---|
@@ -186,7 +194,7 @@ Every criterion maps to at least one planned test. No criterion is unmapped.
 | AC | Covering tests |
 |---|---|
 | AC-01 | UI-01, API-40 |
-| AC-02 | UI-07, E2E-01 |
+| AC-02 | UI-07, UI-29, E2E-01 |
 | AC-03 | UI-06 |
 | AC-04 | UI-09, E2E-02 |
 | AC-05 | UI-04 |
@@ -325,6 +333,21 @@ Completed after implementation, from a clean checkout of `main`. Paste the actua
 ---
 
 ## 7. Known Limitations and Deferred Tests
+
+### 7.1 Verification policy
+
+**Component-level tests render components directly and therefore cannot prove a
+component is reachable in the running application. Every issue delivering a
+screen must be verified in a browser before it is reported complete.**
+
+This was written after Issue #15 was reported complete on a green suite while
+`localhost:5173` still served the Lab 1 page: every Lab 2 component existed,
+passed its tests, and was imported by nothing but those tests. UI-29 now guards
+the specific case, but the general lesson is the one above, and no test replaces
+opening the application.
+
+
+### 7.2 Deferred tests and known limitations
 
 | Item | Reason | Where it goes |
 |---|---|---|
