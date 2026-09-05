@@ -169,7 +169,9 @@ Only Requesters with `isActive = true` are returned (BR-10). The seeded inactive
 | `requestedPriority` | required, one of `LOW`, `MEDIUM`, `HIGH`, `URGENT` | BR-23 |
 | `description` | required, trimmed, 20–5000 characters | BR-20 |
 
-`requesterId` is **not** accepted in the body. Ownership comes from the header only (BR-08). If a client sends one it is ignored.
+`requesterId` is **not** accepted in the body. Ownership comes from the header only (BR-08). A client-supplied value is ignored outright rather than compared against the header: consistency-checking it would invite clients to send it, and ownership has exactly one source.
+
+`ticketDate` is a projection of `createdAt`, not a separate stored value. BR-06 defines Ticket Date as the system-recorded creation timestamp and Section 7 of `specification.md` declares no such column, so the two are equal by construction and cannot drift.
 
 All failing fields are returned together in a single response (BR-26).
 
