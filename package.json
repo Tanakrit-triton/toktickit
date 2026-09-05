@@ -1,0 +1,14 @@
+{
+  "name": "toktickit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TokTickIT — repository root. Holds the Playwright end-to-end and responsive suites; the application lives in client/ and server/.",
+  "scripts": {
+    "test:e2e": "playwright test e2e/lab-02",
+    "test:e2e:install": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

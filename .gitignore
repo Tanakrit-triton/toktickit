@@ -12,3 +12,7 @@ server/prisma/*.db
 # logs & OS
 *.log
 .DS_Store
+# playwright generated output (screenshots under artifacts/ are committed evidence)
+/test-results/
+/artifacts/lab-02/playwright-report/
+/playwright/.cache/
