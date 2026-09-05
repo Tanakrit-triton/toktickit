@@ -20,6 +20,18 @@ import {
 
 test.describe.configure({ mode: "serial" });
 
+// These are journeys, not layout checks, and they run at one viewport. The
+// desktop list renders a table and the mobile list renders cards, so a journey
+// written against one cannot address the other, and duplicating it per width
+// would test presentation twice while proving the flow once. Presentation at
+// every width is RSP-01 to RSP-06.
+test.beforeEach(({ }, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "journeys run at desktop; layout at every width is the responsive suite",
+  );
+});
+
 let createdTicketNumber = "";
 let createdTicketUrl = "";
 
