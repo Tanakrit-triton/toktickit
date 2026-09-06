@@ -142,7 +142,7 @@ ignored and neither is tracked.
 
 ### Peer review record
 
-**Rendered:** [docs/lab-02/reviewer.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/reviewer.md)
+**Rendered:** [docs/lab-02/reviewer.md](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/docs/lab-02/reviewer.md)
 
 Ten Pull Requests reviewed, **eleven reviews** — #27 received two — every one
 an approval, with no changes requested and no inline comments. Seven drew a
@@ -155,9 +155,32 @@ Section 6 records something the sprint is worth being honest about: **no defect
 was found by review**. Every one was found by executing something — a test run,
 a migration, a concurrency check, a browser, a screenshot capture.
 
+### This submission is itself awaiting review
+
+The document you are reading, together with the corrected `reviewer.md` and the
+trimmed `ai-use.md`, lives on `docs/lab-02-submission` and is open as a Pull
+Request awaiting Richyboy170. It is not on `main` yet, and it is not merged.
+
+Every link in this document therefore points at
+`blob/docs/lab-02-submission/` rather than `blob/main/`, so a marker following
+one today sees the corrected document rather than the superseded copy still on
+`main`.
+
+**This is deliberate, and it is the same rule the rest of Part 1 is evidence
+for.** The submission could be merged by its author in a moment. Doing so would
+contradict the claim made three sections above — that every merge commit on
+`main` is authored by the reviewer — using the submission document itself as the
+counter-example. A record that documents a rule and then breaks it to publish
+itself is worth less than one that waits.
+
+**Pull Request:** [#32](https://github.com/Tanakrit-triton/toktickit/pull/32)
+
+One other Pull Request is open and unmerged: [#31](https://github.com/Tanakrit-triton/toktickit/pull/31),
+which fixes the end-to-end base URL default described in Part 3.
+
 ### README and .gitignore
 
-**Rendered:** [README.md](https://github.com/Tanakrit-triton/toktickit/blob/main/README.md) and [.gitignore](https://github.com/Tanakrit-triton/toktickit/blob/main/.gitignore)
+**Rendered:** [README.md](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/README.md) and [.gitignore](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/.gitignore)
 
 The README setup, run, seed and test instructions were executed from a clean
 checkout, not written from memory. `.gitignore` keeps attachment binaries and
@@ -169,7 +192,7 @@ of Done requires them as evidence.
 
 ## Answer Part 2
 
-**Rendered specification:** [docs/lab-02/specification.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/specification.md)
+**Rendered specification:** [docs/lab-02/specification.md](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/docs/lab-02/specification.md)
 
 The document is numbered throughout, so each item can be cited from a test or a
 commit message:
@@ -272,7 +295,7 @@ were correct and remain correct.
 
 ## Answer Part 4
 
-**Rendered AI use document:** [docs/lab-02/ai-use.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ai-use.md)
+**Rendered AI use document:** [docs/lab-02/ai-use.md](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/docs/lab-02/ai-use.md)
 
 ### LLM used
 
@@ -585,7 +608,7 @@ a removed attachment returns `410`.
 
 ## Answer Part 9
 
-**Rendered UI specification:** [docs/lab-02/ui-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ui-spec.md)
+**Rendered UI specification:** [docs/lab-02/ui-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/docs/lab-02-submission/docs/lab-02/ui-spec.md)
 
 It fixes the Zen Green tokens (§1), the six control states (§2), the button
 hierarchy (§3), the shell (§4), every screen (§5), badges (§6), responsive rules
