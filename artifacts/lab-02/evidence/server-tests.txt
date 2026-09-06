@@ -1,0 +1,12 @@
+ ✓ tests/lab-02/validation.unit.test.ts (9 tests) 21ms
+ ✓ tests/lab-02/ticket-number.api.test.ts (3 tests) 154ms
+ ✓ tests/lab-02/error-shape.unit.test.ts (4 tests) 14ms
+ ✓ tests/lab-02/ticket-number.unit.test.ts (2 tests) 10ms
+ ✓ tests/lab-01/health.test.ts (1 test) 119ms
+ ✓ tests/lab-01/categories.test.ts (1 test) 225ms
+
+ Test Files  12 passed (12)
+      Tests  92 passed (92)
+   Start at  20:32:09
+   Duration  32.74s (transform 782ms, setup 0ms, collect 11.60s, tests 6.81s, environment 9ms, prepare 6.62s)
+
