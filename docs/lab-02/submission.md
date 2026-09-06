@@ -58,10 +58,17 @@ Nine issues, one branch and one Pull Request each.
 
 **Board:** https://github.com/users/Tanakrit-triton/projects/2
 
-> **Outstanding, and mine to finish.** Issues #16, #17, #18 and #19 are still
-> open and need closing, and the board needs all nine moved to Done. A
-> screenshot of the board belongs here once that is true. It is not claimed as
-> done, because it is not.
+All nine Lab 2 issues are closed and all nine cards sit in **Done**, alongside
+the four carried from Lab 1 — thirteen in the column.
+
+| Evidence | Screenshot |
+|---|---|
+| Kanban board with every card in Done | `artifacts/lab-02/screenshots/project-board/desktop-kanban-done.png` |
+
+Issue state and board position are separate things in GitHub Projects: closing
+an issue does not move its card, and a card in Done does not close its issue.
+Both are true here, and the screenshot is the evidence for the second, since
+the board column is not derivable from the issue list.
 
 ### Peer review record
 
@@ -85,31 +92,59 @@ of Done requires them as evidence.
 
 ## Answer Part 2
 
-**Sprint specification.** [docs/lab-02/specification.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/specification.md)
+**Rendered specification:** [docs/lab-02/specification.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/specification.md)
 
-35 functional requirements, 49 business rules, 44 acceptance criteria, the data
-model, the Definition of Done, and the decision register. Written and merged
-before any implementation Pull Request opened.
+The document is numbered throughout, so each item can be cited from a test or a
+commit message:
 
-Supporting contracts:
+| Section | Contents | Count |
+|---|---|---|
+| §4 Functional Requirements | FR-01 … FR-35 | 35 |
+| §5 Business Rules | BR-01 … BR-49 | 49 |
+| §9 Acceptance Criteria | AC-01 … AC-44 | 44 |
+| §10 Definition of Done | Part 1 product completion, Part 2 course delivery | 2 parts |
 
-- [docs/lab-02/api-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/api-spec.md) — ten endpoints, error shape, status catalogue
-- [docs/lab-02/ui-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ui-spec.md) — Zen Green tokens, screens, responsive rules
-- [docs/lab-02/tests.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/tests.md) — test plan and traceability
+§11 additionally records the two SDS deviations (DEV-01, DEV-02), the sprint
+decisions (DEC-01 … DEC-08), the assumptions (A-01 … A-06), and the one
+amendment to an approved rule (AMD-01).
 
-### Deviations and amendments
+### The specification existed before implementation
 
-| ID | What |
+![Specification history on main](../../artifacts/lab-02/screenshots/process/desktop-spec-precedes-implementation.png)
+
+`artifacts/lab-02/screenshots/process/desktop-spec-precedes-implementation.png`
+
+The file history of `specification.md` on `main`, which carries absolute dates
+rather than the relative ones the pull request list shows. The earliest commit
+is **1 September 2026**. The implementation pull requests merged from
+**5 September** onwards:
+
+| Pull request | Merged |
 |---|---|
-| **DEV-01** | Zen Green palette replaces the D-09 KMUTT palette. Confined to hue; the rule that status and priority are never conveyed by colour alone is preserved. **A D-09 amendment is required before the system-level baseline is reused.** |
-| **DEV-02** | Attachment binaries on the local filesystem instead of SeaweedFS from D-06. The metadata boundary is preserved; only the storage adapter changes. |
-| **AMD-01** | **BR-05 was amended mid-sprint.** It named a mechanism and assumed a guarantee that mechanism does not deliver. Implemented faithfully, duplicates were still reachable: eight parallel creations failed six times. Rewritten to state the required property. |
+| [#11](https://github.com/Tanakrit-triton/toktickit/pull/11) specification | 2026-09-05T00:07:24Z |
+| [#22](https://github.com/Tanakrit-triton/toktickit/pull/22) data model | 2026-09-05T00:13:08Z |
+| [#25](https://github.com/Tanakrit-triton/toktickit/pull/25) Create Ticket | 2026-09-05T04:24:55Z |
+| [#27](https://github.com/Tanakrit-triton/toktickit/pull/27) Ticket Detail | 2026-09-05T15:42:17Z |
+| [#28](https://github.com/Tanakrit-triton/toktickit/pull/28) E2E and evidence | 2026-09-06T05:52:08Z |
+
+The specification was authored, reviewed and merged before any implementation
+pull request completed. Every document carried the status line *"Draft for
+approval — must be merged before implementation PRs begin"* until #11 merged.
+
+**One honest qualification.** The specification did not survive contact with the
+code unchanged. Three rules in it proved unsatisfiable as written and were
+corrected during the sprint — BR-05 (amended as AMD-01), DEC-04, and the
+Unavailable attachment state in `ui-spec.md` §5.5. Each was found by attempting
+the implementation rather than by review. This is set out in Part 4, because it
+is the most useful thing the sprint produced.
 
 ---
 
 ## Answer Part 3
 
-**Test results**, run from the documented README commands on final `main`.
+**Test results**, run on final `main`. The server and client commands are the
+documented README commands verbatim; the end-to-end command needed one
+override, for the reason set out below.
 
 | Suite | Command | Tests | Passed | Failed |
 |---|---|---|---|---|
@@ -128,71 +163,292 @@ to run at a viewport where it does not apply: E2E journeys run at one width
 (10), RSP-06 applies to mobile only (2), and `ui-spec.md` section 10 lists three
 screenshot paths at desktop only (6).
 
+
+### One defect found while running these
+
+**`npm run test:e2e` as documented fails on a clean setup.** The README says the
+UI runs on `http://localhost:5173`, and `playwright.config.ts` defaults its
+`baseURL` to 5173 — but `e2e/lab-02/helpers.ts` defaults `BASE` to **5174**:
+
+```
+e2e/lab-02/helpers.ts:6   export const BASE = process.env.E2E_BASE_URL ?? "http://localhost:5174";
+playwright.config.ts:20   baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
+```
+
+Run against a UI on the documented port, every specification fails with
+`net::ERR_CONNECTION_REFUSED at http://localhost:5174`. The 5174 default was
+baked in during development because that is where Vite happened to be listening
+at the time, and the mismatch was never exercised because every later run passed
+`E2E_BASE_URL` explicitly.
+
+The figures above were obtained with `E2E_BASE_URL=http://localhost:5173
+npm run test:e2e`, which the README does document as the override for a UI on a
+different port — but 5173 is the documented default, so no override should be
+needed.
+
+**This is reported rather than fixed**, because it is a defect in code already
+merged to `main` and correcting it belongs in its own change with its own
+review, not in the submission document. `tests.md` §6 is unchanged: its figures
+were correct and remain correct.
+
 ---
 
 ## Answer Part 4
 
-**Data model and migration.** [server/prisma/schema.prisma](https://github.com/Tanakrit-triton/toktickit/blob/main/server/prisma/schema.prisma)
+**Rendered AI use document:** [docs/lab-02/ai-use.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ai-use.md)
 
-Six models. `Category` and `RelatedSystem` keep integer keys; `RequesterUser`,
-`Ticket` and `Attachment` use UUIDs (DEC-04), because a sequential `Ticket` id
-would let one Requester reach another ticket by editing a URL, which is the
-thing BR-18 exists to prevent.
+### LLM used
 
-Soft removal is a nullable `removedAt` rather than a boolean, so the fact and
-the time of removal cannot disagree.
+**Claude Opus 5** (model id `claude-opus-5`), through **Claude Code** in the
+Claude desktop application, with tool access to the working tree, a shell, and
+the `gh` CLI. That access is why the prompt table records outcomes rather than
+suggestions: most prompts ended in a command actually run against the real
+database and its real output. No other model or AI service was used.
 
-**Seed:** [server/prisma/seed.ts](https://github.com/Tanakrit-triton/toktickit/blob/main/server/prisma/seed.ts) upserts on each natural key, so ids stay stable and repeated runs create no duplicates. It provides two fixtures the tests depend on: an **inactive Requester**, which must never reach the selector (AC-01), and **Pimchanok Sonthi, who owns no tickets** and proves the empty state (AC-24).
+### Key prompts
+
+`ai-use.md` §2 tabulates **ten** prompts, quoted from the session and abridged
+only where long. Each row gives the prompt, what it was for, and what came back.
+They span the opening audit, the specification defect fixes, the `428`
+correction, Issue #13's false premise, the blocked dependency on Issue #15, and
+Issues #16 through #19.
+
+### My Reflection
+
+`ai-use.md` §5. The substance, in short:
+
+The most useful thing the model did was not writing code. It was reading four
+documents against each other and finding that two contradicted each other on
+primary keys — a conflict that had survived being written, committed, and
+pushed to an open pull request.
+
+The pattern held: the model was most valuable asked to **check** something
+against a written contract, and least trustworthy asked to **assert** that
+something worked. Every defect it found was found by comparison — specification
+against specification, generated SQL against the real state of the table, a
+green test run against what parallel execution actually does.
+
+It produced defects of the same kind in its own work. Three tests in #18 passed
+before the feature existed, because they asserted only that something was
+absent and an empty response satisfies that. Two tests in #16 passed or failed
+by machine load. A regex built by string concatenation lost its escape and
+would have accepted a malformed ticket number.
+
+§4 records the finding I consider most important. **Three rules from documents I
+wrote, reviewed and approved before any code existed described things the system
+could not do:**
+
+| Rule | Why it could not hold |
+|---|---|
+| **BR-05** | Implemented exactly, and duplicates were still reachable. Eight parallel creations failed six times. The rule named a mechanism and assumed a guarantee that mechanism does not deliver. Amended as AMD-01. |
+| **DEC-04** | Contradicted `api-spec.md` §1.2 on primary keys, on the same pull request, neither flagging it. Following it meant a destructive migration of Lab 1 data. |
+| **ui-spec §5.5** | An attachment state shown "when an upload failed after the Ticket was created". A failed upload persists nothing, so a reloaded screen has nothing to render it from. |
+
+Each reads as correct, cites the right identifiers, and sounds like what an
+experienced engineer would write. Reviewing prose against prose cannot separate
+a rule that is correct from one that is merely plausible. The lesson I take is
+narrow: **a rule naming a mechanism is weaker than one stating a property**,
+because the mechanism can be implemented faithfully while the property it was
+chosen for goes unmet. BR-05 now states the property and names the test that
+proves it.
 
 ---
 
 ## Answer Part 5
 
-**API contract.** [docs/lab-02/api-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/api-spec.md)
+**The simulated login screen — selecting the session Requester.** Zero points;
+graded within Part 6.
 
-| Capability | Endpoint |
-|---|---|
-| Active Categories | `GET /api/v1/categories` |
-| Active Related Systems | `GET /api/v1/related-systems` |
-| Active Development Requesters | `GET /api/v1/dev-requesters` |
-| Create a Ticket | `POST /api/v1/tickets` |
-| List owned Tickets | `GET /api/v1/tickets` |
-| One owned Ticket | `GET /api/v1/tickets/{id}` |
-| Upload an Attachment | `POST /api/v1/tickets/{id}/attachments` |
-| Attachment metadata | `GET /api/v1/tickets/{id}/attachments` |
-| Download an Attachment | `GET /api/v1/attachments/{id}/download` |
-| Soft-remove an Attachment | `DELETE /api/v1/attachments/{id}` |
+![Requester selection screen](../../artifacts/lab-02/screenshots/requester-selection/desktop-loaded.png)
 
-Every error body is `{ error: { code, message, details? } }` from one builder,
-so the shape cannot drift between routes. Ownership failure returns `404`, not
-`403` (DEC-01), and a foreign resource and a missing one return **byte-identical
-bodies**, proved by comparing them as strings in API-21 and API-33.
+`artifacts/lab-02/screenshots/requester-selection/desktop-loaded.png`
+
+The dropdown is expanded in this capture. A closed native select renders its
+popup through the operating system, so a screenshot of the closed control shows
+only the placeholder and proves nothing about which Requesters are listed. Only
+the control's presentation is changed; the options are the application's own,
+fetched from `GET /api/v1/dev-requesters`.
+
+**Four active Requesters are listed** — Napat Chaiwong, Pimchanok Sonthi,
+Siriporn Meesuk, Thanawat Rattana. **The seeded inactive Requester, Kittipong
+Wong, is absent**, which is AC-01 and BR-10: inactive Requesters are filtered
+server-side and never reach the client at all.
+
+**This is not authentication, and the screen says so.** The explanatory text
+reads *"This is not a login screen. Authentication and role-based access will be
+introduced in Lab 3."*, and the notice above it appears on every screen in the
+application. The selection is unsigned, held in session storage, and sent as the
+`X-Dev-Requester-Id` header; it carries no cryptographic guarantee and no part
+of the implementation treats it as proof of identity (BR-03, BR-11). DEC-02
+keeps identity in a header rather than the URL or body, so the Lab 3 migration
+to a session cookie changes no route signature.
+
+The remaining states of this screen — loading, empty, failure — and the
+selected-user display and Change Requester action are answered in Part 6.
 
 ---
 
 ## Answer Part 6
 
-**Requester context, ticket creation, and the ticket list.** All at 1440x900.
+All captures are 1440x900 unless stated. Each was produced by a script that
+asserts its subject is painted and inside the viewport before the file is
+written, so an image showing a loading skeleton, a blank render, or a subject
+below the fold cannot be produced.
+
+### Q1 — the Requester field comes from the pre-entry selection, and the saved Ticket carries the matching requesterId
+
+![Ticket created for Siriporn Meesuk](../../artifacts/lab-02/screenshots/create-ticket/desktop-requester-ownership.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-requester-ownership.png`
+
+Siriporn Meesuk was chosen on the selector screen **before entering the
+application**. The read-only Requester field on Create Ticket showed
+`Siriporn Meesuk`, and the backend returned `TKT-2026-00291`.
+
+The stored row, queried back out of PostgreSQL by that number
+(`artifacts/lab-02/evidence/part-6-database-proof.txt`):
+
+```
+ticketNumber      TKT-2026-00291
+requesterId       30147b1b-4294-4293-988b-ecb614b31759
+requester         Siriporn Meesuk
+currentStatus     NEW
+createdAt         2026-09-06T19:35:31.589Z
+
+requesterId matches the selected Requester: true
+status is NEW on creation (BR-02):          true
+Ticket Number matches TKT-YYYY-NNNNN:       true
+```
+
+**Neither value is chosen by the client.** No `requesterId` and no
+`ticketNumber` appears in the create request body. Ownership is taken from the
+`X-Dev-Requester-Id` header on the server, and a client-supplied `requesterId`
+is ignored outright rather than consistency-checked, because checking it would
+invite clients to send it (BR-08). The number is allocated by the backend inside
+the same transaction as the insert, using an atomic database increment (BR-05,
+AMD-01). API-02 asserts the stored `requesterId` matches the header, API-06
+asserts a body value is ignored, and API-41 proves eight concurrent creations
+all receive distinct numbers.
+
+### Q2 — Create Ticket at desktop viewport, reference data loaded from the database
+
+![Create Ticket initial state](../../artifacts/lab-02/screenshots/create-ticket/desktop-initial.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-initial.png`
+
+The system-generated group is populated and read-only: Ticket Number reads
+*"Will be generated on submission"*, Ticket Date is today, and Requester is the
+selected identity. Category and Related System come from
+`GET /api/v1/categories` and `GET /api/v1/related-systems`, both of which return
+active rows only, sorted by name.
+
+**No option is hard-coded.** UI-10 asserts the rendered option list matches the
+API response **exactly, count included**, so a component carrying a fallback
+array alongside the API call fails rather than passing on a superset. API-38 and
+API-39 assert the endpoints return active rows only and that an inactive record
+never appears.
+
+### Q3 — an invalid submission showing field-level messages
+
+![Validation failure](../../artifacts/lab-02/screenshots/create-ticket/desktop-validation-failure.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-validation-failure.png`
+
+Submitting the empty form reports **all five failing fields at once**, each
+message directly below the control that failed, each field tinted with the
+invalid state. No request is sent (AC-12).
+
+Placement is asserted, not just presence: STY-02 requires the message to be the
+**next sibling** of its own field and the field's `aria-describedby` target, so a
+single summary block at the top of the form — which `ui-spec.md` §2.1 forbids —
+would fail. The capture also asserts `document.activeElement` is the first
+failing field, so it cannot be produced unless focus really moved there.
+
+The server enforces the same rules independently and returns every failing field
+in one `422` (BR-26, API-05). Client validation exists to make the feedback
+immediate; it never replaces the server, and a `422` replaces the client's
+messages with the server's per field (BR-24).
+
+### Q4 — one valid and one invalid attachment selected, with the result explained
+
+![Valid and invalid attachment](../../artifacts/lab-02/screenshots/create-ticket/desktop-invalid-attachment.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-invalid-attachment.png`
+
+Two files were selected in one action: `battery-report.png` and `payload.exe`.
+
+**What happened, and why.** `battery-report.png` was **accepted**. Its extension
+`.png` and its declared MIME type `image/png` are both permitted and they agree,
+and it is under 5 MB, so it appears as an ordinary selected row with its size and
+a Remove control, and it will be uploaded when the ticket is submitted.
+
+`payload.exe` was **rejected**, and the row states why: **"File type not
+permitted"**. Neither its extension nor its declared type
+`application/x-msdownload` is among the four permitted combinations — JPG/JPEG,
+PNG, WEBP, PDF (BR-30). **The rejected file remains visible rather than being
+discarded silently**, which is the behaviour `ui-spec.md` §5.3 requires: a file
+that vanished without explanation would leave the Requester believing evidence
+had been attached. It is excluded from submission and occupies no slot against
+the five-file limit.
+
+Both halves of the type check must pass **and agree**. A `.pdf` announced as an
+image is rejected too (UT-10), because either half alone would let a mislabelled
+file through. Size is checked separately: over 5 MB is rejected with "File
+exceeds 5 MB" (UT-11, API-26).
+
+Writing this test found a real defect. The file input originally carried
+`accept=".jpg,.jpeg,.png,.webp,.pdf"`, which made the browser hide impermissible
+files from the picker — so the "File type not permitted" state `ui-spec.md` §5.3
+specifies was **unreachable**. The filter was removed so that validation is the
+single gate and the specified state can actually occur.
+
+The server enforces the same policy independently, so a client that skipped the
+check is refused: `415` for an impermissible or disagreeing type, `413` over
+5 MB, `409` at the sixth active attachment (API-25, API-26, API-27).
+
+### Q5 — backend stopped, showing the safe error state with form values preserved
+
+![API failure with values preserved](../../artifacts/lab-02/screenshots/create-ticket/desktop-api-failure.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-api-failure.png`
+
+The form was filled, the API was then stopped **by process id**, and the
+submission attempted. The callout reads *"The ticket could not be created. Your
+details have been kept - try again."*
+
+**Every entered value is still present** — Category, Related System, Requested
+Priority, Ticket Summary and Description all survive the failure, and Submit is
+re-enabled so the Requester can retry without re-entry (BR-27, AC-16). The
+capture asserts each field's value individually before writing.
+
+**Nothing internal leaks.** The capture greps the rendered text for `500`,
+`ECONNREFUSED`, `localhost:3000` and stack frames, and refuses to write if any
+appears (BR-28). The thrown error is discarded by the screen rather than
+rendered.
+
+Stopping the API **by PID** matters: stopping the `npm` wrapper leaves the
+`tsx watch` child holding port 3000, and the form would then submit successfully
+against a healthy API while the test claimed to have proved a failure state.
+E2E-05 polls until the port refuses connections before asserting anything.
+
+### The selector, the shell, and the remaining states
 
 | Evidence | Screenshot |
 |---|---|
-| Requester selection, options visible | `artifacts/lab-02/screenshots/requester-selection/desktop-loaded.png` |
-| Selector empty state | `artifacts/lab-02/screenshots/requester-selection/desktop-empty.png` |
-| Selector failure, safe message and Retry | `artifacts/lab-02/screenshots/requester-selection/desktop-failure.png` |
-| Application shell after selection | `artifacts/lab-02/screenshots/requester-selection/desktop-shell.png` |
-| Create Ticket, initial | `artifacts/lab-02/screenshots/create-ticket/desktop-initial.png` |
-| Validation failure, message beside each field | `artifacts/lab-02/screenshots/create-ticket/desktop-validation-failure.png` |
-| Submitting, disabled and busy | `artifacts/lab-02/screenshots/create-ticket/desktop-submitting.png` |
-| Success, Ticket Number legible | `artifacts/lab-02/screenshots/create-ticket/desktop-success.png` |
-| Backend stopped, every value retained | `artifacts/lab-02/screenshots/create-ticket/desktop-api-failure.png` |
-| Impermissible file rejected at selection | `artifacts/lab-02/screenshots/create-ticket/desktop-invalid-attachment.png` |
-| My Tickets, populated | `artifacts/lab-02/screenshots/my-tickets/desktop-populated.png` |
-| Filtered | `artifacts/lab-02/screenshots/my-tickets/desktop-filtered.png` |
-| Empty state | `artifacts/lab-02/screenshots/my-tickets/desktop-empty.png` |
-| No-results state | `artifacts/lab-02/screenshots/my-tickets/desktop-no-results.png` |
+| Active-user dropdown, four active Requesters, inactive absent | `requester-selection/desktop-loaded.png` |
+| Selected-user display and Change Requester in the shell | `requester-selection/desktop-shell.png` |
+| Selector empty state — no active Requesters, no Continue offered | `requester-selection/desktop-empty.png` |
+| Selector failure state — safe message and Retry, no status code | `requester-selection/desktop-failure.png` |
+| Submitting state — Submit disabled, `aria-busy`, "Submitting..." | `create-ticket/desktop-submitting.png` |
+| Success state — official Ticket Number and next actions | `create-ticket/desktop-success.png` |
 
-The empty and no-results captures each assert the **other** state is absent, so
-neither can be mistaken for the other. That distinction is BR-49.
+The shell capture shows *"Acting as: Siriporn Meesuk"* with the Change Requester
+action beside it, and the development notice below the header. Changing
+Requester clears the selection and tears down the guarded subtree, so the
+previous Requester's data is discarded rather than reused (BR-12, UI-09).
+
+The loading state is proved by UI-02 and UI-26 rather than by a screenshot: it
+exists only while a request is in flight, and a capture of it would be a race.
 
 ---
 
@@ -252,34 +508,58 @@ a removed attachment returns `410`.
 
 ## Answer Part 9
 
-**Responsive layouts, and AI use.**
+**Rendered UI specification:** [docs/lab-02/ui-spec.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ui-spec.md)
 
-25 screenshots cover every path in `ui-spec.md` section 10 at desktop 1440x900,
-tablet 834x1112 and mobile 390x844.
+It fixes the Zen Green tokens (§1), the six control states (§2), the button
+hierarchy (§3), the shell (§4), every screen (§5), badges (§6), responsive rules
+(§7), accessibility (§8), test hooks (§9), and the screenshot paths (§10).
 
-| Width | Evidence |
+### The three viewports
+
+Desktop 1440x900, tablet 834x1112, mobile 390x844 — the widths §10 fixes.
+
+| Screen | Desktop | Tablet | Mobile |
+|---|---|---|---|
+| Create Ticket | `create-ticket/desktop-initial.png` | `create-ticket/tablet-initial.png` | `create-ticket/mobile-initial.png` |
+| My Tickets | `my-tickets/desktop-populated.png` | `my-tickets/tablet-populated.png` | `my-tickets/mobile-cards.png` |
+| Ticket Detail | `ticket-detail/desktop-view.png` | `ticket-detail/tablet-view.png` | `ticket-detail/mobile-view.png` |
+
+![My Tickets, mobile cards](../../artifacts/lab-02/screenshots/my-tickets/mobile-cards.png)
+
+`artifacts/lab-02/screenshots/my-tickets/mobile-cards.png`
+
+The mobile list renders **cards, not a table**. That is a difference in the DOM
+rather than in styling: AC-40 asks for cards "rather than a table", and a table
+hidden or scrolled by CSS is still a table in the accessibility tree. The
+capture asserts **zero** `table` elements anywhere in the document, every card
+at least 44px tall, and no horizontal page overflow. The tablet table drops
+Related System only; every other column is retained.
+
+### Completed visual checklist
+
+`tests.md` §4, all 22 rows at all three widths. Rows marked **auto** are
+enforced by a test that fails the build rather than by a human eye, and the test
+is named; rows marked n/a do not apply at that width and say why rather than
+being ticked vacuously.
+
+| Requirement | How it is covered |
 |---|---|
-| Tablet | `create-ticket/tablet-initial.png`, `my-tickets/tablet-populated.png`, `ticket-detail/tablet-view.png` |
-| Mobile | `create-ticket/mobile-initial.png`, `my-tickets/mobile-cards.png`, `ticket-detail/mobile-view.png` |
+| **Colours** | STY-11 parses the token table out of `ui-spec.md` itself and fails on any colour in the stylesheet absent from it. The 15 distinct values are all present, and none of the D-09 KMUTT values appears in any file. |
+| **Editable and read-only fields** | STY-03. Read-only controls carry the `readonly` attribute and the read-only background; editable ones do not. Read-only stays legible rather than greyed into illegibility. |
+| **Disabled versus read-only** | STY-04. Disabled cannot take focus; read-only can. Two states, not one greyed appearance. |
+| **Validation placement** | STY-01 and STY-02. Every required field carries a red asterisk, and each message is the next sibling of its own field and its `aria-describedby` target. |
+| **Button hierarchy** | STY-06 asserts exactly one primary button per screen; STY-07 asserts no control relies on an icon alone. |
+| **Clipping and overlap** | RSP-01 … RSP-03 at all three widths, plus the visual pass against the screenshots. |
+| **Horizontal overflow** | RSP-01 … RSP-03 assert `scrollWidth - clientWidth <= 1` at every width. |
 
-**RSP-01 to RSP-06** assert no horizontal page scrolling at any width, cards
-rather than a table below 768px, controls still operable at 390px, and touch
-targets of at least 44px.
+**One deliberate exception.** `/lab-01` carries no development notice and uses
+Bootstrap colours outside the token table. A-05 excludes it from AC-44 and from
+this checklist: wrapping the retained Lab 1 page in the Zen Green shell would
+change the slice A-04 promises to preserve.
 
-### AI use
-
-**Rendered:** [docs/lab-02/ai-use.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/ai-use.md)
-
-Claude Opus 5 via Claude Code, fourteen prompts tabulated, with the reflection.
-
-Its section 4 records the most useful finding of the sprint: **three rules from
-documents written, reviewed and approved before any code existed described
-things the system could not do** — BR-05, DEC-04, and the Unavailable
-attachment state in `ui-spec.md` section 5.5. Each was found by attempting the
-implementation. None was found by reading, and none by peer review, which
-returned ten approvals and no change requests.
-
-The conclusion drawn there is narrow and worth repeating: a rule naming a
-**mechanism** is weaker than one stating a **property**, because the mechanism
-can be implemented faithfully while the property it was chosen for goes unmet,
-and no amount of prose review will reveal the gap.
+**Two limits worth stating.** jsdom loads no stylesheet, so the STY tests assert
+the attribute and class contract the stylesheet keys off, plus the rules'
+presence in source — what jsdom cannot see, that the rules paint, is covered by
+the responsive suite and these screenshots. And there are no pixel-diff
+baselines: they would fail on every intentional style change during a sprint
+that changed styles constantly (`tests.md` §7).
