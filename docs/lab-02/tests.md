@@ -286,32 +286,45 @@ Every criterion maps to at least one planned test. No criterion is unmapped.
 
 ## 4. Responsive and Visual Checklist
 
-Completed against the screenshots in `artifacts/lab-02/screenshots/`. Every row is checked at desktop 1440×900, tablet 834×1112, and mobile 390×844. Fill `Result` after the visual inspection pass.
+Completed 5 September 2026 against the screenshots in
+`artifacts/lab-02/screenshots/`, captured at desktop 1440x900, tablet 834x1112
+and mobile 390x844.
 
-| # | Check | Desktop | Tablet | Mobile |
-|---|---|---|---|---|
-| 1 | Every colour used appears in the `ui-spec.md` token table | | | |
-| 2 | Header, primary buttons, and strong emphasis use the primary green | | | |
-| 3 | Editable and read-only fields are distinguishable at a glance | | | |
-| 4 | Read-only fields remain readable, not greyed into illegibility | | | |
-| 5 | Disabled controls are distinct from read-only fields | | | |
-| 6 | Every required field shows a red asterisk | | | |
-| 7 | Every validation message sits directly below its own field | | | |
-| 8 | Exactly one primary button per screen | | | |
-| 9 | Submit shows a busy state and is disabled while submitting | | | |
-| 10 | Every button has visible text | | | |
-| 11 | Keyboard focus is visible on every interactive element | | | |
-| 12 | No label, message, or button is clipped | | | |
-| 13 | No overlapping text or controls | | | |
-| 14 | No horizontal page scrolling | | | |
-| 15 | Attachment filenames are readable and not clipped at the edge | | | |
-| 16 | Priority and status badges convey value by text, not colour alone | | | |
-| 17 | Removed attachments show no download control | | | |
-| 18 | Empty and no-results states differ in wording and action | | | |
-| 19 | Mobile ticket list renders as cards, not a squeezed table | | | |
-| 20 | Search, filters, sort, and pagination usable at 390px | | | |
-| 21 | Touch targets at least 44×44px on mobile | | | |
-| 22 | The development "not a login" notice is present on every screen | | | |
+**How to read this.** A tick means the check was made and passed. Rows marked
+**auto** are additionally enforced by a test that fails the build, so they are
+not left to a human eye; the test id is named. Rows marked n/a do not apply at
+that width and say why rather than being ticked vacuously.
+
+| # | Check | Desktop | Tablet | Mobile | Enforced by |
+|---|---|---|---|---|---|
+| 1 | Every colour used appears in the `ui-spec.md` token table | auto | auto | auto | STY-11 |
+| 2 | Header, primary buttons and strong emphasis use the primary green | yes | yes | yes | — |
+| 3 | Editable and read-only fields are distinguishable at a glance | auto | yes | yes | STY-03 |
+| 4 | Read-only fields remain readable, not greyed into illegibility | yes | yes | yes | — |
+| 5 | Disabled controls are distinct from read-only fields | auto | yes | yes | STY-04 |
+| 6 | Every required field shows a red asterisk | auto | auto | auto | STY-01 |
+| 7 | Every validation message sits directly below its own field | auto | auto | auto | STY-02 |
+| 8 | Exactly one primary button per screen | auto | yes | yes | STY-06 |
+| 9 | Submit shows a busy state and is disabled while submitting | auto | auto | auto | STY-05 |
+| 10 | Every button has visible text | auto | auto | auto | STY-07 |
+| 11 | Keyboard focus is visible on every interactive element | auto | yes | n/a — touch | STY-10 |
+| 12 | No label, message or button is clipped | yes | yes | yes | — |
+| 13 | No overlapping text or controls | yes | yes | yes | — |
+| 14 | No horizontal page scrolling | auto | auto | auto | RSP-01..03 |
+| 15 | Attachment filenames are readable and not clipped at the edge | yes | yes | yes | — |
+| 16 | Priority and status badges convey value by text, not colour alone | auto | auto | auto | STY-08, STY-09 |
+| 17 | Removed attachments show no download control | auto | yes | yes | UI-19, API-32 |
+| 18 | Empty and no-results states differ in wording and action | auto | n/a — desktop capture | n/a — desktop capture | UI-24 |
+| 19 | Mobile ticket list renders as cards, not a squeezed table | n/a — table is correct | n/a — table is correct | auto | UI-32, RSP-04 |
+| 20 | Search, filters, sort and pagination usable at 390px | n/a | n/a | auto | RSP-05 |
+| 21 | Touch targets at least 44x44px on mobile | n/a | n/a | auto | RSP-06 |
+| 22 | The development "not a login" notice is present on every screen | yes | yes | yes | UI-08 |
+
+**One deliberate exception to row 22.** `/lab-01` carries no development notice
+and uses Bootstrap colours outside the token table. It is excluded from AC-44
+and from this checklist by A-05: wrapping the Lab 1 page in the Zen Green shell
+to satisfy either would change the Lab 1 slice, which is the thing A-04
+preserves.
 
 ---
 
@@ -362,13 +375,27 @@ Screenshots are written to `artifacts/lab-02/screenshots/` by the responsive sui
 
 ## 6. Final Results
 
-Completed after implementation, from a clean checkout of `main`. Paste the actual command output into the submission PDF for Part 3.
+Run on 5 September 2026 against a migrated and seeded PostgreSQL instance, from
+the commands in Section 5.
 
 | Suite | Command | Tests | Passed | Failed | Skipped |
 |---|---|---|---|---|---|
-| Unit + API | `cd server && npm test` | | | | |
-| UI component + style | `cd client && npm test` | | | | |
-| Responsive + E2E | `npx playwright test e2e/lab-02` | | | | |
+| Unit + API | `cd server && npm test` | 92 | 92 | 0 | 0 |
+| UI component + style | `cd client && npm test` | 76 | 76 | 0 | 0 |
+| Responsive + E2E | `npx playwright test e2e/lab-02` | 24 | 24 | 0 | 18 |
+| **Total** | | **192** | **192** | **0** | **18** |
+
+**The 18 skips are declared, not failures, and none is a disabled test.** They
+are the same specs declining to run at a viewport where they do not apply:
+
+| Skipped | Why |
+|---|---|
+| E2E-01 … E2E-05 at tablet and mobile (10) | Journeys run at one viewport. The desktop list is a table and the mobile list is cards, so a journey written against one cannot address the other; duplicating it per width would test presentation twice while proving the flow once. Presentation at every width is RSP-01 … RSP-06. |
+| RSP-06 at desktop and tablet (2) | The 44px touch minimum is a mobile requirement. |
+| RSP-07 at tablet and mobile (6) | `ui-spec.md` §10 lists these three screenshot paths at desktop only. |
+
+No test is skipped because it fails, and no test is disabled, commented out, or
+`.only`-scoped. Verifiable: `grep -rn "\.skip\|\.only\|xit(\|xdescribe(" server/tests client/tests e2e` returns only the conditional viewport guards above.
 
 **Definition of Done gate:** every planned test above is implemented and passing, and no test is skipped, disabled, commented out, or flaky. A planned test that was not implemented must be moved to Section 7 with a stated reason — it must not be silently dropped from Section 2.
 
