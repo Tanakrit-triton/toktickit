@@ -21,9 +21,15 @@
 
 ### Commit history on final `main`
 
-Every feature branch merged into `lab2-staging` through a reviewed Pull
-Request, and `lab2-staging` merged into `main` once, through the release Pull
-Request. No commit was made directly to either branch.
+![Branch network graph](../../artifacts/lab-02/screenshots/process/desktop-branch-network.png)
+
+`artifacts/lab-02/screenshots/process/desktop-branch-network.png`
+
+GitHub's network graph, showing each feature branch diverging from and merging
+back into the integration line, and that line merging once into `main`. Every
+feature branch reached `lab2-staging` through a reviewed Pull Request, and
+`lab2-staging` reached `main` once, through the release Pull Request. No commit
+was made directly to either.
 
 | Merge | Branch | PR |
 |---|---|---|
@@ -58,25 +64,47 @@ Nine issues, one branch and one Pull Request each.
 
 **Board:** https://github.com/users/Tanakrit-triton/projects/2
 
-All nine Lab 2 issues are closed and all nine cards sit in **Done**, alongside
-the four carried from Lab 1 — thirteen in the column.
+![Kanban board with every card in Done](../../artifacts/lab-02/screenshots/project-board/desktop-kanban-done.png)
 
-| Evidence | Screenshot |
-|---|---|
-| Kanban board with every card in Done | `artifacts/lab-02/screenshots/project-board/desktop-kanban-done.png` |
+`artifacts/lab-02/screenshots/project-board/desktop-kanban-done.png`
+
+**Done 13** — the nine Lab 2 cards and the four carried from Lab 1. Started, PR
+Review and Fixing are all empty, so no work is left in flight. Each card shows
+its issue number and the Pull Request that delivered it: #16 with #25, #17 with
+#26, #18 with #27, #19 with #28.
 
 Issue state and board position are separate things in GitHub Projects: closing
 an issue does not move its card, and a card in Done does not close its issue.
-Both are true here, and the screenshot is the evidence for the second, since
-the board column is not derivable from the issue list.
+Both are true here, and the screenshot is the evidence for the second, since the
+board column is not derivable from the issue list.
+
+### Repository structure
+
+![Repository directory structure](../../artifacts/lab-02/screenshots/process/desktop-repository-structure.png)
+
+`artifacts/lab-02/screenshots/process/desktop-repository-structure.png`
+
+The working tree: `client/` and `server/` hold the application, `docs/lab-02/`
+the four specification documents plus this submission, `e2e/lab-02/` the
+Playwright suites, `artifacts/` the captured evidence, and `CLAUDE.md` the
+course workflow rules that applied to every session. `node_modules/` and
+`test-results/` appear in the editor because they exist on disk; both are
+ignored and neither is tracked.
 
 ### Peer review record
 
 **Rendered:** [docs/lab-02/reviewer.md](https://github.com/Tanakrit-triton/toktickit/blob/main/docs/lab-02/reviewer.md)
 
-Ten Pull Requests, ten approvals, no change requests, no inline comments. Three
-of my replies corrected a factual error in the reviewer summary; those exchanges
-are section 5 of that document and are the substantive part of the record.
+Ten Pull Requests reviewed, **eleven reviews** — #27 received two — every one
+an approval, with no changes requested and no inline comments. Seven drew a
+reply from me. **Three of those replies corrected the review**: the purity
+claim on #22, the transaction claim on #25, and the mobile-cards claim on #26.
+Those exchanges are section 5 of that document and are the substantive part of
+the record.
+
+Section 6 records something the sprint is worth being honest about: **no defect
+was found by review**. Every one was found by executing something — a test run,
+a migration, a concurrency check, a browser, a screenshot capture.
 
 ### README and .gitignore
 
