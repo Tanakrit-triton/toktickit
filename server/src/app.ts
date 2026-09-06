@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
-// getPrisma() is your lazy database handle. Call it INSIDE a route when you
-// need the DB (Issue 4). It is intentionally unused until then.
-void getPrisma;
+import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
+import { ticketsRouter } from "./lab-02/tickets.routes.js";
+import { attachmentsRouter } from "./lab-02/attachments.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
@@ -41,5 +41,13 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Lab 2 -- versioned API. The unversioned Lab 1 route above is retained
+// unchanged alongside it (A-04) and is retired in a later sprint.
+
+app.use("/api/v1", referenceDataRouter);
+app.use("/api/v1", ticketsRouter);
+app.use("/api/v1", attachmentsRouter);
 
 export default app;

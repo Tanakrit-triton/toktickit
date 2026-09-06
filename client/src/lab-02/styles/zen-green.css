@@ -1,0 +1,740 @@
+/*
+ * Zen Green theme -- docs/lab-02/ui-spec.md sections 1 to 3.
+ *
+ * This file is the ONLY place a colour literal may appear in the client.
+ * Every value below is copied from the ui-spec section 1.1 token table, and
+ * every component references these variables rather than a hex value, so
+ * AC-44 ("every computed colour appears in the token table") holds by
+ * construction rather than by inspection.
+ *
+ * DEV-01: this palette replaces the KMUTT palette of System-Level SDS D-09.
+ * The deviation is confined to hue; the D-09 rule that status and priority are
+ * never conveyed by colour alone is preserved unchanged.
+ */
+
+:root {
+  /* --- 1.1 Colour ------------------------------------------------------- */
+  --zg-primary: #006B3C;          /* fixed by handout */
+  --zg-secondary: #0B7A46;        /* fixed by handout */
+  --zg-pale: #EAF6EF;             /* fixed by handout */
+  --zg-bg: #F5F7F6;               /* fixed by handout */
+  --zg-surface: #FFFFFF;
+  --zg-border: #C9D4CD;
+  --zg-border-strong: #0B7A46;
+  --zg-text: #1B2A22;
+  --zg-text-muted: #4A5C52;
+  --zg-readonly-bg: #EDF1EE;
+  --zg-disabled-bg: #F0F2F1;
+  --zg-disabled-text: #8A968F;
+  --zg-error: #B3261E;
+  --zg-error-bg: #FDECEA;
+  --zg-warning: #8A5A00;
+  --zg-warning-bg: #FFF4E5;
+  --zg-success: #006B3C;
+
+  /* --zg-secondary at 35% opacity, per the focused state in section 2.
+     Derived from a token rather than introducing a new colour. */
+  --zg-focus-ring: rgba(11, 122, 70, 0.35);
+
+  /* --- 1.2 Typography --------------------------------------------------- */
+  /* Bootstrap system font stack, retained per ui-spec 1.2. Named explicitly
+     because the font shorthand below sets a family, and `inherit` there
+     would resolve to the browser default serif on body. No web font. */
+  --zg-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --zg-font-h1: 600 28px/1.3 var(--zg-font-family);
+  --zg-font-h2: 600 22px/1.35 var(--zg-font-family);
+  --zg-font-h3: 600 18px/1.4 var(--zg-font-family);
+  --zg-font-body: 400 16px/1.5 var(--zg-font-family);
+  --zg-font-label: 600 14px/1.4 var(--zg-font-family);
+  --zg-font-small: 400 13px/1.45 var(--zg-font-family);
+
+  /* --- 1.3 Spacing: 4px base scale, no arbitrary pixel values ----------- */
+  --zg-space-1: 4px;
+  --zg-space-2: 8px;
+  --zg-space-3: 12px;
+  --zg-space-4: 16px;
+  --zg-space-5: 24px;
+  --zg-space-6: 32px;
+  --zg-space-7: 48px;
+
+  /* --- 1.4 Radius, border, elevation ------------------------------------ */
+  --zg-radius-sm: 4px;
+  --zg-radius-md: 6px;
+  --zg-radius-lg: 8px;
+  --zg-border-width: 1px;
+  --zg-shadow-card: 0 1px 3px rgba(27, 42, 34, 0.08);
+}
+
+body {
+  background: var(--zg-bg);
+  color: var(--zg-text);
+  font: var(--zg-font-body);
+}
+
+/* --- 2. Control states ---------------------------------------------------
+ * All six states below are implemented on one selector set so that read-only
+ * and disabled stay visually distinct from each other: read-only means "you
+ * may read this value", disabled means "this control is unavailable now".
+ */
+
+.zg-field {
+  display: block;
+  width: 100%;
+  padding: var(--zg-space-3);
+  font: var(--zg-font-body);
+  color: var(--zg-text);
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+}
+
+.zg-field:focus,
+.zg-field:focus-visible {
+  border-color: var(--zg-border-strong);
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 0;
+}
+
+.zg-field[readonly] {
+  background: var(--zg-readonly-bg);
+  border-color: var(--zg-border);
+  color: var(--zg-text);
+}
+
+.zg-field[aria-invalid="true"] {
+  background: var(--zg-error-bg);
+  border-color: var(--zg-error);
+}
+
+.zg-field:disabled {
+  background: var(--zg-disabled-bg);
+  border-color: var(--zg-border);
+  color: var(--zg-disabled-text);
+  cursor: not-allowed;
+}
+
+.zg-field[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* --- 2.1 Labels and validation messages ---------------------------------- */
+
+.zg-label {
+  display: block;
+  margin-bottom: var(--zg-space-2);
+  font: var(--zg-font-label);
+  color: var(--zg-text);
+}
+
+.zg-required-marker {
+  color: var(--zg-error);
+  margin-left: var(--zg-space-1);
+}
+
+.zg-message-error {
+  display: block;
+  margin-top: var(--zg-space-2);
+  font: var(--zg-font-small);
+  color: var(--zg-error);
+}
+
+.zg-helper {
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+}
+
+/* --- 3. Button hierarchy -------------------------------------------------- */
+
+.zg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zg-space-1);
+  min-height: 44px;
+  padding: var(--zg-space-3) var(--zg-space-4);
+  font: var(--zg-font-label);
+  border: var(--zg-border-width) solid transparent;
+  border-radius: var(--zg-radius-md);
+  cursor: pointer;
+}
+
+.zg-btn:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+.zg-btn--primary {
+  background: var(--zg-primary);
+  color: var(--zg-surface);
+}
+
+.zg-btn--secondary {
+  background: transparent;
+  border-color: var(--zg-primary);
+  color: var(--zg-primary);
+}
+
+.zg-btn--tertiary {
+  background: transparent;
+  color: var(--zg-secondary);
+  min-height: auto;
+  padding: var(--zg-space-1) var(--zg-space-2);
+}
+
+.zg-btn--tertiary:hover {
+  text-decoration: underline;
+}
+
+.zg-btn--destructive {
+  background: var(--zg-error);
+  color: var(--zg-surface);
+}
+
+.zg-btn:disabled {
+  background: var(--zg-disabled-bg);
+  border-color: transparent;
+  color: var(--zg-disabled-text);
+  cursor: not-allowed;
+}
+
+/* --- Surfaces ------------------------------------------------------------- */
+
+.zg-card {
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-5);
+}
+
+.zg-callout-error {
+  background: var(--zg-error-bg);
+  border: var(--zg-border-width) solid var(--zg-error);
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-text);
+  padding: var(--zg-space-4);
+}
+
+/* The development-mode notice required on every screen by BR-03. Warning
+   colours are reserved for warnings; this is one, not decoration. */
+.zg-dev-notice {
+  background: var(--zg-warning-bg);
+  color: var(--zg-warning);
+  font: var(--zg-font-small);
+  padding: var(--zg-space-2) var(--zg-space-4);
+  text-align: center;
+}
+
+/* --- 5.1 Development Requester Selection ---------------------------------
+ * Centred card, maximum width 480px, on the page background.
+ */
+
+.zg-selection-screen {
+  display: flex;
+  justify-content: center;
+  padding: var(--zg-space-7) var(--zg-space-4);
+}
+
+.zg-selection-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.zg-title {
+  font: var(--zg-font-h1);
+  color: var(--zg-text);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-selection-continue {
+  margin-top: var(--zg-space-5);
+  width: 100%;
+}
+
+/* Occupies the space the dropdown will take, so the card does not jump when
+   the request settles. */
+.zg-skeleton {
+  display: block;
+  height: 46px;
+  margin: var(--zg-space-4) 0 var(--zg-space-2);
+  background: var(--zg-readonly-bg);
+  border-radius: var(--zg-radius-md);
+}
+
+/* --- 4. Application shell ------------------------------------------------- */
+
+.zg-header {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-4);
+  flex-wrap: wrap;
+  padding: var(--zg-space-3) var(--zg-space-4);
+  background: var(--zg-primary);
+  color: var(--zg-surface);
+}
+
+.zg-brand {
+  font: var(--zg-font-h2);
+  color: var(--zg-surface);
+}
+
+.zg-nav-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-4);
+  flex: 1;
+  justify-content: space-between;
+}
+
+.zg-nav {
+  display: flex;
+  gap: var(--zg-space-4);
+}
+
+.zg-nav-link {
+  color: var(--zg-surface);
+  text-decoration: none;
+  padding: var(--zg-space-2) var(--zg-space-1);
+  border-bottom: 3px solid transparent;
+}
+
+/* Active indication is a border plus aria-current, never colour alone. */
+.zg-nav-link[aria-current="page"] {
+  border-bottom-color: var(--zg-surface);
+}
+
+.zg-nav-link:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+}
+
+.zg-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-3);
+  font: var(--zg-font-small);
+  color: var(--zg-surface);
+}
+
+.zg-identity-action {
+  color: var(--zg-surface);
+  text-decoration: underline;
+}
+
+.zg-nav-toggle {
+  display: none;
+  min-height: 44px;
+  padding: var(--zg-space-2) var(--zg-space-3);
+  font: var(--zg-font-label);
+  color: var(--zg-surface);
+  background: transparent;
+  border: var(--zg-border-width) solid var(--zg-surface);
+  border-radius: var(--zg-radius-md);
+  cursor: pointer;
+}
+
+.zg-main {
+  padding: var(--zg-space-6) var(--zg-space-4);
+}
+
+/* Bootstrap's md breakpoint, reused rather than replaced (ui-spec section 7). */
+@media (max-width: 767.98px) {
+  .zg-nav-toggle {
+    display: inline-flex;
+  }
+
+  .zg-nav-panel {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zg-space-3);
+  }
+
+  .zg-nav-panel--open {
+    display: flex;
+  }
+
+  .zg-nav {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* --- 5.2 Create Ticket ---------------------------------------------------- */
+
+.zg-create-card {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.zg-group {
+  border: none;
+  margin: 0 0 var(--zg-space-5);
+  padding: 0;
+}
+
+.zg-legend {
+  font: var(--zg-font-h3);
+  color: var(--zg-text);
+  margin-bottom: var(--zg-space-3);
+  padding: 0;
+}
+
+.zg-group .zg-label {
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-grid-2,
+.zg-grid-3 {
+  display: grid;
+  gap: var(--zg-space-4);
+}
+
+.zg-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.zg-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Description resizes vertically only, so it cannot be dragged outside the
+   card (ui-spec 5.2). */
+textarea.zg-field {
+  resize: vertical;
+  max-width: 100%;
+}
+
+.zg-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--zg-space-3);
+  margin-top: var(--zg-space-6);
+}
+
+/* --- 5.3 Attachment selection --------------------------------------------- */
+
+.zg-dropzone {
+  border: var(--zg-border-width) dashed var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  padding: var(--zg-space-5);
+  text-align: center;
+}
+
+.zg-dropzone--disabled {
+  background: var(--zg-disabled-bg);
+  color: var(--zg-disabled-text);
+}
+
+.zg-file-input {
+  margin-top: var(--zg-space-3);
+  font: var(--zg-font-small);
+}
+
+.zg-attachment-list {
+  list-style: none;
+  margin: var(--zg-space-4) 0 0;
+  padding: 0;
+}
+
+.zg-attachment-row {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-3);
+  padding: var(--zg-space-3);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  margin-bottom: var(--zg-space-2);
+  background: var(--zg-surface);
+}
+
+.zg-attachment-row--invalid {
+  background: var(--zg-error-bg);
+  border-color: var(--zg-error);
+}
+
+.zg-attachment-name {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Success panel -------------------------------------------------------- */
+
+.zg-created {
+  background: var(--zg-pale);
+  text-align: center;
+}
+
+.zg-created-mark {
+  font: var(--zg-font-h1);
+  color: var(--zg-success);
+  margin: 0;
+}
+
+.zg-created-number {
+  font: var(--zg-font-h2);
+  color: var(--zg-text);
+  margin: var(--zg-space-2) 0;
+}
+
+.zg-created .zg-actions {
+  justify-content: center;
+}
+
+@media (max-width: 767.98px) {
+  .zg-grid-2,
+  .zg-grid-3 { grid-template-columns: minmax(0, 1fr); }
+
+  .zg-actions {
+    flex-direction: column-reverse;
+  }
+
+  .zg-actions .zg-btn { width: 100%; justify-content: center; }
+}
+
+/* --- 5.4 My Tickets ------------------------------------------------------- */
+
+.zg-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zg-space-4);
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-control-bar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--zg-space-4);
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-4);
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-control-bar .zg-label {
+  margin-bottom: 0;
+  flex: 1 1 180px;
+}
+
+/* Wide content scrolls inside its own container, never the page (ui-spec 7). */
+.zg-table-scroll {
+  overflow-x: auto;
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+}
+
+.zg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--zg-font-body);
+}
+
+.zg-table th {
+  text-align: left;
+  font: var(--zg-font-label);
+  background: var(--zg-pale);
+  color: var(--zg-text);
+  padding: var(--zg-space-3) var(--zg-space-4);
+}
+
+.zg-table td {
+  padding: var(--zg-space-3) var(--zg-space-4);
+  border-top: var(--zg-border-width) solid var(--zg-border);
+  color: var(--zg-text);
+}
+
+.zg-table tbody tr:hover {
+  background: var(--zg-pale);
+}
+
+.zg-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.zg-truncate {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 6. Badges ------------------------------------------------------------ */
+
+.zg-badge {
+  display: inline-block;
+  border-radius: var(--zg-radius-sm);
+  font: var(--zg-font-small);
+  font-weight: 600;
+  padding: var(--zg-space-1) var(--zg-space-3);
+  white-space: nowrap;
+}
+
+.zg-badge--priority-low { background: var(--zg-readonly-bg); color: var(--zg-text-muted); }
+.zg-badge--priority-medium { background: var(--zg-pale); color: var(--zg-primary); }
+.zg-badge--priority-high { background: var(--zg-warning-bg); color: var(--zg-warning); }
+.zg-badge--priority-urgent { background: var(--zg-error-bg); color: var(--zg-error); }
+.zg-badge--status-new { background: var(--zg-pale); color: var(--zg-secondary); }
+
+/* --- States and pagination ------------------------------------------------ */
+
+.zg-state {
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-7) var(--zg-space-5);
+  text-align: center;
+}
+
+.zg-state .zg-btn { margin-top: var(--zg-space-4); }
+
+.zg-skeleton-list {
+  display: grid;
+  gap: var(--zg-space-2);
+}
+
+.zg-skeleton-row {
+  display: block;
+  height: 44px;
+  background: var(--zg-readonly-bg);
+  border-radius: var(--zg-radius-md);
+}
+
+.zg-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--zg-space-3);
+  margin-top: var(--zg-space-4);
+}
+
+.zg-page-size { margin-bottom: 0; }
+
+/* Tablet drops Related System; everything else is retained (ui-spec 5.4). */
+@media (max-width: 991.98px) {
+  .zg-col-system { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  .zg-control-bar { flex-direction: column; align-items: stretch; }
+
+  /* flex: 1 1 180px sets a 180px BASIS, which is a height once the bar
+     stacks. Each control was reserving 180px of vertical space and pushing
+     the ticket list off the screen. */
+  .zg-control-bar .zg-label { flex: 0 0 auto; }
+  .zg-list-header { flex-direction: column; align-items: stretch; }
+}
+
+/* --- 5.4 My Tickets, mobile cards ----------------------------------------- */
+
+.zg-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--zg-space-3);
+}
+
+.zg-ticket-card {
+  display: block;
+  /* Touch target minimum from ui-spec 7; the whole card becomes the link
+     target once Ticket Detail exists (#18). */
+  min-height: 44px;
+  background: var(--zg-surface);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-4);
+}
+
+.zg-card-top,
+.zg-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zg-space-3);
+}
+
+.zg-card-summary {
+  margin: var(--zg-space-2) 0;
+  color: var(--zg-text);
+}
+
+.zg-ticket-card .zg-helper {
+  margin: 0;
+}
+
+.zg-card-bottom {
+  margin-top: var(--zg-space-3);
+}
+
+/* --- 5.5 Requester Ticket Detail ------------------------------------------ */
+
+.zg-section-title {
+  font: var(--zg-font-h2);
+  color: var(--zg-text);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-readonly-field {
+  display: block;
+  margin-bottom: var(--zg-space-4);
+}
+
+/* Read-only means "you may read this value", so it stays legible rather than
+   greyed into illegibility (ui-spec 2). */
+.zg-readonly-value {
+  display: block;
+  background: var(--zg-readonly-bg);
+  border: var(--zg-border-width) solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-text);
+  padding: var(--zg-space-3);
+}
+
+/* Line breaks preserved and wrapped; never truncated (ui-spec 5.5). */
+.zg-preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.zg-badge--status-removed {
+  background: var(--zg-disabled-bg);
+  color: var(--zg-text-muted);
+}
+
+/* A removed attachment is set apart visually as well as by its badge, so the
+   distinction survives greyscale (ui-spec 5.5, AC-35). */
+.zg-attachment-row--removed {
+  border-left: 3px solid var(--zg-border);
+  background: var(--zg-disabled-bg);
+  color: var(--zg-text-muted);
+}
+
+.zg-callout-warning {
+  background: var(--zg-warning-bg);
+  border: var(--zg-border-width) solid var(--zg-warning);
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-warning);
+  padding: var(--zg-space-4);
+  margin: var(--zg-space-4) 0;
+  text-align: left;
+}
+
+/* --- Removal modal -------------------------------------------------------- */
+
+.zg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--zg-space-4);
+  background: rgba(27, 42, 34, 0.45);
+}
+
+.zg-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--zg-surface);
+  border-radius: var(--zg-radius-lg);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-5);
+}
