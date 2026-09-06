@@ -26,25 +26,74 @@
 `artifacts/lab-02/screenshots/process/desktop-branch-network.png`
 
 GitHub's network graph, showing each feature branch diverging from and merging
-back into the integration line, and that line merging once into `main`. Every
-feature branch reached `lab2-staging` through a reviewed Pull Request, and
-`lab2-staging` reached `main` once, through the release Pull Request. No commit
-was made directly to either.
+back into the integration line, and that line merging once into `main`.
+
+![Commit history on main, upper portion](../../artifacts/lab-02/screenshots/process/desktop-main-history-upper.png)
+
+`artifacts/lab-02/screenshots/process/desktop-main-history-upper.png`
+
+![Commit history on main, lower portion](../../artifacts/lab-02/screenshots/process/desktop-main-history-lower.png)
+
+`artifacts/lab-02/screenshots/process/desktop-main-history-lower.png`
+
+The commit history of the final `main` branch, in two portions: the release
+merge #29 down through #24, and #25 down to the specification merge #11. The
+pattern is the same throughout — a feature branch merges into `lab2-staging`,
+and `lab2-staging` merges once into `main`.
+
+**Every merge commit is authored by Richyboy170, and each is Verified.** That is
+direct proof of the first course rule: the reviewer merges, not the author. It
+is a stronger claim than an approval, because an approval can precede a
+self-merge, whereas the author of the merge commit is a fact recorded in the
+object itself and cannot be edited after the fact.
+
+Verifiable without the screenshots:
+
+```bash
+git log origin/main --merges --pretty=format:"%h %an | %s" | grep "lab-02"
+```
+
+which returns, for all ten:
+
+```
+09ee647 Patiharn Liangkobkit | Merge pull request #29 from Tanakrit-triton/lab2-staging
+9ca2c6a Patiharn Liangkobkit | Merge pull request #28 from Tanakrit-triton/feat/lab-02-e2e-evidence
+4ba29b0 Patiharn Liangkobkit | Merge pull request #27 from Tanakrit-triton/feat/lab-02-ticket-detail-attachments
+fbd0ca5 Patiharn Liangkobkit | Merge pull request #26 from Tanakrit-triton/feat/lab-02-my-tickets
+a605024 Patiharn Liangkobkit | Merge pull request #25 from Tanakrit-triton/feat/lab-02-create-ticket
+9d16f8c Patiharn Liangkobkit | Merge pull request #24 from Tanakrit-triton/feat/lab-02-requester-context
+cbad261 Patiharn Liangkobkit | Merge pull request #23 from Tanakrit-triton/feat/lab-02-reference-api
+2b4d2b9 Patiharn Liangkobkit | Merge pull request #22 from Tanakrit-triton/feat/lab-02-data-model
+08e5c20 Patiharn Liangkobkit | Merge pull request #21 from Tanakrit-triton/chore/lab-02-test-tooling
+48ae4c7 Patiharn Liangkobkit | Merge pull request #11 from Tanakrit-triton/docs/lab-02-spec
+```
+
+Patiharn Liangkobkit is the account behind the handle Richyboy170. The Lab 1
+release merge `99efd2d` is authored by Tanakrit-triton, which is the contrast:
+that sprint predates the rule.
 
 | Merge | Branch | PR |
 |---|---|---|
 | `09ee647` | `lab2-staging` into `main` | [#29](https://github.com/Tanakrit-triton/toktickit/pull/29) |
-| | `feat/lab-02-e2e-evidence` | [#28](https://github.com/Tanakrit-triton/toktickit/pull/28) |
-| | `feat/lab-02-ticket-detail-attachments` | [#27](https://github.com/Tanakrit-triton/toktickit/pull/27) |
-| | `feat/lab-02-my-tickets` | [#26](https://github.com/Tanakrit-triton/toktickit/pull/26) |
-| | `feat/lab-02-create-ticket` | [#25](https://github.com/Tanakrit-triton/toktickit/pull/25) |
-| | `feat/lab-02-requester-context` | [#24](https://github.com/Tanakrit-triton/toktickit/pull/24) |
-| | `feat/lab-02-reference-api` | [#23](https://github.com/Tanakrit-triton/toktickit/pull/23) |
-| | `feat/lab-02-data-model` | [#22](https://github.com/Tanakrit-triton/toktickit/pull/22) |
-| | `chore/lab-02-test-tooling` | [#21](https://github.com/Tanakrit-triton/toktickit/pull/21) |
-| | `docs/lab-02-spec` | [#11](https://github.com/Tanakrit-triton/toktickit/pull/11) |
+| `9ca2c6a` | `feat/lab-02-e2e-evidence` | [#28](https://github.com/Tanakrit-triton/toktickit/pull/28) |
+| `4ba29b0` | `feat/lab-02-ticket-detail-attachments` | [#27](https://github.com/Tanakrit-triton/toktickit/pull/27) |
+| `fbd0ca5` | `feat/lab-02-my-tickets` | [#26](https://github.com/Tanakrit-triton/toktickit/pull/26) |
+| `a605024` | `feat/lab-02-create-ticket` | [#25](https://github.com/Tanakrit-triton/toktickit/pull/25) |
+| `9d16f8c` | `feat/lab-02-requester-context` | [#24](https://github.com/Tanakrit-triton/toktickit/pull/24) |
+| `cbad261` | `feat/lab-02-reference-api` | [#23](https://github.com/Tanakrit-triton/toktickit/pull/23) |
+| `2b4d2b9` | `feat/lab-02-data-model` | [#22](https://github.com/Tanakrit-triton/toktickit/pull/22) |
+| `08e5c20` | `chore/lab-02-test-tooling` | [#21](https://github.com/Tanakrit-triton/toktickit/pull/21) |
+| `48ae4c7` | `docs/lab-02-spec` | [#11](https://github.com/Tanakrit-triton/toktickit/pull/11) |
 
-Verify with `git log --first-parent main --oneline`.
+### Pull requests, all merged and approved
+
+![Closed pull request list](../../artifacts/lab-02/screenshots/process/desktop-pull-requests-merged.png)
+
+`artifacts/lab-02/screenshots/process/desktop-pull-requests-merged.png`
+
+All ten Pull Requests, merged, each showing **Approved** and its linked Issue.
+This is supporting evidence for the same rule: the approvals are visible here,
+and the merge authorship above shows who acted on them.
 
 ### Issues and the Kanban board
 
