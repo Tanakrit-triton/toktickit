@@ -1,0 +1,12 @@
+   ✓ AttachmentSection (UI-17 - AC-28) > uploads a permitted file and reports the new attachment 303ms
+ ✓ tests/lab-02/RequesterSelection.test.tsx (7 tests) 784ms
+ ✓ tests/lab-02/AppShell.test.tsx (7 tests) 723ms
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx (4 tests) 290ms
+ ✓ tests/lab-02/routing.test.tsx (5 tests) 704ms
+ ✓ tests/lab-01/App.test.tsx (3 tests) 177ms
+
+ Test Files  9 passed (9)
+      Tests  76 passed (76)
+   Start at  20:32:58
+   Duration  70.23s (transform 1.13s, setup 4.96s, collect 8.39s, tests 17.87s, environment 28.89s, prepare 4.74s)
+

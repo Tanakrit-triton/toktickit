@@ -1,0 +1,25 @@
+Cross-Requester refusal evidence (labsheet Parts 7 and 8)
+Captured 2026-09-06T13:38:11Z against the running API.
+
+These refusals have no screen of their own: the whole ticket is already
+unreachable, so the attachment list is never rendered. The UI evidence is the
+refusal screen; this is the API evidence behind it.
+
+--- owner downloads their own attachment ---
+HTTP 200
+
+--- another Requester downloads the same attachment ---
+{"error":{"code":"NOT_FOUND","message":"The requested resource does not exist."}}
+HTTP 404
+
+--- another Requester requests the ticket itself ---
+{"error":{"code":"NOT_FOUND","message":"The requested resource does not exist."}}
+HTTP 404
+
+--- the same Requester requests a ticket that does not exist ---
+{"error":{"code":"NOT_FOUND","message":"The requested resource does not exist."}}
+HTTP 404
+
+The last two bodies are byte-identical, which is BR-18 and DEC-01: a foreign
+resource and a missing one must be indistinguishable, or the refusal itself
+confirms the resource exists.
