@@ -7,12 +7,6 @@
 **Repository:** https://github.com/Tanakrit-triton/toktickit
 **Released to `main`:** [#29](https://github.com/Tanakrit-triton/toktickit/pull/29), merged as `09ee647`
 
-> **A note on Parts 2, 4, 5, 6 and 9.** The labsheet headings for these were not
-> given to me verbatim, so their content is taken from the Definition of Done in
-> `specification.md` section 10 and from what each part is evidently for. If a
-> heading below asks for something other than the labsheet intends, the material
-> is present in the repository and only its placement needs moving.
-
 ---
 
 ## Answer Part 1
@@ -286,10 +280,17 @@ npm run test:e2e`, which the README does document as the override for a UI on a
 different port — but 5173 is the documented default, so no override should be
 needed.
 
-**This is reported rather than fixed**, because it is a defect in code already
-merged to `main` and correcting it belongs in its own change with its own
-review, not in the submission document. `tests.md` §6 is unchanged: its figures
-were correct and remain correct.
+**This is reported rather than corrected in place**, because it is a defect in
+code already merged to `main`, and correcting it belongs in its own change with
+its own review rather than inside the submission document.
+
+**The fix is written and awaiting review.** It is
+[#31](https://github.com/Tanakrit-triton/toktickit/pull/31), open against `main`
+from `fix/e2e-base-url-port`, which defaults `BASE` to the documented 5173 so
+that `npm run test:e2e` works with no override. I do not merge my own pull
+requests, so it stays open until the reviewer merges it.
+
+`tests.md` §6 is unchanged: its figures were correct and remain correct.
 
 ---
 
@@ -392,18 +393,37 @@ selected-user display and Change Requester action are answered in Part 6.
 
 All captures are 1440x900 unless stated. Each was produced by a script that
 asserts its subject is painted and inside the viewport before the file is
-written, so an image showing a loading skeleton, a blank render, or a subject
-below the fold cannot be produced.
+written, so a blank render or a subject out of frame cannot be produced.
+
+Where the subject is the top of a screen the scroll position is reset before the
+shutter. Where the subject genuinely sits further down the page - the validation
+messages, the attachment rows - it is not, because resetting there would crop
+the subject out. The two loading captures are the one place where a skeleton is
+the subject rather than a thing asserted away.
 
 ### Q1 — the Requester field comes from the pre-entry selection, and the saved Ticket carries the matching requesterId
+
+Siriporn Meesuk was chosen on the selector screen **before entering the
+application**. The Requester field on Create Ticket is filled from that choice
+and cannot be typed into:
+
+![The read-only Requester field on Create Ticket](../../artifacts/lab-02/screenshots/create-ticket/desktop-requester-field.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-requester-field.png`
+
+The capture asserts the field holds `Siriporn Meesuk` **and** that its `readOnly`
+property is true before writing the file, so a writable field showing the right
+name could not have produced it.
+
+Submitting the form returns the official number on the success panel:
 
 ![Ticket created for Siriporn Meesuk](../../artifacts/lab-02/screenshots/create-ticket/desktop-requester-ownership.png)
 
 `artifacts/lab-02/screenshots/create-ticket/desktop-requester-ownership.png`
 
-Siriporn Meesuk was chosen on the selector screen **before entering the
-application**. The read-only Requester field on Create Ticket showed
-`Siriporn Meesuk`, and the backend returned `TKT-2026-00291`.
+The panel is from the run that produced `TKT-2026-00291`, which is the row
+quoted below. The form capture above is a separate run of the same flow, so the
+two are not one submission and are not offered as one.
 
 The stored row, queried back out of PostgreSQL by that number
 (`artifacts/lab-02/evidence/part-6-database-proof.txt`):
@@ -547,8 +567,36 @@ action beside it, and the development notice below the header. Changing
 Requester clears the selection and tears down the guarded subtree, so the
 previous Requester's data is discarded rather than reused (BR-12, UI-09).
 
-The loading state is proved by UI-02 and UI-26 rather than by a screenshot: it
-exists only while a request is in flight, and a capture of it would be a race.
+### The loading state
+
+The loading state exists only while a request is in flight, so at full speed a
+capture of it is a race rather than evidence. The network was therefore
+throttled through the DevTools protocol - 2.5 s of added latency at 15 kbit/s -
+**after** the application bundle had loaded, so only the data request is slowed
+and the skeleton stays on screen long enough to photograph.
+
+![My Tickets loading skeleton](../../artifacts/lab-02/screenshots/my-tickets/desktop-loading.png)
+
+`artifacts/lab-02/screenshots/my-tickets/desktop-loading.png`
+
+My Tickets while the list is in flight: skeleton rows under `aria-busy="true"`
+and the message *"Loading your tickets..."*. The capture asserts the ticket
+table is **absent**, so this cannot be a skeleton painted over a list that had
+already arrived.
+
+![Create Ticket reference data loading](../../artifacts/lab-02/screenshots/create-ticket/desktop-loading.png)
+
+`artifacts/lab-02/screenshots/create-ticket/desktop-loading.png`
+
+Create Ticket while the reference data is in flight: Category and Related System
+are **disabled** and read *"Loading..."*, so neither can be chosen before its
+options exist. Requested Priority sits enabled beside them because it is a fixed
+enumeration in the client and waits on no request - the difference is deliberate,
+not an inconsistency.
+
+These captures show the state; they do not replace the tests that assert it.
+UI-02 and UI-26 continue to enforce the selector and list loading states in the
+counted suite, where they run at full speed and do not depend on throttling.
 
 ---
 
