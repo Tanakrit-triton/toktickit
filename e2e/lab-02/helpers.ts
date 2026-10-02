@@ -3,7 +3,12 @@ import { execSync, spawn } from "node:child_process";
 
 // Shared helpers for the Lab 2 end-to-end and responsive suites.
 
-export const BASE = process.env.E2E_BASE_URL ?? "http://localhost:5174";
+// 5173 is the port the README documents and playwright.config.ts already
+// defaults to. This helper used to default to 5174, which is where Vite
+// happened to be listening while the suite was written, so the documented
+// command failed on any clean setup and every later run happened to pass
+// E2E_BASE_URL explicitly.
+export const BASE = process.env.E2E_BASE_URL ?? "http://localhost:5173";
 export const API = process.env.E2E_API_URL ?? "http://localhost:3000";
 
 /** Pimchanok Sonthi owns no tickets and is the empty-list fixture for AC-24. */
