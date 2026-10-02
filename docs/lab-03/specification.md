@@ -487,9 +487,25 @@ seed fails with a safe message. No real password appears in the repository.
 
 Every seeded account except the must-change fixture has `mustChangePassword = false`.
 
+The fixture accounts, fixed in #35 (all fictional):
+
+| Full name | Email | Role | Active | Must change |
+|---|---|---|---|---|
+| Napat Chaiwong | napat.cha@kmutt.ac.th | REQUESTER | yes | no |
+| Siriporn Meesuk | siriporn.mee@kmutt.ac.th | REQUESTER | yes | no |
+| Thanawat Rattana | thanawat.rat@kmutt.ac.th | REQUESTER | yes | no |
+| Pimchanok Sonthi | pimchanok.son@kmutt.ac.th | REQUESTER | yes | no |
+| Kittipong Wong (inactive) | kittipong.won@kmutt.ac.th | REQUESTER | no | no |
+| Chayanin Boonmee | chayanin.boo@kmutt.ac.th | REQUESTER | yes | yes |
+| Wichai Prasert | wichai.pra@kmutt.ac.th | IT_STAFF | yes | no |
+| Arisa Kongkaew | arisa.kon@kmutt.ac.th | IT_STAFF | yes | no |
+| Teerapat Boonsri | teerapat.boo@kmutt.ac.th | IT_STAFF | yes | no |
+| Nattapong Saelim (inactive) | nattapong.sae@kmutt.ac.th | IT_STAFF | no | no |
+| Sasithorn Pholchai | sasithorn.pho@kmutt.ac.th | ADMINISTRATOR | yes | no |
+
 | Tickets and history | Content |
 |---|---|
-| Tickets | At least one in each of the eight statuses, across all four priorities, spread over the active Requesters, both assigned and unassigned |
+| Tickets | At least one in each of the eight statuses, across all four priorities, both assigned and unassigned. They belong to Napat Chaiwong, Siriporn Meesuk, and Thanawat Rattana only: Pimchanok Sonthi stays ticket-free, because she is the Lab 2 empty-list fixture (L2 AC-24) that the Lab 2 E2E suite relies on. |
 | Public Comments | Examples from Requesters and IT Staff |
 | Internal Notes | Examples from IT Staff |
 | Ticket Events | Consistent with the seeded owners and statuses |

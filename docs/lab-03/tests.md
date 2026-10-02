@@ -51,7 +51,11 @@ Lab 3 adds the rules below.
 ### Test data
 
 API and E2E suites run against a dedicated test database, migrated and seeded
-before each suite. The Lab 3 seed (`specification.md` §7.5) supplies every
+before each suite. For the server suites this is `TEST_DATABASE_URL` in
+`server/.env` (#35): `vitest.config.ts` hands it to every worker as
+`DATABASE_URL`, refuses to start if it is missing or equal to `DATABASE_URL`,
+and `tests/global-setup.ts` runs `prisma migrate deploy` and the seed against
+it before any file runs. The Lab 3 seed (`specification.md` §7.5) supplies every
 fixture:
 
 | Fixture | Used for |
@@ -109,9 +113,9 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| UT-01 | Unit | BR-10 | Argon2id hashing | The hash starts with `$argon2id$`, two hashes of one password differ, verify accepts the right password and rejects a wrong one | `password-hash.unit.test.ts` | #35 | Planned |
-| UT-02 | Unit | BR-06 | Email normalisation | Trimmed and lowercased. Invalid syntax and 255 characters are rejected; 254 is accepted. | `email.unit.test.ts` | #35 | Planned |
-| UT-03 | Unit | AC-09, BR-16 | Session expiry | With a fake clock: idle 29:59 valid, 30:00 expired; an active session expires at 8 h absolute | `session-expiry.unit.test.ts` | #35 | Planned |
+| UT-01 | Unit | BR-10 | Argon2id hashing | The hash starts with `$argon2id$`, two hashes of one password differ, verify accepts the right password and rejects a wrong one | `password-hash.unit.test.ts` | #35 | Pass |
+| UT-02 | Unit | BR-06 | Email normalisation | Trimmed and lowercased. Invalid syntax and 255 characters are rejected; 254 is accepted. | `email.unit.test.ts` | #35 | Pass |
+| UT-03 | Unit | AC-09, BR-16 | Session expiry | With a fake clock: idle 29:59 valid, 30:00 expired; an active session expires at 8 h absolute | `session-expiry.unit.test.ts` | #35 | Pass |
 | UT-04 | Unit | AC-10, BR-11 | Password policy | 11 code points rejected, 12 accepted, 128 accepted, 129 rejected. An emoji counts as one code point. Leading and trailing spaces are kept, not trimmed. Equal to current is rejected; a mismatched confirmation is rejected. | `password-policy.unit.test.ts` | #36 | Planned |
 | UT-05 | Unit | AC-07, BR-09 | Login throttle | Five failures allowed, the sixth blocked for the same address and email. A different email from the same address is not blocked. A success clears the counter. The fake-clock window expires at 15 min. `resetLoginThrottle()` clears all state. | `login-throttle.unit.test.ts` | #36 | Planned |
 | UT-06 | Unit | AC-02, AC-09, BR-21 | Session middleware gate | Missing, expired, or revoked session → 401. A `mustChangePassword` session → 403 `PASSWORD_CHANGE_REQUIRED`, except on the three exempt routes. | `require-session.unit.test.ts` | #36 | Planned |
@@ -126,16 +130,16 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| MIG-01 | Migration | AC-61 | Migration SQL is non-destructive | The Lab 3 `migration.sql` contains no `DROP TABLE` or `CREATE TABLE` for `RequesterUser`, `Ticket`, or `Attachment`, and no `DROP TYPE "TicketStatus"` | `migration.api.test.ts` | #35 | Planned |
-| MIG-02 | Migration | AC-61, FR-29 | Upgrade preserves Lab 2 data | Lab 2–shaped Requesters, Tickets, and Attachments (active and removed) survive with identical ids, `requesterId`, Ticket Numbers, and attachment metadata | `migration.api.test.ts` | #35 | Planned |
-| MIG-03 | Migration | AC-61, AC-13 | Upgrade backfills and renames | Former Development Requesters have role `REQUESTER`, null `passwordHash`, and `mustChangePassword` true. A `CLAIMED` row reads `OPEN`; a `PENDING_CONFIRMATION` row reads `WAITING_FOR_REQUESTER`. Every `itPriority` equals `requestedPriority`. | `migration.api.test.ts` | #35 | Planned |
-| MIG-04 | Migration | AC-61, DoD | No schema drift | `prisma migrate diff --from-migrations … --to-schema-datamodel … --exit-code` reports no difference | `migration.api.test.ts` | #35 | Planned |
-| SEED-01 | Seed | AC-62 | Seed idempotent | Running the seed twice leaves every table's row count unchanged | `seed.api.test.ts` | #35 | Planned |
-| SEED-02 | Seed | AC-62 | Fixture reset | After a seeded account's password, `mustChangePassword`, role, and `isActive` are altered and a session is created, reseeding restores all four and revokes the session | `seed.api.test.ts` | #35 | Planned |
-| SEED-03 | Seed | AC-63 | Seeded accounts | Exactly the accounts in `specification.md` §7.5, by role and activation, including one must-change Requester | `seed.api.test.ts` | #35 | Planned |
-| SEED-04 | Seed | AC-63 | Seeded tickets and history | At least one ticket per status, both assigned and unassigned, every priority, and at least one comment and one note | `seed.api.test.ts` | #35 | Planned |
-| SES-01 | API | BR-15 | Token storage | A created session row's id is the SHA-256 of the token. The raw token appears in no column. A CSRF token is present. | `sessions.api.test.ts` | #35 | Planned |
-| SES-02 | API | AC-11, BR-64 | Revoke all for user | `revokeAllSessions(userId)` sets `revokedAt` on every session of the user and on no one else's. A revoked token no longer resolves. | `sessions.api.test.ts` | #35 | Planned |
+| MIG-01 | Migration | AC-61 | Migration SQL is non-destructive | The Lab 3 `migration.sql` contains no `DROP TABLE` or `CREATE TABLE` for `RequesterUser`, `Ticket`, or `Attachment`, and no `DROP TYPE "TicketStatus"` | `migration.api.test.ts` | #35 | Pass |
+| MIG-02 | Migration | AC-61, FR-29 | Upgrade preserves Lab 2 data | Lab 2–shaped Requesters, Tickets, and Attachments (active and removed) survive with identical ids, `requesterId`, Ticket Numbers, and attachment metadata | `migration.api.test.ts` | #35 | Pass |
+| MIG-03 | Migration | AC-61, AC-13 | Upgrade backfills and renames | Former Development Requesters have role `REQUESTER`, null `passwordHash`, and `mustChangePassword` true. A `CLAIMED` row reads `OPEN`; a `PENDING_CONFIRMATION` row reads `WAITING_FOR_REQUESTER`. Every `itPriority` equals `requestedPriority`. | `migration.api.test.ts` | #35 | Pass |
+| MIG-04 | Migration | AC-61, DoD | No schema drift | `prisma migrate diff --from-migrations … --to-schema-datamodel … --exit-code` reports no difference | `migration.api.test.ts` | #35 | Pass |
+| SEED-01 | Seed | AC-62 | Seed idempotent | Running the seed twice leaves every table's row count unchanged | `seed.api.test.ts` | #35 | Pass |
+| SEED-02 | Seed | AC-62 | Fixture reset | After a seeded account's password, `mustChangePassword`, role, and `isActive` are altered and a session is created, reseeding restores all four and revokes the session | `seed.api.test.ts` | #35 | Pass |
+| SEED-03 | Seed | AC-63 | Seeded accounts | Exactly the accounts in `specification.md` §7.5, by role and activation, including one must-change Requester | `seed.api.test.ts` | #35 | Pass |
+| SEED-04 | Seed | AC-63 | Seeded tickets and history | At least one ticket per status, both assigned and unassigned, every priority, and at least one comment and one note | `seed.api.test.ts` | #35 | Pass |
+| SES-01 | API | BR-15 | Token storage | A created session row's id is the SHA-256 of the token. The raw token appears in no column. A CSRF token is present. | `sessions.api.test.ts` | #35 | Pass |
+| SES-02 | API | AC-11, BR-64 | Revoke all for user | `revokeAllSessions(userId)` sets `revokedAt` on every session of the user and on no one else's. A revoked token no longer resolves. | `sessions.api.test.ts` | #35 | Pass |
 
 ### 2.3 API — authentication — `server/tests/lab-03/auth.api.test.ts`
 
@@ -349,9 +353,22 @@ The schema is dropped afterwards.
 
 ### Tests added after the plan was written
 
-None yet. Any test added during implementation is listed here with the reason
-and whether it was red first, as in L2 tests §2. It is not folded silently into
+Any test added during implementation is listed here with the reason and
+whether it was red first, as in L2 tests §2. It is not folded silently into
 Section 2.
+
+No new test IDs so far. #35 added assertions inside planned tests, listed here
+so none is folded in silently. All were committed with their tests and were red
+first:
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| MIG-03 | An existing mixed-case, space-padded email is trimmed and lowercased | `specification.md` §7.3 step 3 had no test |
+| SEED-03 | Every seeded account's hash verifies against `SEED_PASSWORD` | §7.3: the seed sets the development password for every seeded account |
+| SEED-04 | Pimchanok Sonthi owns no ticket | Keeps the L2 AC-24 empty-list fixture the Lab 2 E2E suite relies on (§7.5) |
+| SEED-04 | Seeded owners are IT Staff or Administrators; each ticket's latest `OWNER_CHANGED` and `STATUS_CHANGED` match its owner and status | §7.5: events consistent with the seeded owners and statuses; BR-28 |
+| SES-01 | The token decodes to 32 bytes; `expiresAt` is 8 hours after `createdAt` | BR-15 and BR-16, at the point the row is written |
+| UT-02 | An address without a dotted domain (`user@example`) is invalid syntax | The reading of "syntactically valid" in BR-06 |
 
 ---
 
@@ -391,7 +408,7 @@ merges (CLAUDE.md). Every other Issue targets `lab3-staging`.
 - **#36** issues CSRF tokens. **#37** enforces them (AUZ-10). The stacked PRs merge into `lab3-staging` bottom-up, so after #36 merges and until #37 merges, `lab3-staging` accepts state changes without the header. This is acceptable because `lab3-staging` is never released in that state: the release PR (#48) is opened only after #37 and every later Issue have merged.
 - **#37** moves the Lab 2 server suite to `loginAs()` (REG-01) in the same Issue that removes the header, so that suite never goes red on `lab3-staging`.
 - **#38** delivers A7 as one unit: the Vite proxy, relative client URLs, and removal of `cors()`. It also rewrites L2 E2E-01 to E2E-03 to sign in (REG-03), so the Lab 2 E2E suite is green again as soon as the Login UI exists.
-- **#40** adds `itPriority` to ticket creation (OPS-07). It is the first Issue that can observe it.
+- **#35** sets `itPriority` equal to `requestedPriority` in the Lab 2 ticket-creation route, because its migration makes the column NOT NULL and creation would otherwise fail. **#40** owns OPS-07, the test that observes it through the API.
 - **#46** adds the three new Lab 3 specs and the real Download click (E2E-05). It updates the root `test:e2e` script to run `e2e/` (Section 7).
 
 ---
@@ -444,6 +461,16 @@ L2 API-40 changes once before it is superseded. In #35, its expected count of
 active Requesters filters on `role = REQUESTER` as well as `isActive`, matching
 the filter #35 adds to `GET /dev-requesters` (Section 3 notes). Its assertions
 are otherwise unchanged. #37 then supersedes it with AUZ-04 (Section 4.1).
+
+**Other Lab 2 fixture changes made in #35.** No assertion changed, and every
+test keeps its id. Each change follows from the #35 schema:
+
+| Lab 2 file | Change | Why |
+|---|---|---|
+| `my-tickets`, `ticket-detail`, `attachments`, `create-ticket`, `reference-data` (`*.api.test.ts`) | `prisma.requesterUser` → `prisma.user` | The model is renamed `User` (DEC-02) |
+| `my-tickets`, `ticket-detail`, `attachments` | Tickets created directly through Prisma also set `itPriority` equal to `requestedPriority` | The column is NOT NULL (§7.3 step 4) |
+| `create-ticket` (L2 API-01 to API-09 fixtures) | The active and inactive Requester lookups filter on `role = REQUESTER` | Sorted by name, the first active user is now IT Staff, which the header middleware rejects (§7.3 interim) |
+| `reference-data` (L2 API-40) | The inactive-Requester lookup filters on `role = REQUESTER` too | The seed adds an inactive IT Staff account |
 
 L2 AC-01 to AC-06 (the selector) are retired with the selector. L2 AC-07 to
 AC-44 remain in force under AC-21.

@@ -92,8 +92,8 @@ describe("GET /api/v1/related-systems (API-39 - AC-11)", () => {
 
 describe("GET /api/v1/dev-requesters (API-40 - AC-01, BR-10)", () => {
   it("omits the seeded inactive Requester", async () => {
-    const inactive = await prisma.requesterUser.findFirst({
-      where: { isActive: false },
+    const inactive = await prisma.user.findFirst({
+      where: { isActive: false, role: "REQUESTER" },
     });
     expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
 
@@ -107,7 +107,9 @@ describe("GET /api/v1/dev-requesters (API-40 - AC-01, BR-10)", () => {
   });
 
   it("returns every active Requester, sorted by fullName", async () => {
-    const activeCount = await prisma.requesterUser.count({ where: { isActive: true } });
+    // role: REQUESTER since Lab 3 #35, matching the route's filter
+    // (docs/lab-03/tests.md section 4.2).
+    const activeCount = await prisma.user.count({ where: { isActive: true, role: "REQUESTER" } });
 
     // The seed guarantees four active Requesters. Asserting that here rather
     // than only comparing the response to the database count means a database

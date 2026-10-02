@@ -43,12 +43,12 @@ const get = (query: string, header: string | null = ownerId) => {
 };
 
 beforeAll(async () => {
-  const owner = await prisma.requesterUser.upsert({
+  const owner = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
     update: { isActive: true },
     create: { fullName: "ZZ List Owner", email: OWNER_EMAIL, isActive: true },
   });
-  const other = await prisma.requesterUser.upsert({
+  const other = await prisma.user.upsert({
     where: { email: OTHER_EMAIL },
     update: { isActive: true },
     create: { fullName: "ZZ List Other", email: OTHER_EMAIL, isActive: true },
@@ -88,6 +88,7 @@ beforeAll(async () => {
             : `${MARKER} Campus wifi keeps dropping number ${i}`,
         description: "A description long enough to satisfy the twenty character minimum.",
         requestedPriority: PRIORITIES[i % 4],
+        itPriority: PRIORITIES[i % 4],
         createdAt: createdAtFor(i),
         updatedAt: createdAtFor(i),
       },
@@ -104,6 +105,7 @@ beforeAll(async () => {
       summary: `${MARKER} Another requester ticket`,
       description: "A description long enough to satisfy the twenty character minimum.",
       requestedPriority: "URGENT",
+      itPriority: "URGENT",
       createdAt: createdAtFor(99),
       updatedAt: createdAtFor(99),
     },
@@ -112,7 +114,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.ticket.deleteMany({ where: { requesterId: { in: [ownerId, otherId] } } });
-  await prisma.requesterUser.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
+  await prisma.user.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
   await prisma.$disconnect();
 });
 

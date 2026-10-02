@@ -49,12 +49,14 @@ referenceDataRouter.get("/related-systems", async (_req: Request, res: Response)
  * fullName (FR-01, BR-10).
  *
  * Only active Requesters are returned; the seeded inactive Requester must
- * never appear here, which is the fixture AC-01 rests on.
+ * never appear here, which is the fixture AC-01 rests on. Since Lab 3 the
+ * table also holds IT Staff and Administrators, so the role is filtered too
+ * until #37 removes this route (docs/lab-03/specification.md section 7.3).
  */
 referenceDataRouter.get("/dev-requesters", async (_req: Request, res: Response) => {
   try {
-    const data = await getPrisma().requesterUser.findMany({
-      where: { isActive: true },
+    const data = await getPrisma().user.findMany({
+      where: { isActive: true, role: "REQUESTER" },
       select: { id: true, fullName: true, email: true },
       orderBy: { fullName: "asc" },
     });
