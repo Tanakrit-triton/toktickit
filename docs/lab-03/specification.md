@@ -447,6 +447,7 @@ the schema must be empty (MIG-04).
 **How the selector is removed.**
 - **Server:** `GET /api/v1/dev-requesters` and the `X-Dev-Requester-Id` middleware are deleted. A request that still sends the header is authenticated by session only; the header is ignored.
 - **Client:** `RequesterSelection`, `RequesterContext`, and the Change Requester action are deleted. At startup, the client removes the `toktickit.selectedRequester` key from sessionStorage once.
+- **Interim, #35 to #37:** #35 renames the model to `User` and seeds IT Staff and Administrators before #37 removes the selector. Until then, `GET /api/v1/dev-requesters` and the `X-Dev-Requester-Id` middleware filter on `role = REQUESTER` as well as `isActive`, so no IT Staff or Administrator account can be selected or act as a Requester. L2 API-40's expected count uses the same filter (`tests.md` Section 4.2).
 
 ### 7.4 Constraints and indexes
 
@@ -695,7 +696,7 @@ holds. The sprint is complete only when all of them hold on the final `main`.
 
 ### Part 2 — Course delivery
 
-- Work was decomposed into Issues #34 to #48, each on its own feature branch.
+- Work was decomposed into Issues #33 to #48, each on its own feature branch.
 - Every feature branch reached `lab3-staging` through a peer-reviewed PR linked to its Issue through the Development sidebar. The stacked chain #35 → #36 → #37 targeted the previous branch and was retargeted after each lower PR merged.
 - A single release PR (#48) merged `lab3-staging` into `main`. No commit was made directly to `main` or `lab3-staging`.
 - `reviewer.md` records reviewers, PR links, comments, responses, and approvals, and every statement in it is verifiable from the repository history.

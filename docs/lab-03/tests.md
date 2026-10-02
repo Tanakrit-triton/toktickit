@@ -387,7 +387,8 @@ merges (CLAUDE.md). Every other Issue targets `lab3-staging`.
 **Notes on boundaries**
 
 - **#36** builds `requireSession`, including the password-change gate, and proves it by unit test (UT-06). **#37** mounts it on every route family and proves that across endpoints (AUZ-12).
-- **#36** issues CSRF tokens. **#37** enforces them (AUZ-10). Until #37 merges, the #36 branch accepts state changes without the header. That gap exists only inside the stacked chain and never reaches `lab3-staging`.
+- **#35** renames the model to `User`, and its seed adds IT Staff and Administrators. The Lab 2 `GET /api/v1/dev-requesters` route and the `requireRequester` middleware would otherwise treat those accounts as Requesters until #37 removes both. #35 therefore makes both Lab 2 paths filter on `role = REQUESTER`, and L2 API-40's expected count uses the same filter (Section 4.2).
+- **#36** issues CSRF tokens. **#37** enforces them (AUZ-10). The stacked PRs merge into `lab3-staging` bottom-up, so after #36 merges and until #37 merges, `lab3-staging` accepts state changes without the header. This is acceptable because `lab3-staging` is never released in that state: the release PR (#48) is opened only after #37 and every later Issue have merged.
 - **#37** moves the Lab 2 server suite to `loginAs()` (REG-01) in the same Issue that removes the header, so that suite never goes red on `lab3-staging`.
 - **#38** delivers A7 as one unit: the Vite proxy, relative client URLs, and removal of `cors()`. It also rewrites L2 E2E-01 to E2E-03 to sign in (REG-03), so the Lab 2 E2E suite is green again as soon as the Login UI exists.
 - **#40** adds `itPriority` to ticket creation (OPS-07). It is the first Issue that can observe it.
@@ -438,6 +439,11 @@ from the header to a session:
 - **E2E:** the login helper in #38 (REG-03).
 
 L2 API-06 (body `requesterId` ignored) stays and is joined by AUZ-08.
+
+L2 API-40 changes once before it is superseded. In #35, its expected count of
+active Requesters filters on `role = REQUESTER` as well as `isActive`, matching
+the filter #35 adds to `GET /dev-requesters` (Section 3 notes). Its assertions
+are otherwise unchanged. #37 then supersedes it with AUZ-04 (Section 4.1).
 
 L2 AC-01 to AC-06 (the selector) are retired with the selector. L2 AC-07 to
 AC-44 remain in force under AC-21.

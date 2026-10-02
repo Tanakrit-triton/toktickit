@@ -544,15 +544,18 @@ artifacts/lab-03/screenshots/
 │   ├── desktop-shell-it-staff.png
 │   ├── desktop-shell-administrator.png
 │   ├── mobile-shell-menu-open.png
-│   └── desktop-forbidden.png
+│   ├── desktop-forbidden.png
+│   └── desktop-logout-direct-access.png
 ├── staff-queue/
 │   ├── {desktop,tablet,mobile}-populated.png
 │   ├── desktop-filtered.png
+│   ├── desktop-empty.png
 │   ├── desktop-no-results.png
 │   └── desktop-failure.png
 ├── staff-ticket-detail/
 │   ├── {desktop,tablet,mobile}-view.png
 │   ├── desktop-notes-tab.png
+│   ├── desktop-comment-validation.png
 │   ├── desktop-cancel-dialog.png
 │   ├── desktop-conflict.png
 │   ├── desktop-closed.png
@@ -564,7 +567,9 @@ artifacts/lab-03/screenshots/
     ├── desktop-edit-dialog-self.png
     ├── desktop-duplicate-email.png
     ├── desktop-last-administrator.png
-    └── desktop-open-tickets-conflict.png
+    ├── desktop-open-tickets-conflict.png
+    ├── desktop-initial-password-dialog.png
+    └── desktop-it-staff-forbidden.png
 ```
 
 `{desktop,tablet,mobile}-x.png` means three files, one per viewport.
