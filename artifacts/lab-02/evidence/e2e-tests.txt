@@ -1,0 +1,8 @@
+  ok 38 [mobile] › e2e\lab-02\responsive.spec.ts:84:3 › RSP-04, RSP-05 (AC-40) - the mobile list › search, filters, sort and pagination stay usable (4.2s)
+  ok 39 [mobile] › e2e\lab-02\responsive.spec.ts:105:3 › RSP-06 (ui-spec 7) - touch targets › interactive elements are at least 44px tall on mobile (2.5s)
+  -  40 [mobile] › e2e\lab-02\responsive.spec.ts:136:3 › RSP-07 - the remaining screenshot paths › requester selection states
+  -  41 [mobile] › e2e\lab-02\responsive.spec.ts:152:3 › RSP-07 - the remaining screenshot paths › create ticket validation, success and invalid attachment
+  -  42 [mobile] › e2e\lab-02\responsive.spec.ts:172:3 › RSP-07 - the remaining screenshot paths › my tickets empty and no-results states
+
+  18 skipped
+  24 passed (1.7m)

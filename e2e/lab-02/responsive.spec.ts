@@ -32,6 +32,16 @@ test.describe("RSP-01..RSP-03 (AC-39) - layout at every width", () => {
     await painted(page, page.getByTestId("field-summary"), "summary field");
     await painted(page, page.getByTestId("btn-submit-ticket"), "submit button");
     await expectNoHorizontalScroll(page);
+
+    // painted() scrolls its subject into view, so after asserting the submit
+    // button the page is sitting below the form header. An initial-state
+    // capture that starts halfway down the form does not show the
+    // system-generated group it is meant to evidence, so the scroll is reset
+    // before the shutter. Only this capture resets it: the validation and
+    // attachment captures further down have subjects that are genuinely below
+    // the fold, and resetting there would crop them out.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     await capture(page, "create-ticket", "initial", testInfo.project.name);
   });
 
@@ -157,15 +167,25 @@ test.describe("RSP-07 - the remaining screenshot paths", () => {
     await painted(page, page.getByTestId("error-summary"), "summary message");
     await capture(page, "create-ticket", "validation-failure", testInfo.project.name);
 
+    // A fresh form for the attachment capture. Left on the validated form
+    // above, the attachment rows sit below the fold behind five error
+    // messages, and one frame ends up carrying two unrelated subjects.
+    await enterAs(page, REQUESTER, "/tickets/new");
+
     // An impermissible file is rejected at selection and stays visible with the
-    // reason, which is the state ui-spec 5.3 specifies (AC-17).
-    await page.setInputFiles('[data-testid="field-attachments"]', {
-      name: "payload.exe",
-      mimeType: "application/x-msdownload",
-      buffer: Buffer.from("MZ"),
-    });
+    // reason, which is the state ui-spec 5.3 specifies (AC-17). A permitted file
+    // is chosen in the same action so the accepted and rejected rows can be read
+    // against each other in one frame.
+    await page.setInputFiles("[data-testid='field-attachments']", [
+      { name: "battery-report.png", mimeType: "image/png", buffer: Buffer.from("89504e470d0a1a0a", "hex") },
+      { name: "payload.exe", mimeType: "application/x-msdownload", buffer: Buffer.from("MZ") },
+    ]);
     await painted(page, page.getByTestId("attachment-error"), "attachment rejection");
     await expect(page.getByTestId("attachment-error")).toContainText(/type not permitted/i);
+    // Both outcomes must be on screen: one accepted row and one rejected row.
+    await expect(page.getByTestId("attachment-row")).toHaveCount(1);
+    await expect(page.getByTestId("attachment-row-invalid")).toHaveCount(1);
+    await expect(page.getByTestId("attachment-row")).toContainText("battery-report.png");
     await capture(page, "create-ticket", "invalid-attachment", testInfo.project.name);
   });
 

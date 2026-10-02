@@ -1,0 +1,27 @@
+Part 6, Q1 - the saved Ticket belongs to the Requester chosen before entry
+
+Chosen on the selector screen, before entering the application:
+  fullName    Siriporn Meesuk
+  id          30147b1b-4294-4293-988b-ecb614b31759
+
+Shown in the read-only Requester field on Create Ticket:
+  Siriporn Meesuk
+
+Row stored in PostgreSQL, queried by the Ticket Number the backend returned:
+  ticketNumber      TKT-2026-00291
+  requesterId       30147b1b-4294-4293-988b-ecb614b31759
+  requester         Siriporn Meesuk
+  currentStatus     NEW
+  requestedPriority HIGH
+  category          Account and Access
+  relatedSystem     Campus Wi-Fi
+  createdAt         2026-09-06T19:35:31.589Z
+
+requesterId matches the selected Requester: true
+status is NEW on creation (BR-02):          true
+Ticket Number matches TKT-YYYY-NNNNN:       true
+
+The number was not chosen by the client: no requesterId or ticketNumber is
+sent in the create request body. Ownership comes from the X-Dev-Requester-Id
+header and the number is allocated by the backend inside the insert
+transaction (BR-05, BR-08).
