@@ -82,6 +82,13 @@ being the only active one, so E2E-08 makes that true itself:
 Step (a) is what makes the test repeatable. Step (c) only keeps the database
 tidy between runs.
 
+**Users created by E2E tests.** The same reasoning applies to E2E-06 and
+E2E-07. Each creates its own user with an email unique to the run, never edits
+a seeded or previously created account, and deactivates its user in `finally`.
+A repeated run therefore never hits `EMAIL_ALREADY_EXISTS` and never depends on
+state left by an earlier run. Deactivated leftovers are harmless: they cannot
+sign in, are excluded from `GET /staff/assignees`, and own no tickets.
+
 The migration tests (MIG-02, MIG-03) need a database that starts at the Lab 2
 schema. They run in an isolated PostgreSQL schema, `?schema=lab3_migration_test`
 on `DATABASE_URL`:
@@ -335,8 +342,8 @@ The schema is dropped afterwards.
 | E2E-03 | E2E | AC-26, AC-35, AC-38, AC-39, AC-46, AC-47 | Staff ticket flow | Staff claim a NEW ticket, raise IT Priority, Start work, post a comment, and post a note. The Requester sees the comment but not the note, and indicates appears resolved. Staff see the indicator, Resolve, then Close. | `staff-ticket-flow.spec.ts` | #46 | Planned |
 | E2E-04 | E2E | AC-04, AC-16, AC-19 | Requester boundaries | A Requester opening `/staff/queue` sees the forbidden state. Their `page.request` to `/staff/tickets` and to `/tickets/{id}/notes` → 403 with no note text. | `staff-ticket-flow.spec.ts` | #46 | Planned |
 | E2E-05 | E2E | AC-23 | Real Download click | Clicking Download on Requester Detail, and on Staff Detail, triggers a browser download whose suggested filename is the original filename (D-25) | `staff-ticket-flow.spec.ts` | #46 | Planned |
-| E2E-06 | E2E | AC-52 | Create user and first login | The Administrator creates an IT Staff user. That user signs in, must change the password, and then sees the Ticket Queue. | `user-administration.spec.ts` | #46 | Planned |
-| E2E-07 | E2E | AC-54, AC-55, AC-59 | Edit, deactivate, new password | The Administrator edits a name, deactivates a user who then cannot sign in (inactive message), reactivates them, and sets a new initial password; the user's next sign-in requires a change | `user-administration.spec.ts` | #46 | Planned |
+| E2E-06 | E2E | AC-52 | Create user and first login | Through the UI, the Administrator creates an IT Staff user with an email unique to the run, `e2e-staff-{timestamp}-{random}@example.test`. That user signs in, must change the password, and then sees the Ticket Queue. In `finally`, the user is deactivated through the API. | `user-administration.spec.ts` | #46 | Planned |
+| E2E-07 | E2E | AC-54, AC-55, AC-59 | Edit, deactivate, new password | **Setup:** through the API, the test creates its own target user with an email unique to the run, `e2e-target-{timestamp}-{random}@example.test`, then signs in as that user and changes the password, so `mustChangePassword` is false. **Flow, through the UI:** the Administrator edits the target's name. The Administrator deactivates the target, who then cannot sign in (inactive message). The Administrator reactivates the target and sets a new initial password; the target's next sign-in requires a change. In `finally`, the target is deactivated through the API. | `user-administration.spec.ts` | #46 | Planned |
 | E2E-08 | E2E | AC-56, AC-57, AC-60 | Safety and access | Precondition steps (a)–(c) in Section 1, *E2E-08 precondition*, run as part of the test. After step (a), the seeded Administrator, as sole active Administrator, tries to deactivate their own account and sees the last-Administrator message. After step (b) creates a second Administrator, the same attempt shows the self-deactivation message. IT Staff opening `/admin/users` sees the forbidden state. Step (c) then runs. | `user-administration.spec.ts` | #46 | Planned |
 | E2E-09 | E2E | AC-41 | Cancel and reopen | Staff cancel a ticket with a reason through the dialog, then reopen it with a reason. The status badge shows Cancelled, then Reopened. | `staff-ticket-flow.spec.ts` | #46 | Planned |
 
