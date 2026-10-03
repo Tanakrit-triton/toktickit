@@ -408,6 +408,26 @@ with their tests and were red first.
 | Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
 | Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
 
+#42 added the assertions below inside its planned tests. All were committed
+with their tests and were red first, except ADM-13 and one case of ADM-14, as
+noted. #42 changed no existing test or fixture.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UT-12 | An inactive Administrator being demoted is not counted as one removed; self-deactivation is reported before own role when both are requested; restating one's own role and activation is allowed; self-protection is reported before open tickets; other role changes and name-only edits are allowed with open tickets | BR-63 order and scope: rule (3) applies only to deactivation and demotion to `REQUESTER` |
+| ADM-01 | The list has no `meta` and no `$argon2` string | BR-66 (not paginated); BR-68 |
+| ADM-03 | A padded, mixed-case email is stored trimmed and lowercased; the body has exactly the `AdminUser` fields | BR-06 on create; api-spec §7 `AdminUser` |
+| ADM-04 | The refused create and edit change nothing | "Rejected" means nothing changes |
+| ADM-05 | A refused create stores no user | As above |
+| ADM-06 | Name and email are trimmed, the email lowercased; the password hash and `mustChangePassword` are unchanged | BR-06, BR-61; BR-62 (passwords never change through edit) |
+| ADM-07 | An 11-code-point initial password → 422 `details.initialPassword`, and the stored hash is unchanged | api-spec §7.4 names the failure; no planned test covered it |
+| ADM-09 | The exact `LAST_ADMINISTRATOR` message; the Administrator is unchanged | api-spec §7.3 check 5 |
+| ADM-10 | The two Administrators who demote each other are both created by the test, with the seeded Administrator still active, and the race runs five rounds. The loser gets 403 at the actor re-check, or 401 when the winner's session revocation lands first. | The seeded Administrator is never altered (Section 1). With a third Administrator present, the rule that still decides the race is the locked re-check of the actor (BR-63). Removing `FOR UPDATE` makes this test fail with two 200s. |
+| ADM-11 | The refused user is unchanged | As ADM-04 |
+| ADM-12 | After a role change, the target has no live session row | BR-64 revokes every session, not only the one presented |
+| ADM-13 | No user is created or changed by the refused calls. **Green before implementation:** the `/admin` family guard from #37 already refuses Requesters and IT Staff, so this test could not be red in #42. | AC-60 |
+| ADM-14 | — **Green before implementation (unknown-UUID case only):** the `/api/v1` not-found fallback from #37 already answered 404 `NOT_FOUND`. The malformed-id case was red. | — |
+
 ---
 
 ## 3. Scope per Issue
