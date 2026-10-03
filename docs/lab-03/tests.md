@@ -370,6 +370,23 @@ first:
 | SES-01 | The token decodes to 32 bytes; `expiresAt` is 8 hours after `createdAt` | BR-15 and BR-16, at the point the row is written |
 | UT-02 | An address without a dotted domain (`user@example`) is invalid syntax | The reading of "syntactically valid" in BR-06 |
 
+#36 added the assertions below inside its planned tests. All were committed
+with their tests and were red first. #36 also adds the shared helper
+`server/tests/helpers/session.ts` (`loginAs`, Section 1), because its API tests
+are the first to sign in.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UT-04 | A trailing space makes a different password; every failing field is reported together | BR-11 (never trimmed) at the equality check; api-spec §2.4 "reported together" at unit level |
+| UT-05 | The same email from a different address is not blocked; `retryAfterSeconds` counts down to the end of the window; only failures inside the window count | BR-09 keys on the address *and* the email; api-spec §2.1 `Retry-After`; the window is sliding |
+| UT-06 | An inactive user's session → 401; the attached identity carries no secret; the cookie is found among other cookies; `lastSeenAt` is written once 60 s old and not before; a dead must-change session gets 401, not 403 | BR-19 and api-spec §1.1 steps 1–2 belong to the same middleware; A-03; step order |
+| API-01 | The session row belongs to the signed-in user and holds the returned `csrfToken`; a missing email or password → 422 with no cookie | api-spec §2.1 step 1 had no test |
+| API-08 | The must-change fixture gets 200 from `GET /auth/me` | BR-21 exemption, over HTTP |
+| API-09 | The 204 has an empty body | api-spec §2.2 "no body" |
+| API-11 | Each failure leaves the stored hash unchanged; no session → 401 | "Rejected" means nothing changes |
+| API-12 | Afterwards, the rotated session is the user's only live session | BR-12 revokes every other session and the current one |
+| API-13 | Failure bodies (401, 422) and logout are checked as well as successes | BR-68 applies to every auth response |
+
 ---
 
 ## 3. Scope per Issue
