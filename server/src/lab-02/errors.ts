@@ -16,7 +16,13 @@ export type ErrorCode =
   | "UNSUPPORTED_FILE_TYPE"
   | "VALIDATION_ERROR"
   | "REQUESTER_NOT_SELECTED"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  // Lab 3 (docs/lab-03/api-spec.md section 9)
+  | "UNAUTHENTICATED"
+  | "INVALID_CREDENTIALS"
+  | "ACCOUNT_INACTIVE"
+  | "PASSWORD_CHANGE_REQUIRED"
+  | "TOO_MANY_ATTEMPTS";
 
 /** Flat field-to-message map, so the UI can place each message beside its own field (FR-11). */
 export type ErrorDetails = Record<string, string>;

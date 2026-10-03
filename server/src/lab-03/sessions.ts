@@ -10,7 +10,7 @@ import { isSessionExpired, sessionExpiresAt } from "./session-expiry.js";
 // The CSRF token lives on the same row (synchronizer token, DEC-05).
 //
 // Cookie handling, lastSeenAt refresh, and the isActive re-check belong to the
-// request middleware (#36), which builds on resolveSession.
+// request middleware, require-session.ts.
 
 const TOKEN_BYTES = 32;
 
@@ -73,6 +73,14 @@ export async function resolveSession(
     lastSeenAt: row.lastSeenAt,
     expiresAt: row.expiresAt,
   };
+}
+
+/** Revokes the session for `token`, if it is live. Unknown tokens are ignored. */
+export async function revokeSessionByToken(token: string, db: Db = getPrisma()): Promise<void> {
+  await db.session.updateMany({
+    where: { id: hashSessionToken(token), revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
 
 /** Revokes every live session of `userId` and returns how many were revoked. */
