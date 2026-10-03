@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { MyTickets } from "../../src/lab-02/screens/MyTickets.js";
 import * as api from "../../src/lab-02/api.js";
 import type { TicketListPage } from "../../src/lab-02/api.js";
@@ -46,19 +47,19 @@ const POPULATED = page([ROW], 1);
 const NOTHING = page([], 0);
 
 function renderScreen() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={["/tickets"]}>
         <MyTickets />
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem("toktickit.selectedRequester", JSON.stringify(ALICE));
   vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
   vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
 });

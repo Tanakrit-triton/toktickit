@@ -408,6 +408,35 @@ with their tests and were red first.
 | Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
 | Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
 
+#38 added the assertions below inside its planned tests. All were committed
+with their tests and were red first.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UI-01 | Email has `type="email"` and `autocomplete="username"`; Password has `autocomplete="current-password"`; focus starts on Email | ui-spec §6.1, element table and Initial state |
+| UI-07 | IT Staff land on `/staff/queue` | ui-spec §4 landing routes, at the point of login |
+| UI-11 | The forced shell keeps the user display and Log out; the brand is not a link; no ticket request is made on `/tickets` | ui-spec §3, forced mode |
+| UI-12, UI-13 | Change password and each navigation item link to their routes | ui-spec §3 and specification.md §6 routes |
+| UI-15 | Logout lands on plain `/login`, with no `next` | Keeps the previous user's path from steering the next user |
+| UI-16 | `next` is honoured after login; `next=/\evil.example` is ignored too | ui-spec §4 `next` safety. Browsers treat `/\` as `//`. |
+| UI-17 | A permitted Administrator at `/admin/users` sees no forbidden state; the forbidden state has the `<h1>` "Access denied" and no status code | ui-spec §10 and §5.1, AC-68 |
+| UI-18 | An authenticated user at `/login` goes to their landing route | ui-spec §4 |
+| UI-19 | An unrelated sessionStorage key survives | Only the legacy key is removed |
+| UI-20 | The Lab 2 API functions also use relative URLs; `createTicket` sends the CSRF token and no `X-Dev-Requester-Id`; the session-ended callout has `role="status"` | DEC-04 covers every client call; ui-spec §10 |
+| STY-03 | Each role badge uses the ui-spec §7.3 background and text tokens, and carries `data-role` | ui-spec §7.3 |
+
+**Fixture changes made in #38.** No assertion changed, except the one RSP-06
+row below.
+
+| File | Change | Why |
+|---|---|---|
+| `client/tests/lab-02/session-fixture.ts` (new) | `signInAs()` mocks the startup `GET /auth/me` session | REG-02: the kept Lab 2 screen tests restore their Requester through the auth provider |
+| Lab 2 `CreateTicket`, `MyTickets`, `RequesterTicketDetail`, `theme.style` (client) | `AuthProvider` replaces `RequesterProvider`; each render helper calls `signInAs()` instead of writing `toktickit.selectedRequester` | REG-02. In the render helper rather than `beforeEach`, because UI-24 and STY-08 reset mocks mid-test. |
+| `e2e/lab-02/helpers.ts` | `signInAs()` and `submitLogin()` replace `enterAs()`. The password comes from `SEED_PASSWORD` or `server/.env`. | REG-03 |
+| `e2e/lab-02/requester-ticket-flow.spec.ts` | E2E-01 to E2E-03 rewritten in place (§4.1). E2E-04 downloads through the page's own session, with no header. | REG-03 |
+| `e2e/lab-02/responsive.spec.ts` | Signs in with `signInAs()`. Ticket Detail finds the ticket id with a same-origin fetch. The empty/no-results case logs out and signs in instead of changing Requester. | REG-03 |
+| `e2e/lab-02/responsive.spec.ts` (L2 RSP-06) | The 44px touch-target check measures `btn-logout` instead of `btn-change-requester` | The Change Requester action is removed. Log out is the identity-panel action that replaces it. **This changes the element measured, not the assertion.** |
+
 ---
 
 ## 3. Scope per Issue

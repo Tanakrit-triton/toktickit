@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { CreateTicket } from "../../src/lab-02/screens/CreateTicket.js";
 import { AttachmentSelection, type SelectedFile } from "../../src/lab-02/components/AttachmentSelection.js";
 import * as api from "../../src/lab-02/api.js";
@@ -32,15 +33,14 @@ const VALID_SUMMARY = "Laptop battery drains within one hour";
 const VALID_DESCRIPTION =
   "Since the last Windows update the battery drops from full to nearly empty in about an hour.";
 
-const SELECTED_KEY = "toktickit.selectedRequester";
-
 function renderScreen() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={["/tickets/new"]}>
         <CreateTicket />
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
@@ -59,7 +59,6 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem(SELECTED_KEY, JSON.stringify(ALICE));
   vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
   vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
 });
