@@ -119,8 +119,8 @@ The schema is dropped afterwards.
 | UT-04 | Unit | AC-10, BR-11 | Password policy | 11 code points rejected, 12 accepted, 128 accepted, 129 rejected. An emoji counts as one code point. Leading and trailing spaces are kept, not trimmed. Equal to current is rejected; a mismatched confirmation is rejected. | `password-policy.unit.test.ts` | #36 | Pass |
 | UT-05 | Unit | AC-07, BR-09 | Login throttle | Five failures allowed, the sixth blocked for the same address and email. A different email from the same address is not blocked. A success clears the counter. The fake-clock window expires at 15 min. `resetLoginThrottle()` clears all state. | `login-throttle.unit.test.ts` | #36 | Pass |
 | UT-06 | Unit | AC-02, AC-09, BR-21 | Session middleware gate | Missing, expired, or revoked session → 401. A `mustChangePassword` session → 403 `PASSWORD_CHANGE_REQUIRED`, except on the three exempt routes. | `require-session.unit.test.ts` | #36 | Pass |
-| UT-07 | Unit | AC-32 | Queue query parser | Page size only 10/20/50, default 20. An unknown parameter, a bad `owner`, a bad `status`, and `q` over 150 characters are each rejected. | `queue-query.unit.test.ts` | #39 | Planned |
-| UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Planned |
+| UT-07 | Unit | AC-32 | Queue query parser | Page size only 10/20/50, default 20. An unknown parameter, a bad `owner`, a bad `status`, and `q` over 150 characters are each rejected. | `queue-query.unit.test.ts` | #39 | Pass |
+| UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Pass |
 | UT-09 | Unit | AC-39, BR-35 | Transition matrix, exhaustive | All 64 (from, to) pairs: exactly the 18 matrix rows are permitted, every other pair is refused, and none is permitted for the Requester role | `transitions.unit.test.ts` | #40 | Planned |
 | UT-10 | Unit | AC-40, AC-43, BR-36 | Status guards | The owner requirement per target status. The claimable, assignable, and IT-Priority-editable status sets match `specification.md` §5.6. | `transitions.unit.test.ts` | #40 | Planned |
 | UT-11 | Unit | AC-48, BR-47 | Comment and note body | Empty and whitespace-only rejected; 1 accepted; 2000 accepted; 2001 rejected; length measured after trimming | `comment-body.unit.test.ts` | #41 | Planned |
@@ -183,17 +183,17 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| QUE-01 | API | AC-28 | Queue contents | IT Staff and Administrator see tickets from every Requester. Items carry the `api-spec.md` §5.1 fields and no `description`. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-02 | API | AC-16, AC-28 | Requester refused | A Requester gets 403 on `GET /staff/tickets` with any parameters | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-03 | API | AC-29 | Search | `q` matches a partial Ticket Number, a summary word, and a Requester name, case-insensitively, and nothing else | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-04 | API | AC-30 | Status filter | Only tickets in the given status | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-05 | API | AC-30 | IT Priority and category filters | Only tickets matching each filter, and both together | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-06 | API | AC-30 | Owner filter | `me` returns the caller's tickets, `unassigned` returns those with a null owner, `{uuid}` returns that user's tickets. A Requester's UUID → 400. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-07 | API | AC-31 | Default order | Without `sortBy`: URGENT before HIGH, and within a priority the oldest first | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-08 | API | AC-31 | Explicit sorts | `itPriority` asc and desc by severity, `status` in lifecycle order, `updatedAt` desc, `ticketNumber` asc | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-09 | API | AC-32 | Pagination | Default page size 20. Page 2 returns the next set with correct `meta`. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-10 | API | AC-32 | Invalid parameters | `pageSize=25`, `foo=1`, `owner=someone`, and `status=ASSIGNED` each → 400 | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-11 | API | AC-32 | Page past the end | Empty `data` with correct `meta` | `staff-queue.api.test.ts` | #39 | Planned |
+| QUE-01 | API | AC-28 | Queue contents | IT Staff and Administrator see tickets from every Requester. Items carry the `api-spec.md` §5.1 fields and no `description`. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-02 | API | AC-16, AC-28 | Requester refused | A Requester gets 403 on `GET /staff/tickets` with any parameters | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-03 | API | AC-29 | Search | `q` matches a partial Ticket Number, a summary word, and a Requester name, case-insensitively, and nothing else | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-04 | API | AC-30 | Status filter | Only tickets in the given status | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-05 | API | AC-30 | IT Priority and category filters | Only tickets matching each filter, and both together | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-06 | API | AC-30 | Owner filter | `me` returns the caller's tickets, `unassigned` returns those with a null owner, `{uuid}` returns that user's tickets. A Requester's UUID → 400. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-07 | API | AC-31 | Default order | Without `sortBy`: URGENT before HIGH, and within a priority the oldest first | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-08 | API | AC-31 | Explicit sorts | `itPriority` asc and desc by severity, `status` in lifecycle order, `updatedAt` desc, `ticketNumber` asc | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-09 | API | AC-32 | Pagination | Default page size 20. Page 2 returns the next set with correct `meta`. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-10 | API | AC-32 | Invalid parameters | `pageSize=25`, `foo=1`, `owner=someone`, and `status=ASSIGNED` each → 400 | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-11 | API | AC-32 | Page past the end | Empty `data` with correct `meta` | `staff-queue.api.test.ts` | #39 | Pass |
 
 ### 2.6 API — Ticket operations — `server/tests/lab-03/staff-ticket-detail.api.test.ts`
 
