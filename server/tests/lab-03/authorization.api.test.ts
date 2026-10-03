@@ -459,16 +459,16 @@ describe("password-change gate applied (AUZ-12 - AC-02, BR-21)", () => {
   it("refuses the must-change fixture everywhere but GET /auth/me", async () => {
     const mustChange = await loginAs(MUST_CHANGE);
 
-    const responses = [
-      await as(mustChange, "GET", "/api/v1/tickets"),
-      await as(mustChange, "POST", "/api/v1/tickets").send(ticketBody()),
-      await as(mustChange, "GET", "/api/v1/categories"),
-      await as(mustChange, "GET", "/api/v1/staff/tickets"),
-      await as(mustChange, "GET", "/api/v1/admin/users"),
+    const responses: [string, Awaited<Test>][] = [
+      ["GET /tickets", await as(mustChange, "GET", "/api/v1/tickets")],
+      ["POST /tickets", await as(mustChange, "POST", "/api/v1/tickets").send(ticketBody())],
+      ["GET /categories", await as(mustChange, "GET", "/api/v1/categories")],
+      ["GET /staff/tickets", await as(mustChange, "GET", "/api/v1/staff/tickets")],
+      ["GET /admin/users", await as(mustChange, "GET", "/api/v1/admin/users")],
     ];
-    for (const res of responses) {
-      expect(res.status, res.req.path).toBe(403);
-      expect(res.body, res.req.path).toEqual(PASSWORD_CHANGE_REQUIRED);
+    for (const [label, res] of responses) {
+      expect(res.status, label).toBe(403);
+      expect(res.body, label).toEqual(PASSWORD_CHANGE_REQUIRED);
     }
 
     const me = await as(mustChange, "GET", "/api/v1/auth/me");

@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { Router, type Request, type Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { buildError, type ErrorDetails } from "../lab-02/errors.js";
+import { CSRF_INVALID, csrfMatches } from "./csrf.js";
 import { normaliseEmail } from "./email.js";
 import { hashPassword, verifyPassword } from "./password-hash.js";
 import { validatePasswordChange } from "./password-policy.js";
@@ -16,8 +17,9 @@ import { createSession, resolveSession, revokeAllSessions, revokeSessionByToken 
 // (BR-10, BR-68): users leave through toCurrentUser, and the token travels
 // only in the HttpOnly cookie.
 //
-// CSRF on logout and password change is enforced by #37 (tests.md section 3),
-// which adds it to requireSession for every state-changing request.
+// CSRF on password change is enforced by requireSession, as on every
+// state-changing request. Logout has no requireSession, because it succeeds
+// without a session, so it checks the token itself.
 
 export const authRouter = Router();
 
@@ -106,12 +108,20 @@ authRouter.post("/auth/login", async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/v1/auth/logout (section 2.2). Without a live session it does nothing (BR-18). */
+/**
+ * POST /api/v1/auth/logout (section 2.2). Without a live session it does
+ * nothing (BR-18); with one, it needs the session's CSRF token (BR-20).
+ */
 authRouter.post("/auth/logout", async (req: Request, res: Response) => {
   try {
     const token = readSessionToken(req);
-    if (token !== null && (await resolveSession(token)) !== null) {
-      await revokeSessionByToken(token);
+    const session = token === null ? null : await resolveSession(token);
+    if (session !== null) {
+      if (!csrfMatches(req, session.csrfToken)) {
+        res.status(403).json(CSRF_INVALID);
+        return;
+      }
+      await revokeSessionByToken(token!);
       clearSessionCookie(res);
     }
     res.status(204).end();

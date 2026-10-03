@@ -1,17 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
 import { loginAs, type SignedIn } from "../helpers/session.js";
 
-// API-01 .. API-09 from docs/lab-02/tests.md section 2.2.
+// API-01 .. API-07 and API-41 from docs/lab-02/tests.md section 2.2.
 //
-// POST /api/v1/tickets is the first Scoped endpoint in the sprint, so it is
-// also the first route the X-Dev-Requester-Id middleware from #14 can be proved
-// against: API-08 and API-09 live here for that reason.
-//
-// Since Lab 3 #37 the kept tests sign in through loginAs() instead of sending
+// Since Lab 3 #37 these tests sign in through loginAs() instead of sending
 // X-Dev-Requester-Id (docs/lab-03/tests.md REG-01). Assertions are unchanged.
+// API-08 and API-09 tested that header and were superseded by AUZ-01, AUZ-14,
+// and API-03 (docs/lab-03/tests.md section 4.1).
 //
 // Every expected value below is a constant declared in this file. Nothing
 // asserts a count read back from prisma, because an expectation derived from
@@ -26,7 +22,6 @@ const INACTIVE_CATEGORY = "ZZ Retired Category (create-ticket fixture)";
 
 let requesterId = "";
 let otherRequesterId = "";
-let inactiveRequesterId = "";
 let categoryId = 0;
 let categoryName = "";
 let relatedSystemId = 0;
@@ -47,11 +42,6 @@ function validBody(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const post = (body: Record<string, unknown>, header: string | null = requesterId) => {
-  const req = request(app).post("/api/v1/tickets");
-  return header === null ? req.send(body) : req.set("X-Dev-Requester-Id", header).send(body);
-};
-
 const create = (body: Record<string, unknown>) => requester.agent.post("/api/v1/tickets").send(body);
 
 beforeAll(async () => {
@@ -67,10 +57,6 @@ beforeAll(async () => {
   requesterId = active[0].id;
   otherRequesterId = active[1].id;
   requester = await loginAs(active[0].email);
-
-  const inactive = await prisma.user.findFirst({ where: { isActive: false, role: "REQUESTER" } });
-  expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
-  inactiveRequesterId = inactive!.id;
 
   const category = await prisma.category.findFirst({
     where: { isActive: true },
@@ -223,42 +209,6 @@ describe("POST /api/v1/tickets (API-07 - BR-22)", () => {
 
     expect(response.status).toBe(422);
     expect(response.body.error.details.categoryId).toEqual(expect.any(String));
-  });
-});
-
-describe("POST /api/v1/tickets (API-08 - BR-11)", () => {
-  it("returns 428 when the Scoped request carries no X-Dev-Requester-Id", async () => {
-    const response = await post(validBody(), null);
-
-    expect(response.status).toBe(428);
-    expect(response.body.error.code).toBe("REQUESTER_NOT_SELECTED");
-    expect(response.body.error).not.toHaveProperty("details");
-  });
-
-  it("returns 428 when the header names a Requester that does not exist", async () => {
-    const response = await post(validBody(), "3f8b0c22-0000-4000-8000-000000000000");
-
-    expect(response.status).toBe(428);
-    expect(response.body.error.code).toBe("REQUESTER_NOT_SELECTED");
-  });
-});
-
-describe("POST /api/v1/tickets (API-09 - BR-13)", () => {
-  it("returns 403 when the header names an inactive Requester", async () => {
-    const response = await post(validBody(), inactiveRequesterId);
-
-    expect(response.status).toBe(403);
-    expect(response.body.error.code).toBe("REQUESTER_INACTIVE");
-  });
-
-  it("creates nothing when the Requester is refused", async () => {
-    await post(validBody(), inactiveRequesterId);
-
-    // The inactive Requester is never a ticket owner, so zero is the only
-    // correct answer here and it is stated outright rather than compared to a
-    // count taken moments earlier.
-    const owned = await prisma.ticket.count({ where: { requesterId: inactiveRequesterId } });
-    expect(owned).toBe(0);
   });
 });
 

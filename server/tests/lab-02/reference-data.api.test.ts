@@ -1,15 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
 import { loginAs, type SignedIn } from "../helpers/session.js";
 
-// API-38, API-39, API-40 from docs/lab-02/tests.md section 2.2.
+// API-38 and API-39 from docs/lab-02/tests.md section 2.2. API-40 tested
+// GET /dev-requesters, which #37 removed; AUZ-04 supersedes it
+// (docs/lab-03/tests.md section 4.1).
 //
 // The seed provides only active Categories and Related Systems, so this suite
 // creates one inactive record of each, asserts it never surfaces, and removes
-// it again. The inactive Requester is already a seeded fixture (AC-01, BR-13)
-// and is not created here.
+// it again.
 //
 // Since Lab 3 #37 the reference data needs a session, so API-38 and API-39
 // sign in through loginAs() (docs/lab-03/tests.md REG-01). Assertions are
@@ -98,51 +97,3 @@ describe("GET /api/v1/related-systems (API-39 - AC-11)", () => {
   });
 });
 
-describe("GET /api/v1/dev-requesters (API-40 - AC-01, BR-10)", () => {
-  it("omits the seeded inactive Requester", async () => {
-    const inactive = await prisma.user.findFirst({
-      where: { isActive: false, role: "REQUESTER" },
-    });
-    expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
-
-    const response = await request(app).get("/api/v1/dev-requesters");
-
-    expect(response.status).toBe(200);
-    expectNonEmpty(response.body.data, "dev requesters");
-
-    const ids = response.body.data.map((r: { id: string }) => r.id);
-    expect(ids).not.toContain(inactive!.id);
-  });
-
-  it("returns every active Requester, sorted by fullName", async () => {
-    // role: REQUESTER since Lab 3 #35, matching the route's filter
-    // (docs/lab-03/tests.md section 4.2).
-    const activeCount = await prisma.user.count({ where: { isActive: true, role: "REQUESTER" } });
-
-    // The seed guarantees four active Requesters. Asserting that here rather
-    // than only comparing the response to the database count means a database
-    // with no active Requester fails the test instead of satisfying it.
-    expect(
-      activeCount,
-      "seed must provide at least one active Requester fixture",
-    ).toBeGreaterThan(0);
-
-    const response = await request(app).get("/api/v1/dev-requesters");
-
-    expectNonEmpty(response.body.data, "dev requesters");
-    expect(response.body.data).toHaveLength(activeCount);
-
-    const names = response.body.data.map((r: { fullName: string }) => r.fullName);
-    expect(names).toEqual([...names].sort());
-  });
-
-  it("exposes only id, fullName, and email on each Requester", async () => {
-    const response = await request(app).get("/api/v1/dev-requesters");
-
-    expectNonEmpty(response.body.data, "dev requesters");
-
-    for (const requester of response.body.data) {
-      expect(Object.keys(requester).sort()).toEqual(["email", "fullName", "id"]);
-    }
-  });
-});

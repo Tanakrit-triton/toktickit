@@ -2,7 +2,8 @@ import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import { getPrisma } from "../prisma.js";
 import { buildError } from "./errors.js";
-import { requireRequester } from "./requester-context.js";
+import { requireRole } from "../lab-03/require-role.js";
+import { requireSession, type CurrentUser } from "../lab-03/require-session.js";
 import {
   MAX_ACTIVE_ATTACHMENTS,
   MAX_ATTACHMENT_BYTES,
@@ -12,6 +13,11 @@ import {
 import { deleteAttachment, readAttachment, saveAttachment } from "./attachment-storage.js";
 
 // Attachment endpoints (api-spec.md section 4).
+//
+// Since Lab 3 #37 (docs/lab-03/api-spec.md section 4.2): any signed-in role
+// may list and download, a Requester only on their own ticket and IT Staff and
+// Administrators on any ticket (BR-58). Upload and removal are for the
+// Requester role only, and are refused on CLOSED and CANCELLED tickets (BR-59).
 
 export const attachmentsRouter = Router();
 
@@ -29,6 +35,27 @@ const UUID_PATTERN =
 
 const REASON_MIN = 5;
 const REASON_MAX = 200;
+
+/** Steps 1 to 5 of api-spec.md section 1.1 for an upload or removal. */
+const requesterOnly = [requireSession, requireRole("REQUESTER")];
+
+/** A Requester's upload or removal is refused in these statuses (BR-59). */
+const LOCKED_STATUSES = new Set(["CLOSED", "CANCELLED"]);
+
+function stateConflict(res: Response): void {
+  res
+    .status(409)
+    .json(
+      buildError(
+        "TICKET_STATE_CONFLICT",
+        "Attachments cannot be added or removed on a closed or cancelled ticket.",
+      ),
+    );
+}
+
+/** A Requester reaches only their own tickets (BR-24); staff reach every ticket (BR-27). */
+const canReach = (user: CurrentUser, requesterId: string) =>
+  user.role !== "REQUESTER" || user.id === requesterId;
 
 /**
  * One refusal for everything a Requester may not reach, so a foreign resource
@@ -68,24 +95,24 @@ function toAttachmentResponse(row: {
   };
 }
 
-/** Resolves an attachment only if the selected Requester owns its Ticket (BR-38). */
-async function findOwnedAttachment(attachmentId: string, requesterId: string) {
+/** Resolves an attachment only if `user` may reach its Ticket (BR-24, BR-58). */
+async function findReachableAttachment(attachmentId: string, user: CurrentUser) {
   const attachment = await getPrisma().attachment.findUnique({
     where: { id: attachmentId },
-    include: { ticket: { select: { requesterId: true } } },
+    include: { ticket: { select: { requesterId: true, currentStatus: true } } },
   });
-  if (attachment === null || attachment.ticket.requesterId !== requesterId) return null;
+  if (attachment === null || !canReach(user, attachment.ticket.requesterId)) return null;
   return attachment;
 }
 
 /** POST /api/v1/tickets/{ticketId}/attachments -- upload one file (FR-14, FR-26). */
 attachmentsRouter.post(
   "/tickets/:ticketId/attachments",
-  requireRequester,
+  ...requesterOnly,
   upload.single("file"),
   async (req: Request, res: Response) => {
     const prisma = getPrisma();
-    const requester = req.requester!;
+    const requester = req.auth!.user;
     const { ticketId } = req.params;
 
     if (!UUID_PATTERN.test(ticketId)) {
@@ -113,7 +140,7 @@ attachmentsRouter.post(
       // acceptable.
       const ticket = await prisma.ticket.findUnique({
         where: { id: ticketId },
-        select: { id: true, requesterId: true },
+        select: { id: true, requesterId: true, currentStatus: true },
       });
       if (ticket === null || ticket.requesterId !== requester.id) {
         refuse(res);
@@ -123,6 +150,12 @@ attachmentsRouter.post(
       const failure = validateAttachment(file);
       if (failure !== null) {
         res.status(failure.status).json(buildError(failure.code, failure.message));
+        return;
+      }
+
+      // Validation before domain rules (api-spec.md section 1.1 step 6).
+      if (LOCKED_STATUSES.has(ticket.currentStatus)) {
+        stateConflict(res);
         return;
       }
 
@@ -166,13 +199,13 @@ attachmentsRouter.post(
   },
 );
 
-/** GET /api/v1/tickets/{ticketId}/attachments -- metadata for an owned Ticket (FR-25). */
+/** GET /api/v1/tickets/{ticketId}/attachments -- metadata for a reachable Ticket (FR-25). */
 attachmentsRouter.get(
   "/tickets/:ticketId/attachments",
-  requireRequester,
+  requireSession,
   async (req: Request, res: Response) => {
     const prisma = getPrisma();
-    const requester = req.requester!;
+    const user = req.auth!.user;
     const { ticketId } = req.params;
 
     if (!UUID_PATTERN.test(ticketId)) {
@@ -185,7 +218,7 @@ attachmentsRouter.get(
         where: { id: ticketId },
         select: { requesterId: true },
       });
-      if (ticket === null || ticket.requesterId !== requester.id) {
+      if (ticket === null || !canReach(user, ticket.requesterId)) {
         refuse(res);
         return;
       }
@@ -209,9 +242,9 @@ attachmentsRouter.get(
 /** GET /api/v1/attachments/{attachmentId}/download -- stream an active attachment (FR-27). */
 attachmentsRouter.get(
   "/attachments/:attachmentId/download",
-  requireRequester,
+  requireSession,
   async (req: Request, res: Response) => {
-    const requester = req.requester!;
+    const user = req.auth!.user;
     const { attachmentId } = req.params;
 
     if (!UUID_PATTERN.test(attachmentId)) {
@@ -220,7 +253,7 @@ attachmentsRouter.get(
     }
 
     try {
-      const attachment = await findOwnedAttachment(attachmentId, requester.id);
+      const attachment = await findReachableAttachment(attachmentId, user);
       if (attachment === null) {
         refuse(res);
         return;
@@ -256,10 +289,10 @@ attachmentsRouter.get(
 /** DELETE /api/v1/attachments/{attachmentId} -- soft removal (FR-28). */
 attachmentsRouter.delete(
   "/attachments/:attachmentId",
-  requireRequester,
+  ...requesterOnly,
   async (req: Request, res: Response) => {
     const prisma = getPrisma();
-    const requester = req.requester!;
+    const requester = req.auth!.user;
     const { attachmentId } = req.params;
 
     if (!UUID_PATTERN.test(attachmentId)) {
@@ -268,7 +301,7 @@ attachmentsRouter.delete(
     }
 
     try {
-      const attachment = await findOwnedAttachment(attachmentId, requester.id);
+      const attachment = await findReachableAttachment(attachmentId, requester);
       if (attachment === null) {
         refuse(res);
         return;
@@ -285,6 +318,11 @@ attachmentsRouter.delete(
                 : `The reason must be between ${REASON_MIN} and ${REASON_MAX} characters.`,
           }),
         );
+        return;
+      }
+
+      if (LOCKED_STATUSES.has(attachment.ticket.currentStatus)) {
+        stateConflict(res);
         return;
       }
 
