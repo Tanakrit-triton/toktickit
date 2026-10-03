@@ -408,6 +408,22 @@ with their tests and were red first.
 | Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
 | Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
 
+#39 added the assertions below inside its planned tests. All were committed
+with their tests and were red first, except QUE-02 as noted.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UT-07 | A repeated parameter, a page below 1 or not an integer, an unlisted `sortBy` or `sortOrder`, a bad `itPriority`, and a non-positive `categoryId` are each rejected; a `q` empty after trimming is absent | api-spec §5.1: "any parameter outside these rules … gives `400`" and "empty after trimming is treated as absent" |
+| UT-08 | With `sortBy=createdAt`, the secondary keys do not repeat `createdAt` | api-spec §5.1 secondary keys; a repeated key is redundant |
+| QUE-01 | Every item field equals the stored value; description text appears nowhere in the item | AC-28 lists the values, not only the keys |
+| QUE-02 | The 403 bodies are byte-identical across parameter sets, valid and invalid | BR-23: the role check runs before validation. **Green before implementation:** the `/staff` family guard from #37 already refuses a Requester, so this test could not be red in #39. |
+| QUE-03 | Neither the description, the owner's name, nor the category name is searched | "and nothing else" in QUE-03 |
+| QUE-05 | Two filters that exclude each other return no tickets | Filters combine with AND |
+| QUE-06 | `owner=me` is the caller, not any staff member; a UUID matching no user → 400 | api-spec §5.1: `owner` is "an existing IT Staff or Administrator user" |
+| QUE-08 | `status` descending, and `createdAt` in both directions | AC-31: "each documented sort field orders correctly in both directions" |
+| QUE-09 | Page size 10 gives correct `meta` on page 3 | AC-32 accepts 10 |
+| QUE-10 | A `categoryId` that does not exist → 400 | api-spec §5.1: `categoryId` "must exist" |
+
 ---
 
 ## 3. Scope per Issue
