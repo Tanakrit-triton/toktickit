@@ -48,8 +48,10 @@ const post = (body: Record<string, unknown>, header: string | null = requesterId
 };
 
 beforeAll(async () => {
-  const active = await prisma.requesterUser.findMany({
-    where: { isActive: true },
+  // role: REQUESTER since Lab 3 #35, when the table began holding IT Staff and
+  // Administrators too (docs/lab-03/tests.md section 4.2).
+  const active = await prisma.user.findMany({
+    where: { isActive: true, role: "REQUESTER" },
     orderBy: { fullName: "asc" },
     select: { id: true },
   });
@@ -57,7 +59,7 @@ beforeAll(async () => {
   requesterId = active[0].id;
   otherRequesterId = active[1].id;
 
-  const inactive = await prisma.requesterUser.findFirst({ where: { isActive: false } });
+  const inactive = await prisma.user.findFirst({ where: { isActive: false, role: "REQUESTER" } });
   expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
   inactiveRequesterId = inactive!.id;
 

@@ -54,12 +54,16 @@ export async function requireRequester(
     return;
   }
 
-  const requester = await getPrisma().requesterUser.findUnique({
+  const requester = await getPrisma().user.findUnique({
     where: { id: headerValue },
-    select: { id: true, fullName: true, isActive: true },
+    select: { id: true, fullName: true, isActive: true, role: true },
   });
 
-  if (requester === null) {
+  // Lab 3 interim (docs/lab-03/specification.md section 7.3): the User table
+  // now also holds IT Staff and Administrators. Until #37 removes this
+  // middleware, only a REQUESTER can be selected, so any other account is
+  // treated exactly like an unknown id.
+  if (requester === null || requester.role !== "REQUESTER") {
     res
       .status(428)
       .json(

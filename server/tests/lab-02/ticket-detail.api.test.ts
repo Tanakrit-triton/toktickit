@@ -19,12 +19,12 @@ let ownedTicketId = "";
 let foreignTicketId = "";
 
 beforeAll(async () => {
-  const owner = await prisma.requesterUser.upsert({
+  const owner = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
     update: { isActive: true },
     create: { fullName: "ZZ Detail Owner", email: OWNER_EMAIL, isActive: true },
   });
-  const other = await prisma.requesterUser.upsert({
+  const other = await prisma.user.upsert({
     where: { email: OTHER_EMAIL },
     update: { isActive: true },
     create: { fullName: "ZZ Detail Other", email: OTHER_EMAIL, isActive: true },
@@ -44,6 +44,7 @@ beforeAll(async () => {
     relatedSystemId: system!.id,
     description: DESCRIPTION,
     requestedPriority: "HIGH" as const,
+    itPriority: "HIGH" as const,
   };
 
   const owned = await prisma.ticket.create({
@@ -63,7 +64,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.ticket.deleteMany({ where: { requesterId: { in: [ownerId, otherId] } } });
-  await prisma.requesterUser.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
+  await prisma.user.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
   await prisma.$disconnect();
 });
 

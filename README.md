@@ -46,11 +46,21 @@ cd server
 copy .env.example .env
 ```
 
-Set `DATABASE_URL` in `server/.env`:
+Set these in `server/.env`:
 
 ```
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/toktickit"
+TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/toktickit?schema=toktickit_test"
+SEED_PASSWORD="toktickit-local-dev-only"
 ```
+
+- `TEST_DATABASE_URL` is where `npm test` runs. It must differ from
+  `DATABASE_URL`, because the tests reseed it and alter seeded accounts. A
+  separate schema in the same database is enough; the tests migrate and seed it
+  themselves.
+- `SEED_PASSWORD` is the password the seed gives every seeded account. The
+  value above is for **local development only**. It is published in this
+  repository, so never use it anywhere real. Without it the seed stops.
 
 ### 4. Migrate and seed
 
@@ -61,8 +71,28 @@ npm run prisma:seed
 ```
 
 The seed is idempotent: running it twice creates no duplicates. It provides
-four categories, seven related systems, and five Development Requesters — four
-active and one inactive.
+four categories, seven related systems, the eleven accounts below, nine
+tickets covering all eight statuses, and example comments, notes, and ticket
+events. Every run resets each seeded account's password, role, activation, and
+must-change flag, and ends its sessions, so it also restores the fixtures
+after a test has changed them.
+
+| Account | Email | Role |
+|---|---|---|
+| Napat Chaiwong | napat.cha@kmutt.ac.th | Requester |
+| Siriporn Meesuk | siriporn.mee@kmutt.ac.th | Requester |
+| Thanawat Rattana | thanawat.rat@kmutt.ac.th | Requester |
+| Pimchanok Sonthi | pimchanok.son@kmutt.ac.th | Requester (no tickets) |
+| Kittipong Wong | kittipong.won@kmutt.ac.th | Requester, inactive |
+| Chayanin Boonmee | chayanin.boo@kmutt.ac.th | Requester, must change password |
+| Wichai Prasert | wichai.pra@kmutt.ac.th | IT Staff |
+| Arisa Kongkaew | arisa.kon@kmutt.ac.th | IT Staff |
+| Teerapat Boonsri | teerapat.boo@kmutt.ac.th | IT Staff |
+| Nattapong Saelim | nattapong.sae@kmutt.ac.th | IT Staff, inactive |
+| Sasithorn Pholchai | sasithorn.pho@kmutt.ac.th | Administrator |
+
+All of them use `SEED_PASSWORD`. Lab 2 Requesters migrated from an existing
+database have no password until the seed or an Administrator sets one.
 
 **The inactive Requester is a fixture, not an accident.** It proves that
 inactive Requesters never reach the selector (AC-01, BR-10). Likewise
@@ -99,7 +129,7 @@ arrives in Lab 3.
 ## Tests
 
 ```
-cd server && npm test         # unit + API      (92 tests)
+cd server && npm test         # unit, migration, seed, API  (131 tests)
 cd client && npm test         # UI + UI style   (76 tests)
 ```
 

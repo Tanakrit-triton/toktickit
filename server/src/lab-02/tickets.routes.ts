@@ -123,6 +123,10 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
           summary: (body.summary as string).trim(),
           description: (body.description as string).trim(),
           requestedPriority: body.requestedPriority as RequestedPriorityValue,
+          // IT Priority starts equal to Requested Priority (Lab 3 BR-33). Set
+          // here by #35, because the column is NOT NULL from #35's migration;
+          // OPS-07 in #40 is the test that observes it.
+          itPriority: body.requestedPriority as RequestedPriorityValue,
           // currentStatus is left to the schema default of NEW (BR-02). Lab 2
           // never writes any other status (DEC-06).
         },

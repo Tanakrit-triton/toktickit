@@ -1,5 +1,6 @@
 // TokTickIT data model.
-// Lab 2 schema per docs/lab-02/specification.md section 7.
+// Lab 2 schema per docs/lab-02/specification.md section 7, extended for Lab 3
+// per docs/lab-03/specification.md section 7.
 // DATABASE_URL lives in server/.env (copy it from .env.example).
 
 generator client {
@@ -14,27 +15,45 @@ datasource db {
 // ---------------------------------------------------------------------------
 // Enums
 
-/// D-03. Requested by the Requester; IT Priority is a Lab 3 concern.
-enum RequestedPriority {
+/// D-03. Serves both Requested Priority and IT Priority (BR-33), so the Prisma
+/// name is neutral. Mapped to the existing database type, so no SQL changes
+/// (DEC-16).
+enum Priority {
   LOW
   MEDIUM
   HIGH
   URGENT
+
+  @@map("RequestedPriority")
 }
 
-/// The complete D-02 vocabulary is declared although Lab 2 only ever writes
-/// NEW (DEC-06). Declaring it now avoids an enum migration against populated
-/// tables in Lab 3; the Lab 2 restriction is enforced in the service layer and
-/// asserted by test, not by narrowing the type.
+/// The labsheet's eight statuses (BR-34). CLAIMED and PENDING_CONFIRMATION
+/// were renamed in place to OPEN and WAITING_FOR_REQUESTER (DEC-15); the
+/// permitted transitions are enforced in the service layer, not by the type.
 enum TicketStatus {
   NEW
-  CLAIMED
+  OPEN
   IN_PROGRESS
-  PENDING_CONFIRMATION
+  WAITING_FOR_REQUESTER
   RESOLVED
   CLOSED
   REOPENED
   CANCELLED
+}
+
+/// Exactly one role per user (BR-60).
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+/// The changes Lab 3 records (BR-55, DEV-12).
+enum TicketEventType {
+  OWNER_CHANGED
+  STATUS_CHANGED
+  IT_PRIORITY_CHANGED
+  RESOLUTION_INDICATED
 }
 
 // ---------------------------------------------------------------------------
@@ -71,43 +90,70 @@ model RelatedSystem {
 // reach another's ticket by editing a number in the URL, which BR-18 exists to
 // prevent.
 
-/// The Lab 2 Development Requester. A test fixture, never a credential
-/// (BR-03, BR-11). Lab 3 replaces the selector with a real session (D-04).
-model RequesterUser {
-  id        String   @id @default(uuid())
-  fullName  String
-  email     String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/// Every account: Requester, IT Staff, or Administrator. The Lab 2 model
+/// RequesterUser renamed, and mapped onto its existing table so no data moves
+/// (DEC-02). Emails are stored normalised (BR-06). A null passwordHash cannot
+/// authenticate (BR-14), which is how migrated Lab 2 Requesters arrive.
+model User {
+  id                 String    @id @default(uuid())
+  fullName           String
+  email              String    @unique
+  isActive           Boolean   @default(true)
+  role               Role      @default(REQUESTER)
+  passwordHash       String?
+  mustChangePassword Boolean   @default(true)
+  passwordChangedAt  DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  tickets             Ticket[]
-  uploadedAttachments Attachment[] @relation("AttachmentUploadedBy")
-  removedAttachments  Attachment[] @relation("AttachmentRemovedBy")
+  tickets             Ticket[]        @relation("TicketRequester")
+  ownedTickets        Ticket[]        @relation("TicketOwner")
+  uploadedAttachments Attachment[]    @relation("AttachmentUploadedBy")
+  removedAttachments  Attachment[]    @relation("AttachmentRemovedBy")
+  publicComments      PublicComment[]
+  internalNotes       InternalNote[]
+  ticketEvents        TicketEvent[]
+  sessions            Session[]
+
+  @@map("RequesterUser")
 }
 
 model Ticket {
-  id                String            @id @default(uuid())
-  ticketNumber      String            @unique
-  requesterId       String
-  categoryId        Int
-  relatedSystemId   Int
-  summary           String
-  description       String
-  requestedPriority RequestedPriority
-  currentStatus     TicketStatus      @default(NEW)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                           String       @id @default(uuid())
+  ticketNumber                 String       @unique
+  requesterId                  String
+  /// The Ticket Owner: the assigned IT Staff or Administrator (DEC-20).
+  ownerId                      String?
+  categoryId                   Int
+  relatedSystemId              Int
+  summary                      String
+  description                  String
+  requestedPriority            Priority
+  /// Equal to requestedPriority at creation; only IT Staff change it (BR-33).
+  itPriority                   Priority
+  currentStatus                TicketStatus @default(NEW)
+  requesterIndicatedResolvedAt DateTime?
+  createdAt                    DateTime     @default(now())
+  updatedAt                    DateTime     @updatedAt
 
-  requester     RequesterUser @relation(fields: [requesterId], references: [id])
-  category      Category      @relation(fields: [categoryId], references: [id])
-  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id])
+  requester     User            @relation("TicketRequester", fields: [requesterId], references: [id])
+  owner         User?           @relation("TicketOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  category      Category        @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem   @relation(fields: [relatedSystemId], references: [id])
   attachments   Attachment[]
+  comments      PublicComment[]
+  notes         InternalNote[]
+  events        TicketEvent[]
 
   /// Every My Tickets query filters on requesterId and sorts by createdAt
   /// descending by default, so this composite index serves the dominant
   /// access path directly.
   @@index([requesterId, createdAt(sort: Desc)])
+  /// The owner=me and owner=unassigned queue filters, and the open-ticket
+  /// count in BR-63.
+  @@index([ownerId])
+  /// The queue's status filter plus its default age order.
+  @@index([currentStatus, createdAt])
 }
 
 /// Removal is soft (BR-35). Active is represented by removedAt IS NULL rather
@@ -126,12 +172,82 @@ model Attachment {
   removedById      String?
   removedReason    String?
 
-  ticket     Ticket         @relation(fields: [ticketId], references: [id])
-  uploadedBy RequesterUser  @relation("AttachmentUploadedBy", fields: [uploadedById], references: [id])
-  removedBy  RequesterUser? @relation("AttachmentRemovedBy", fields: [removedById], references: [id])
+  ticket     Ticket @relation(fields: [ticketId], references: [id])
+  uploadedBy User   @relation("AttachmentUploadedBy", fields: [uploadedById], references: [id])
+  removedBy  User?  @relation("AttachmentRemovedBy", fields: [removedById], references: [id])
 
   /// The attachment list is always fetched per ticket.
   @@index([ticketId])
+}
+
+// ---------------------------------------------------------------------------
+// Ticket history
+//
+// Append-only (BR-46, BR-54). Every foreign key is ON DELETE RESTRICT, so a
+// ticket and its history are never cascade-deleted.
+
+/// Visible to the ticket's Requester, IT Staff, and Administrators (BR-04).
+model PublicComment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+}
+
+/// IT Staff and Administrators only. A separate table, so no flag can make a
+/// note public (BR-50).
+model InternalNote {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+}
+
+/// actorId is null only for the owner clearance on reopen (BR-40, BR-55).
+model TicketEvent {
+  id        String          @id @default(uuid())
+  ticketId  String
+  actorId   String?
+  eventType TicketEventType
+  payload   Json
+  createdAt DateTime        @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  actor  User?  @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+
+/// A server-side session (D-04). id is the SHA-256 hex of the token; the token
+/// itself is never stored (BR-15). expiresAt is the absolute limit; the idle
+/// limit is measured from lastSeenAt (BR-16).
+model Session {
+  id         String    @id
+  userId     String
+  csrfToken  String
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  /// Revoking every session of a user (BR-12, BR-13, BR-64).
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------------
