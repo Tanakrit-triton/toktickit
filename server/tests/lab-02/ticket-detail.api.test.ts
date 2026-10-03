@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
+import { loginAs, signInFields, type SignedIn } from "../helpers/session.js";
 
 // API-20 .. API-23 from docs/lab-02/tests.md section 2.2.
+//
+// Since Lab 3 #37 the Requester signs in through loginAs() instead of sending
+// X-Dev-Requester-Id (docs/lab-03/tests.md REG-01). Assertions are unchanged.
 
 const prisma = getPrisma();
 
@@ -17,20 +19,23 @@ let ownerId = "";
 let otherId = "";
 let ownedTicketId = "";
 let foreignTicketId = "";
+let owner: SignedIn;
 
 beforeAll(async () => {
-  const owner = await prisma.user.upsert({
+  const signIn = await signInFields();
+  const ownerRow = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ Detail Owner", email: OWNER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ Detail Owner", email: OWNER_EMAIL, isActive: true, ...signIn },
   });
   const other = await prisma.user.upsert({
     where: { email: OTHER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ Detail Other", email: OTHER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ Detail Other", email: OTHER_EMAIL, isActive: true, ...signIn },
   });
-  ownerId = owner.id;
+  ownerId = ownerRow.id;
   otherId = other.id;
+  owner = await loginAs(OWNER_EMAIL);
 
   const category = await prisma.category.findFirst({ where: { isActive: true } });
   const system = await prisma.relatedSystem.findFirst({ where: { isActive: true } });
@@ -64,15 +69,14 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.ticket.deleteMany({ where: { requesterId: { in: [ownerId, otherId] } } });
+  await prisma.session.deleteMany({ where: { user: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } } });
   await prisma.user.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
   await prisma.$disconnect();
 });
 
 describe("GET /api/v1/tickets/{id} (API-20 - AC-26)", () => {
   it("returns the full Ticket with its attachment list", async () => {
-    const response = await request(app)
-      .get(`/api/v1/tickets/${ownedTicketId}`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent.get(`/api/v1/tickets/${ownedTicketId}`);
 
     expect(response.status).toBe(200);
     const ticket = response.body.data;
@@ -94,12 +98,8 @@ describe("GET /api/v1/tickets/{id} (API-21, API-22 - AC-27)", () => {
   it("answers a foreign Ticket and a missing Ticket identically", async () => {
     const missingId = "3f8b0c22-0000-4000-8000-000000000000";
 
-    const foreign = await request(app)
-      .get(`/api/v1/tickets/${foreignTicketId}`)
-      .set("X-Dev-Requester-Id", ownerId);
-    const missing = await request(app)
-      .get(`/api/v1/tickets/${missingId}`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const foreign = await owner.agent.get(`/api/v1/tickets/${foreignTicketId}`);
+    const missing = await owner.agent.get(`/api/v1/tickets/${missingId}`);
 
     expect(foreign.status).toBe(404);
     expect(missing.status).toBe(404);
@@ -111,9 +111,7 @@ describe("GET /api/v1/tickets/{id} (API-21, API-22 - AC-27)", () => {
   });
 
   it("does not leak the foreign Ticket's contents in the refusal", async () => {
-    const response = await request(app)
-      .get(`/api/v1/tickets/${foreignTicketId}`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent.get(`/api/v1/tickets/${foreignTicketId}`);
 
     // Guard first: an assertion that something is ABSENT passes against any
     // empty response, including a 404 from a route that does not exist. This
@@ -130,9 +128,7 @@ describe("GET /api/v1/tickets/{id} (API-21, API-22 - AC-27)", () => {
 
 describe("GET /api/v1/tickets/{id} (API-23 - api-spec 3.3)", () => {
   it("rejects a malformed identifier with 400, not 500", async () => {
-    const response = await request(app)
-      .get("/api/v1/tickets/not-a-uuid")
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent.get("/api/v1/tickets/not-a-uuid");
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("BAD_REQUEST");

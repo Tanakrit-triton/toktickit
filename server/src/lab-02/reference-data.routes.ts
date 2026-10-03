@@ -1,19 +1,21 @@
 import { Router, type Request, type Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { buildError } from "./errors.js";
+import { requireSession } from "../lab-03/require-session.js";
 
 // Reference data endpoints (api-spec.md section 2).
 //
-// None of these is Scoped: the selector must be populated before any Requester
-// exists in context (FR-01), and Categories and Related Systems are public
-// classification data. Each returns { data: [...] } and exposes only the
+// Since Lab 3 #37 both need a session, for any role, and are behind the
+// password-change gate (docs/lab-03/api-spec.md section 3). GET /dev-requesters
+// is removed with the selector and falls through to the /api/v1 not-found
+// fallback in app.ts. Each returns { data: [...] } and exposes only the
 // fields the contract lists -- isActive is an internal flag and never leaves
 // the server.
 
 export const referenceDataRouter = Router();
 
 /** GET /api/v1/categories -- active Categories, sorted by name (FR-06, AC-11). */
-referenceDataRouter.get("/categories", async (_req: Request, res: Response) => {
+referenceDataRouter.get("/categories", requireSession, async (_req: Request, res: Response) => {
   try {
     const data = await getPrisma().category.findMany({
       where: { isActive: true },
@@ -29,7 +31,7 @@ referenceDataRouter.get("/categories", async (_req: Request, res: Response) => {
 });
 
 /** GET /api/v1/related-systems -- active Related Systems, sorted by name (FR-07). */
-referenceDataRouter.get("/related-systems", async (_req: Request, res: Response) => {
+referenceDataRouter.get("/related-systems", requireSession, async (_req: Request, res: Response) => {
   try {
     const data = await getPrisma().relatedSystem.findMany({
       where: { isActive: true },
@@ -44,28 +46,3 @@ referenceDataRouter.get("/related-systems", async (_req: Request, res: Response)
   }
 });
 
-/**
- * GET /api/v1/dev-requesters -- active Development Requesters, sorted by
- * fullName (FR-01, BR-10).
- *
- * Only active Requesters are returned; the seeded inactive Requester must
- * never appear here, which is the fixture AC-01 rests on. Since Lab 3 the
- * table also holds IT Staff and Administrators, so the role is filtered too
- * until #37 removes this route (docs/lab-03/specification.md section 7.3).
- */
-referenceDataRouter.get("/dev-requesters", async (_req: Request, res: Response) => {
-  try {
-    const data = await getPrisma().user.findMany({
-      where: { isActive: true, role: "REQUESTER" },
-      select: { id: true, fullName: true, email: true },
-      orderBy: { fullName: "asc" },
-    });
-    res.status(200).json({ data });
-  } catch {
-    res
-      .status(500)
-      .json(
-        buildError("INTERNAL_ERROR", "Could not load development requesters. Try again."),
-      );
-  }
-});

@@ -1,5 +1,6 @@
 import request from "supertest";
 import { app } from "../../src/app.js";
+import { hashPassword } from "../../src/lab-03/password-hash.js";
 
 // The shared sign-in helper for API tests (docs/lab-03/tests.md section 1,
 // Lab 3 rules).
@@ -17,6 +18,14 @@ export function seedPassword(): string {
     throw new Error("SEED_PASSWORD must be set in server/.env for the API tests.");
   }
   return value;
+}
+
+/**
+ * Fields that let a user a test creates for itself sign in with
+ * seedPassword() and pass the password-change gate.
+ */
+export async function signInFields(): Promise<{ passwordHash: string; mustChangePassword: false }> {
+  return { passwordHash: await hashPassword(seedPassword()), mustChangePassword: false };
 }
 
 export type SignedIn = {

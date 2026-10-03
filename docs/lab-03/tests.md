@@ -163,21 +163,21 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| AUZ-01 | API | AC-15, BR-22 | No session, table-driven | Every protected `/api/v1` endpoint listed in `api-spec.md` §10 at the time of #37 → 401 `UNAUTHENTICATED` | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-02 | API | AC-15, A-04 | Lab 1 stays public | `GET /api/categories` and `GET /api/health` → 200 without a session, with Lab 1 bodies unchanged | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-03 | API | AC-15 | Reference data needs a session | `/api/v1/categories` and `/related-systems` → 401 without a session, 200 for each role | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-04 | API | AC-21 | Selector endpoint removed | `GET /api/v1/dev-requesters` → 404 with or without a session | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-05 | API | AC-16, BR-23 | Route-family guard: Requester | A Requester calling `GET /api/v1/staff/tickets`, `GET /api/v1/staff/tickets/{existing id}`, `GET /api/v1/staff/tickets/{random uuid}`, and `GET /api/v1/admin/users` gets 403 `FORBIDDEN` with identical bodies | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-06 | API | AC-17 | Route-family guard: IT Staff | IT Staff calling `GET /api/v1/admin/users` and `POST /api/v1/admin/users` → 403 | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-07 | API | AC-20, BR-25 | Requester-only endpoints | IT Staff and Administrator calling `POST /tickets` and `GET /tickets` → 403. No ticket is created. | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-08 | API | AC-03, BR-03 | Body `requesterId` ignored | A Requester creating a ticket with another Requester's id in the body becomes its Requester | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-09 | API | AC-22, BR-24 | Cross-Requester isolation | Requester B requesting A's ticket, attachment list, download, and removal, and a random UUID, gets identical 404 bodies. A's attachment stays active. | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-10 | API | AC-12, BR-20 | CSRF enforced | For `POST /tickets`, upload, `DELETE /attachments/{id}`, `POST /auth/password`, and `POST /auth/logout`: a missing or wrong `X-CSRF-Token` → 403 `CSRF_INVALID`, and the database is unchanged | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-11 | API | AC-12 | CSRF exemptions | `POST /auth/login` and every GET succeed without the header | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-12 | API | AC-02, BR-21 | Password-change gate applied | The must-change fixture gets 403 `PASSWORD_CHANGE_REQUIRED` on `/tickets`, `/categories`, `/staff/tickets`, and `/admin/users`. `GET /auth/me` → 200. | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-13 | API | AC-24, BR-59 | Attachment state lock | On the Requester's own CLOSED and CANCELLED tickets, upload and removal → 409 `TICKET_STATE_CONFLICT`. On a NEW ticket both still succeed. | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-14 | API | AC-59, BR-19 | Deactivation takes effect immediately | After a signed-in user's `isActive` is set false directly in the database, their next request → 401 | `authorization.api.test.ts` | #37 | Planned |
-| AUZ-15 | API | AC-34, BR-58 | Staff attachment access | IT Staff and Administrator can list and download attachments on any ticket. Upload and removal → 403. | `authorization.api.test.ts` | #37 | Planned |
+| AUZ-01 | API | AC-15, BR-22 | No session, table-driven | Every protected `/api/v1` endpoint listed in `api-spec.md` §10 at the time of #37 → 401 `UNAUTHENTICATED` | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-02 | API | AC-15, A-04 | Lab 1 stays public | `GET /api/categories` and `GET /api/health` → 200 without a session, with Lab 1 bodies unchanged | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-03 | API | AC-15 | Reference data needs a session | `/api/v1/categories` and `/related-systems` → 401 without a session, 200 for each role | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-04 | API | AC-21 | Selector endpoint removed | `GET /api/v1/dev-requesters` → 404 with or without a session | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-05 | API | AC-16, BR-23 | Route-family guard: Requester | A Requester calling `GET /api/v1/staff/tickets`, `GET /api/v1/staff/tickets/{existing id}`, `GET /api/v1/staff/tickets/{random uuid}`, and `GET /api/v1/admin/users` gets 403 `FORBIDDEN` with identical bodies | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-06 | API | AC-17 | Route-family guard: IT Staff | IT Staff calling `GET /api/v1/admin/users` and `POST /api/v1/admin/users` → 403 | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-07 | API | AC-20, BR-25 | Requester-only endpoints | IT Staff and Administrator calling `POST /tickets` and `GET /tickets` → 403. No ticket is created. | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-08 | API | AC-03, BR-03 | Body `requesterId` ignored | A Requester creating a ticket with another Requester's id in the body becomes its Requester | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-09 | API | AC-22, BR-24 | Cross-Requester isolation | Requester B requesting A's ticket, attachment list, download, and removal, and a random UUID, gets identical 404 bodies. A's attachment stays active. | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-10 | API | AC-12, BR-20 | CSRF enforced | For `POST /tickets`, upload, `DELETE /attachments/{id}`, `POST /auth/password`, and `POST /auth/logout`: a missing or wrong `X-CSRF-Token` → 403 `CSRF_INVALID`, and the database is unchanged | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-11 | API | AC-12 | CSRF exemptions | `POST /auth/login` and every GET succeed without the header | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-12 | API | AC-02, BR-21 | Password-change gate applied | The must-change fixture gets 403 `PASSWORD_CHANGE_REQUIRED` on `/tickets`, `/categories`, `/staff/tickets`, and `/admin/users`. `GET /auth/me` → 200. | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-13 | API | AC-24, BR-59 | Attachment state lock | On the Requester's own CLOSED and CANCELLED tickets, upload and removal → 409 `TICKET_STATE_CONFLICT`. On a NEW ticket both still succeed. | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-14 | API | AC-59, BR-19 | Deactivation takes effect immediately | After a signed-in user's `isActive` is set false directly in the database, their next request → 401 | `authorization.api.test.ts` | #37 | Pass |
+| AUZ-15 | API | AC-34, BR-58 | Staff attachment access | IT Staff and Administrator can list and download attachments on any ticket. Upload and removal → 403. | `authorization.api.test.ts` | #37 | Pass |
 
 ### 2.5 API — Ticket Queue — `server/tests/lab-03/staff-queue.api.test.ts`
 
@@ -258,7 +258,7 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| REG-01 | Regression | AC-21, BR-70 | Lab 2 server suite under sessions | Every kept test in `server/tests/lab-02/` passes using `loginAs()` from `server/tests/helpers/session.ts` instead of the header. Superseded tests are handled per Section 4. | `server/tests/lab-02/*` | #37 | Planned |
+| REG-01 | Regression | AC-21, BR-70 | Lab 2 server suite under sessions | Every kept test in `server/tests/lab-02/` passes using `loginAs()` from `server/tests/helpers/session.ts` instead of the header. Superseded tests are handled per Section 4. | `server/tests/lab-02/*` | #37 | Pass |
 | REG-02 | Regression | AC-21, BR-70 | Lab 2 client suite under auth context | Every kept test in `client/tests/lab-02/` passes with the auth provider in place of `RequesterProvider` | `client/tests/lab-02/*` | #38 | Planned |
 | REG-03 | Regression | AC-21, BR-70 | Lab 2 E2E suite under login | `e2e/lab-02/` passes: L2 E2E-01 to E2E-03 are rewritten to sign in, and E2E-04, E2E-05, and the responsive specs use the login helper | `e2e/lab-02/*` | #38 | Planned |
 | REG-04 | Regression | AC-15, A-04 | Lab 1 suites unchanged | `server/tests/lab-01/` and `client/tests/lab-01/` pass with no edits, through the Vite proxy for the client | `server/tests/lab-01/*`, `client/tests/lab-01/*` | #38 | Planned |
@@ -387,6 +387,27 @@ are the first to sign in.
 | API-12 | Afterwards, the rotated session is the user's only live session | BR-12 revokes every other session and the current one |
 | API-13 | Failure bodies (401, 422) and logout are checked as well as successes | BR-68 applies to every auth response |
 
+#37 added the assertions below inside its planned tests. All were committed
+with their tests and were red first.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| AUZ-04 | The 404 body has code `NOT_FOUND` | api-spec §3 "answers `404 NOT_FOUND`". Any unknown `/api/v1` path gets the same code, with a message that differs from the ownership refusal so the two never match byte for byte. |
+| AUZ-05 | A non-existent path under `/staff` and under `/admin` gets the same 403 | api-spec §5 and §7: "including paths that do not exist" (BR-23) |
+| AUZ-07 | `GET /tickets/{id}` is refused too | api-spec §10 lists it on the same row as `POST` and `GET /tickets` |
+| AUZ-10 | The must-change fixture's `POST /tickets` with no CSRF token gets `CSRF_INVALID`, not `PASSWORD_CHANGE_REQUIRED` | api-spec §1.1 checks step 3 before step 4 |
+| AUZ-14 | `/categories` and `/auth/me` are refused as well as `/tickets` | BR-19 applies to every protected endpoint, including the password-gate exemptions |
+
+**Fixture changes made in #37.** No assertion changed.
+
+| File | Change | Why |
+|---|---|---|
+| `require-session.unit.test.ts` (UT-06) | The harness sends the session's CSRF token on every request | #37 enforces CSRF inside `requireSession` at step 3, so UT-06's POST cases would otherwise stop at `CSRF_INVALID` before reaching the gate they test |
+| `server/tests/helpers/session.ts` | Adds `signInFields()`: a seed-password hash and `mustChangePassword: false` | Lets the users a test creates for itself sign in through `loginAs()` |
+| Lab 2 `attachments`, `my-tickets`, `ticket-detail` | The suite's own Requesters get `signInFields()`, sign in with `loginAs()`, and their sessions are deleted before the users | REG-01. A session row blocks deleting its user (ON DELETE RESTRICT, §7.4). |
+| Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
+| Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
+
 ---
 
 ## 3. Scope per Issue
@@ -450,6 +471,15 @@ without a row in this section.
 | L2 UI-29 | The route guard shows Selection; `/` redirects; `/lab-01` is outside the shell | The guard target changes and `/` now redirects by role | UI-16, UI-18 | #38 |
 | L2 UI-28 | Requester Detail has no comment box or status control | Lab 3 adds Comments and Problem Appears Resolved there | UI-35, UI-37 (still no status control) | #44 |
 | L2 STY-09 | The status badge renders "New" | It covered one status | STY-01 (all eight) | #43 |
+
+**Removed in #37.** The implementation commit deleted these from
+`server/tests/lab-02/`, after the replacing tests were committed red:
+- **L2 API-08** (`create-ticket.api.test.ts`), both cases: no header → 428, and a header naming an unknown Requester → 428. Replaced by AUZ-01.
+- **L2 API-09** (`create-ticket.api.test.ts`), both cases: an inactive Requester's header → 403 `REQUESTER_INACTIVE`, and nothing created. Replaced by AUZ-14 and API-03.
+- **L2 API-40** (`reference-data.api.test.ts`), all three cases of the `GET /dev-requesters` block. Replaced by AUZ-04.
+
+The header-only `post()` helper and the inactive-Requester fixture in
+`create-ticket.api.test.ts` went with them. No other Lab 2 test was removed.
 
 L2 E2E-01, E2E-02, and E2E-03 are **rewritten in place**, not superseded. They
 keep their ids and files in `e2e/lab-02/requester-ticket-flow.spec.ts`:

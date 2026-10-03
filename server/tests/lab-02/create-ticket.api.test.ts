@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
+import { loginAs, type SignedIn } from "../helpers/session.js";
 
-// API-01 .. API-09 from docs/lab-02/tests.md section 2.2.
+// API-01 .. API-07 and API-41 from docs/lab-02/tests.md section 2.2.
 //
-// POST /api/v1/tickets is the first Scoped endpoint in the sprint, so it is
-// also the first route the X-Dev-Requester-Id middleware from #14 can be proved
-// against: API-08 and API-09 live here for that reason.
+// Since Lab 3 #37 these tests sign in through loginAs() instead of sending
+// X-Dev-Requester-Id (docs/lab-03/tests.md REG-01). Assertions are unchanged.
+// API-08 and API-09 tested that header and were superseded by AUZ-01, AUZ-14,
+// and API-03 (docs/lab-03/tests.md section 4.1).
 //
 // Every expected value below is a constant declared in this file. Nothing
 // asserts a count read back from prisma, because an expectation derived from
@@ -22,12 +22,12 @@ const INACTIVE_CATEGORY = "ZZ Retired Category (create-ticket fixture)";
 
 let requesterId = "";
 let otherRequesterId = "";
-let inactiveRequesterId = "";
 let categoryId = 0;
 let categoryName = "";
 let relatedSystemId = 0;
 let relatedSystemName = "";
 let inactiveCategoryId = 0;
+let requester: SignedIn;
 
 /** A body that passes every rule, so each test can spoil exactly one thing. */
 function validBody(overrides: Record<string, unknown> = {}) {
@@ -42,26 +42,21 @@ function validBody(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const post = (body: Record<string, unknown>, header: string | null = requesterId) => {
-  const req = request(app).post("/api/v1/tickets");
-  return header === null ? req.send(body) : req.set("X-Dev-Requester-Id", header).send(body);
-};
+const create = (body: Record<string, unknown>) => requester.agent.post("/api/v1/tickets").send(body);
 
 beforeAll(async () => {
   // role: REQUESTER since Lab 3 #35, when the table began holding IT Staff and
-  // Administrators too (docs/lab-03/tests.md section 4.2).
+  // Administrators too (docs/lab-03/tests.md section 4.2). mustChangePassword:
+  // false since #37, because the must-change fixture cannot use /tickets.
   const active = await prisma.user.findMany({
-    where: { isActive: true, role: "REQUESTER" },
+    where: { isActive: true, role: "REQUESTER", mustChangePassword: false },
     orderBy: { fullName: "asc" },
-    select: { id: true },
+    select: { id: true, email: true },
   });
   expect(active.length, "seed must provide at least two active Requesters").toBeGreaterThan(1);
   requesterId = active[0].id;
   otherRequesterId = active[1].id;
-
-  const inactive = await prisma.user.findFirst({ where: { isActive: false, role: "REQUESTER" } });
-  expect(inactive, "seed must provide an inactive Requester fixture").not.toBeNull();
-  inactiveRequesterId = inactive!.id;
+  requester = await loginAs(active[0].email);
 
   const category = await prisma.category.findFirst({
     where: { isActive: true },
@@ -94,7 +89,7 @@ afterAll(async () => {
 
 describe("POST /api/v1/tickets (API-01 - AC-07, AC-09)", () => {
   it("creates one Ticket and returns the generated Ticket Number", async () => {
-    const response = await post(validBody());
+    const response = await create(validBody());
 
     expect(response.status).toBe(201);
     const ticket = response.body.data;
@@ -119,7 +114,7 @@ describe("POST /api/v1/tickets (API-01 - AC-07, AC-09)", () => {
 
 describe("POST /api/v1/tickets (API-02 - AC-08)", () => {
   it("owns the Ticket to the header Requester and starts it at NEW", async () => {
-    const response = await post(validBody());
+    const response = await create(validBody());
 
     expect(response.status).toBe(201);
     expect(response.body.data.currentStatus).toBe("NEW");
@@ -135,8 +130,8 @@ describe("POST /api/v1/tickets (API-02 - AC-08)", () => {
 
 describe("POST /api/v1/tickets (API-03 - AC-10)", () => {
   it("gives two consecutive Tickets different numbers", async () => {
-    const first = await post(validBody());
-    const second = await post(validBody());
+    const first = await create(validBody());
+    const second = await create(validBody());
 
     expect(first.status).toBe(201);
     expect(second.status).toBe(201);
@@ -149,7 +144,7 @@ describe("POST /api/v1/tickets (API-04 - AC-12, AC-13)", () => {
     const { summary, ...withoutSummary } = validBody();
     void summary;
 
-    const response = await post(withoutSummary);
+    const response = await create(withoutSummary);
 
     expect(response.status).toBe(422);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -157,18 +152,18 @@ describe("POST /api/v1/tickets (API-04 - AC-12, AC-13)", () => {
   });
 
   it("rejects a 9-character summary and accepts 10", async () => {
-    const short = await post(validBody({ summary: "x".repeat(9) }));
+    const short = await create(validBody({ summary: "x".repeat(9) }));
     expect(short.status).toBe(422);
     expect(short.body.error.details.summary).toEqual(expect.any(String));
 
-    const ok = await post(validBody({ summary: MARKER + " " + "x".repeat(10) }));
+    const ok = await create(validBody({ summary: MARKER + " " + "x".repeat(10) }));
     expect(ok.status).toBe(201);
   });
 });
 
 describe("POST /api/v1/tickets (API-05 - AC-14)", () => {
   it("reports every failing field in one response", async () => {
-    const response = await post({
+    const response = await create({
       summary: "short",
       requestedPriority: "CRITICAL",
       description: "too short",
@@ -188,7 +183,7 @@ describe("POST /api/v1/tickets (API-05 - AC-14)", () => {
 
 describe("POST /api/v1/tickets (API-06 - BR-08)", () => {
   it("ignores a requesterId in the body and owns the Ticket to the header", async () => {
-    const response = await post(validBody({ requesterId: otherRequesterId }));
+    const response = await create(validBody({ requesterId: otherRequesterId }));
 
     expect(response.status).toBe(201);
     expect(response.body.data.requester.id).toBe(requesterId);
@@ -203,53 +198,17 @@ describe("POST /api/v1/tickets (API-06 - BR-08)", () => {
 
 describe("POST /api/v1/tickets (API-07 - BR-22)", () => {
   it("rejects an inactive Category", async () => {
-    const response = await post(validBody({ categoryId: inactiveCategoryId }));
+    const response = await create(validBody({ categoryId: inactiveCategoryId }));
 
     expect(response.status).toBe(422);
     expect(response.body.error.details.categoryId).toEqual(expect.any(String));
   });
 
   it("rejects a Category that does not exist", async () => {
-    const response = await post(validBody({ categoryId: 987654321 }));
+    const response = await create(validBody({ categoryId: 987654321 }));
 
     expect(response.status).toBe(422);
     expect(response.body.error.details.categoryId).toEqual(expect.any(String));
-  });
-});
-
-describe("POST /api/v1/tickets (API-08 - BR-11)", () => {
-  it("returns 428 when the Scoped request carries no X-Dev-Requester-Id", async () => {
-    const response = await post(validBody(), null);
-
-    expect(response.status).toBe(428);
-    expect(response.body.error.code).toBe("REQUESTER_NOT_SELECTED");
-    expect(response.body.error).not.toHaveProperty("details");
-  });
-
-  it("returns 428 when the header names a Requester that does not exist", async () => {
-    const response = await post(validBody(), "3f8b0c22-0000-4000-8000-000000000000");
-
-    expect(response.status).toBe(428);
-    expect(response.body.error.code).toBe("REQUESTER_NOT_SELECTED");
-  });
-});
-
-describe("POST /api/v1/tickets (API-09 - BR-13)", () => {
-  it("returns 403 when the header names an inactive Requester", async () => {
-    const response = await post(validBody(), inactiveRequesterId);
-
-    expect(response.status).toBe(403);
-    expect(response.body.error.code).toBe("REQUESTER_INACTIVE");
-  });
-
-  it("creates nothing when the Requester is refused", async () => {
-    await post(validBody(), inactiveRequesterId);
-
-    // The inactive Requester is never a ticket owner, so zero is the only
-    // correct answer here and it is stated outright rather than compared to a
-    // count taken moments earlier.
-    const owned = await prisma.ticket.count({ where: { requesterId: inactiveRequesterId } });
-    expect(owned).toBe(0);
   });
 });
 
@@ -263,7 +222,7 @@ describe("POST /api/v1/tickets (API-41 - BR-05)", () => {
 
   it("gives every concurrent creation a distinct number and leaves no gap", async () => {
     const responses = await Promise.all(
-      Array.from({ length: PARALLEL }, () => post(validBody())),
+      Array.from({ length: PARALLEL }, () => create(validBody())),
     );
 
     const failed = responses.filter((r) => r.status !== 201);

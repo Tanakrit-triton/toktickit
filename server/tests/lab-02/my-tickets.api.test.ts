@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
+import { loginAs, signInFields, type SignedIn } from "../helpers/session.js";
 
 // API-10 .. API-19 from docs/lab-02/tests.md section 2.2.
+//
+// Since Lab 3 #37 the Requester signs in through loginAs() instead of sending
+// X-Dev-Requester-Id (docs/lab-03/tests.md REG-01). Assertions are unchanged.
 //
 // This suite creates its OWN Requesters and its own Tickets, rather than
 // filtering seeded data, so every expected count is a constant declared here.
@@ -37,24 +39,25 @@ const createdAtFor = (index: number) => new Date(Date.UTC(2026, 0, 1 + index, 12
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
-const get = (query: string, header: string | null = ownerId) => {
-  const req = request(app).get(`/api/v1/tickets${query}`);
-  return header === null ? req : req.set("X-Dev-Requester-Id", header);
-};
+let owner: SignedIn;
+
+const get = (query: string) => owner.agent.get(`/api/v1/tickets${query}`);
 
 beforeAll(async () => {
-  const owner = await prisma.user.upsert({
+  const signIn = await signInFields();
+  const ownerRow = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ List Owner", email: OWNER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ List Owner", email: OWNER_EMAIL, isActive: true, ...signIn },
   });
   const other = await prisma.user.upsert({
     where: { email: OTHER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ List Other", email: OTHER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ List Other", email: OTHER_EMAIL, isActive: true, ...signIn },
   });
-  ownerId = owner.id;
+  ownerId = ownerRow.id;
   otherId = other.id;
+  owner = await loginAs(OWNER_EMAIL);
 
   const categories = await prisma.category.findMany({
     where: { isActive: true },
@@ -114,6 +117,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.ticket.deleteMany({ where: { requesterId: { in: [ownerId, otherId] } } });
+  await prisma.session.deleteMany({ where: { user: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } } });
   await prisma.user.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
   await prisma.$disconnect();
 });

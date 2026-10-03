@@ -1,18 +1,19 @@
 import type { NextFunction, Request, Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { buildError } from "../lab-02/errors.js";
+import { CSRF_INVALID, csrfMatches, isStateChanging } from "./csrf.js";
 import { readSessionToken } from "./session-cookie.js";
 import { isSessionExpired } from "./session-expiry.js";
 import { hashSessionToken } from "./sessions.js";
 
 // requireSession (api-spec.md section 1.1, BR-16, BR-19, BR-21).
 //
-// Implements steps 1, 2, and 4 of the session resolution order:
+// Implements steps 1 to 4 of the session resolution order:
 //   1  a cookie resolving to a live session       else 401 UNAUTHENTICATED
 //   2  the session's user is active               else 401 UNAUTHENTICATED
+//   3  the CSRF token matches, on a state change  else 403 CSRF_INVALID
 //   4  mustChangePassword is false, unless exempt else 403 PASSWORD_CHANGE_REQUIRED
-// Step 3 (CSRF) and step 5 (role) are added by #37, which also mounts this
-// middleware on every route family.
+// Step 5 (role) is requireRole, mounted after this on each route family.
 //
 // The store is injected so UT-06 can drive every branch with a fake clock;
 // the exported requireSession is built over Prisma.
@@ -87,6 +88,13 @@ export function createRequireSession(store: SessionStore) {
         !session.user.isActive
       ) {
         res.status(401).json(buildError("UNAUTHENTICATED", "Sign in to continue."));
+        return;
+      }
+
+      // Refused before any change is made (BR-20), and before the
+      // password-change gate, which is step 4.
+      if (isStateChanging(req) && !csrfMatches(req, session.csrfToken)) {
+        res.status(403).json(CSRF_INVALID);
         return;
       }
 
