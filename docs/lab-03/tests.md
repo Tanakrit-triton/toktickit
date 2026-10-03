@@ -124,7 +124,7 @@ The schema is dropped afterwards.
 | UT-09 | Unit | AC-39, BR-35 | Transition matrix, exhaustive | All 64 (from, to) pairs: exactly the 18 matrix rows are permitted, every other pair is refused, and none is permitted for the Requester role | `transitions.unit.test.ts` | #40 | Planned |
 | UT-10 | Unit | AC-40, AC-43, BR-36 | Status guards | The owner requirement per target status. The claimable, assignable, and IT-Priority-editable status sets match `specification.md` §5.6. | `transitions.unit.test.ts` | #40 | Planned |
 | UT-11 | Unit | AC-48, BR-47 | Comment and note body | Empty and whitespace-only rejected; 1 accepted; 2000 accepted; 2001 rejected; length measured after trimming | `comment-body.unit.test.ts` | #41 | Planned |
-| UT-12 | Unit | AC-56, AC-57, BR-63 | Admin guard order | Given counts and actor: the sole Administrator deactivating self → `LAST_ADMINISTRATOR`; with two Administrators → `CANNOT_DEACTIVATE_SELF`; self role change → `CANNOT_CHANGE_OWN_ROLE`; open tickets → `USER_HAS_OPEN_TICKETS` | `admin-guards.unit.test.ts` | #42 | Planned |
+| UT-12 | Unit | AC-56, AC-57, BR-63 | Admin guard order | Given counts and actor: the sole Administrator deactivating self → `LAST_ADMINISTRATOR`; with two Administrators → `CANNOT_DEACTIVATE_SELF`; self role change → `CANNOT_CHANGE_OWN_ROLE`; open tickets → `USER_HAS_OPEN_TICKETS` | `admin-guards.unit.test.ts` | #42 | Pass |
 
 ### 2.2 Migration, seed, and session store — `server/tests/lab-03/`
 
@@ -239,20 +239,20 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| ADM-01 | API | AC-51 | User list | Every user with the `AdminUser` fields, sorted by `fullName`. No `passwordHash`. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-02 | API | AC-51, BR-66 | Search and role filter | `q` matches part of a name and part of an email, case-insensitively. `role=IT_STAFF` returns only IT Staff. Both combine. `role=AGENT` and an unknown parameter → 400. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-03 | API | AC-52, BR-62 | Create user | 201 with `mustChangePassword` true. The new user can log in and is then gated by `PASSWORD_CHANGE_REQUIRED`. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-04 | API | AC-53, BR-61 | Duplicate email | Creating with an existing email in different case, and editing a user to another's email → 409 `EMAIL_ALREADY_EXISTS` | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-05 | API | AC-53, BR-60 | Create validation | An invalid role, a missing name, a 1-character name, an invalid email, and an 11-code-point password → one 422 naming each field | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-06 | API | AC-54 | Edit user | Changing name, email, role, and `isActive` → 200 with each change persisted. A `password` field in the body is ignored. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-07 | API | AC-55, BR-13 | New initial password | 200. `mustChangePassword` true, the target's existing session → 401, the new password logs in, and the old password fails. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-08 | API | AC-56, BR-63 | Self-protection | With a second active Administrator present: self-deactivation → 409 `CANNOT_DEACTIVATE_SELF`; self role change → 409 `CANNOT_CHANGE_OWN_ROLE`; self name change → 200 | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-09 | API | AC-57 | Last Administrator, serial | The sole active Administrator deactivating self or changing own role → 409 `LAST_ADMINISTRATOR` | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-10 | API | AC-57, BR-63 | Last Administrator, concurrent | Two Administrators each demote the other in parallel: exactly one succeeds, and at least one active Administrator remains | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-11 | API | AC-58 | Open-ticket block | Deactivating, or demoting to Requester, an IT Staff member who owns two open tickets → 409 `USER_HAS_OPEN_TICKETS`, whose message contains "2". With only CLOSED tickets → 200. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-12 | API | AC-59, BR-64 | Session revocation | Deactivating a signed-in user, and separately changing a role, makes the target's next request 401. A deactivated user's correct-password login → 403 `ACCOUNT_INACTIVE`. A name-only edit keeps the session. | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-13 | API | AC-60 | Non-Administrators refused | Requester and IT Staff on every `/admin/users` endpoint → 403 | `users-admin.api.test.ts` | #42 | Planned |
-| ADM-14 | API | AC-54 | Unknown and malformed ids | PATCH or initial-password on an unknown UUID → 404; on a malformed id → 400 | `users-admin.api.test.ts` | #42 | Planned |
+| ADM-01 | API | AC-51 | User list | Every user with the `AdminUser` fields, sorted by `fullName`. No `passwordHash`. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-02 | API | AC-51, BR-66 | Search and role filter | `q` matches part of a name and part of an email, case-insensitively. `role=IT_STAFF` returns only IT Staff. Both combine. `role=AGENT` and an unknown parameter → 400. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-03 | API | AC-52, BR-62 | Create user | 201 with `mustChangePassword` true. The new user can log in and is then gated by `PASSWORD_CHANGE_REQUIRED`. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-04 | API | AC-53, BR-61 | Duplicate email | Creating with an existing email in different case, and editing a user to another's email → 409 `EMAIL_ALREADY_EXISTS` | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-05 | API | AC-53, BR-60 | Create validation | An invalid role, a missing name, a 1-character name, an invalid email, and an 11-code-point password → one 422 naming each field | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-06 | API | AC-54 | Edit user | Changing name, email, role, and `isActive` → 200 with each change persisted. A `password` field in the body is ignored. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-07 | API | AC-55, BR-13 | New initial password | 200. `mustChangePassword` true, the target's existing session → 401, the new password logs in, and the old password fails. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-08 | API | AC-56, BR-63 | Self-protection | With a second active Administrator present: self-deactivation → 409 `CANNOT_DEACTIVATE_SELF`; self role change → 409 `CANNOT_CHANGE_OWN_ROLE`; self name change → 200 | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-09 | API | AC-57 | Last Administrator, serial | The sole active Administrator deactivating self or changing own role → 409 `LAST_ADMINISTRATOR` | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-10 | API | AC-57, BR-63 | Last Administrator, concurrent | Two Administrators each demote the other in parallel: exactly one succeeds, and at least one active Administrator remains | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-11 | API | AC-58 | Open-ticket block | Deactivating, or demoting to Requester, an IT Staff member who owns two open tickets → 409 `USER_HAS_OPEN_TICKETS`, whose message contains "2". With only CLOSED tickets → 200. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-12 | API | AC-59, BR-64 | Session revocation | Deactivating a signed-in user, and separately changing a role, makes the target's next request 401. A deactivated user's correct-password login → 403 `ACCOUNT_INACTIVE`. A name-only edit keeps the session. | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-13 | API | AC-60 | Non-Administrators refused | Requester and IT Staff on every `/admin/users` endpoint → 403 | `users-admin.api.test.ts` | #42 | Pass |
+| ADM-14 | API | AC-54 | Unknown and malformed ids | PATCH or initial-password on an unknown UUID → 404; on a malformed id → 400 | `users-admin.api.test.ts` | #42 | Pass |
 
 ### 2.9 Regression — existing suites
 
