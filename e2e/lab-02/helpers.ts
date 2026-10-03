@@ -76,15 +76,26 @@ export async function submitLogin(page: Page, name: string): Promise<void> {
   await page.getByTestId("btn-sign-in").click();
 }
 
-/** Signs in as a seeded Requester through the Login screen, landing on `path`. */
+const LANDED =
+  '[data-testid="my-tickets-screen"], [data-testid="create-ticket-screen"], [data-testid="ticket-detail-screen"]';
+
+/**
+ * Signs in as a seeded Requester through the Login screen, landing on `path`.
+ *
+ * A page that is already signed in is sent straight on to `path` by /login,
+ * so the form is filled only when it is actually showing.
+ */
 export async function signInAs(page: Page, name: string, path = "/tickets"): Promise<void> {
   await page.goto(`${BASE}/login?next=${encodeURIComponent(path)}`);
-  await page.getByTestId("login-screen").waitFor({ state: "visible", timeout: 25000 });
-  await submitLogin(page, name);
   await page
-    .locator('[data-testid="my-tickets-screen"], [data-testid="create-ticket-screen"], [data-testid="ticket-detail-screen"]')
+    .locator(`[data-testid="login-screen"], ${LANDED}`)
     .first()
     .waitFor({ state: "visible", timeout: 25000 });
+
+  if (await page.getByTestId("login-screen").isVisible().catch(() => false)) {
+    await submitLogin(page, name);
+  }
+  await page.locator(LANDED).first().waitFor({ state: "visible", timeout: 25000 });
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(300);
 }

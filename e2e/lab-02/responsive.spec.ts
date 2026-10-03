@@ -146,21 +146,8 @@ test.describe("RSP-06 (ui-spec 7) - touch targets", () => {
 });
 
 test.describe("RSP-07 - the remaining screenshot paths", () => {
-  test("requester selection states", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop", "ui-spec 10 lists these at desktop only");
-
-    await page.goto(`${BASE}/tickets`);
-    await painted(page, page.getByTestId("field-dev-requester"), "requester dropdown");
-    // A closed native select shows only its placeholder, so the options are
-    // expanded for the capture. They are the application's own option
-    // elements; only the control's presentation changes.
-    await page.evaluate(() => {
-      const sel = document.querySelector("[data-testid='field-dev-requester']") as HTMLSelectElement;
-      sel.setAttribute("size", String(sel.options.length));
-    });
-    await page.waitForTimeout(300);
-    await capture(page, "requester-selection", "loaded", testInfo.project.name);
-  });
+  // The "requester selection states" case was superseded in Lab 3 #38: the
+  // selector is removed (docs/lab-03/tests.md section 4.1).
 
   test("create ticket validation, success and invalid attachment", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "ui-spec 10 lists these at desktop only");

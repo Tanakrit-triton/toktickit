@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import * as api from "../api.js";
 import type { TicketDetail } from "../api.js";
-import { useRequester } from "../RequesterContext.js";
+import { useAuth } from "../../lab-03/AuthContext.js";
 import { AttachmentSection } from "../components/AttachmentSection.js";
 
 // Requester Ticket Detail -- ui-spec.md section 5.5.
@@ -36,7 +36,8 @@ function Field({ label, value }: { label: string; value: string }) {
 
 export function RequesterTicketDetail() {
   const { ticketId } = useParams();
-  const { requester } = useRequester();
+  // The signed-in Requester (Lab 3 #38); the route guard admits no other role.
+  const { user: requester } = useAuth();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);

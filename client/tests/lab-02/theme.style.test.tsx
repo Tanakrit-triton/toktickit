@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AuthProvider } from "../../src/lab-03/AuthContext.js";
@@ -221,7 +221,11 @@ describe("STY-04 (ui-spec 2) - disabled versus read-only", () => {
     expect(css).toMatch(/\.zg-field:disabled/);
     expect(css).toMatch(/--zg-disabled-bg/);
 
-    release({} as api.Ticket);
+    // Settled inside act(): the screen's post-submit state updates then land
+    // within the test instead of after it.
+    await act(async () => {
+      release({} as api.Ticket);
+    });
   });
 });
 

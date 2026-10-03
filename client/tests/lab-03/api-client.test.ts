@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from "vitest";
 import { screen } from "@testing-library/react";
 import { apiFetch, setCsrfToken } from "../../src/lab-03/api-client.js";
 import * as api from "../../src/lab-02/api.js";
@@ -13,13 +13,13 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 /** The URL and headers of the n-th fetch call. */
-function call(fetchSpy: ReturnType<typeof vi.spyOn>, n = 0) {
+function call(fetchSpy: MockInstance<typeof fetch>, n = 0) {
   const [input, init] = fetchSpy.mock.calls[n] as [RequestInfo | URL, RequestInit | undefined];
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
   return { url, headers: new Headers(init?.headers), method: (init?.method ?? "GET").toUpperCase() };
 }
 
-let fetchSpy: ReturnType<typeof vi.spyOn>;
+let fetchSpy: MockInstance<typeof fetch>;
 
 beforeEach(() => {
   vi.restoreAllMocks();
