@@ -30,12 +30,20 @@ type TicketWithRelations = {
   description: string;
   requestedPriority: string;
   currentStatus: string;
+  requesterIndicatedResolvedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   requester: { id: string; fullName: string };
+  owner: { id: string; fullName: string } | null;
   category: { id: number; name: string };
   relatedSystem: { id: number; name: string };
 };
+
+/** The Lab 3 additions to the Requester's ticket shape (Lab 3 api-spec section 4). */
+const LAB3_SELECT = {
+  requesterIndicatedResolvedAt: true,
+  owner: { select: { id: true, fullName: true } },
+} as const;
 
 /**
  * The 201 body from api-spec.md 3.1.
@@ -57,6 +65,10 @@ function toTicketResponse(ticket: TicketWithRelations) {
     requestedPriority: ticket.requestedPriority,
     description: ticket.description,
     currentStatus: ticket.currentStatus,
+    // Lab 3 api-spec section 4. itPriority is deliberately absent: the
+    // Requester sees their own Requested Priority.
+    owner: ticket.owner,
+    requesterIndicatedResolvedAt: ticket.requesterIndicatedResolvedAt?.toISOString() ?? null,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
   };
@@ -143,17 +155,21 @@ ticketsRouter.post("/tickets", ...requesterOnly, async (req: Request, res: Respo
           summary: true,
           description: true,
           requestedPriority: true,
+          itPriority: true,
           currentStatus: true,
           createdAt: true,
           updatedAt: true,
           requester: { select: { id: true, fullName: true } },
           category: { select: { id: true, name: true } },
           relatedSystem: { select: { id: true, name: true } },
+          ...LAB3_SELECT,
         },
       });
     });
 
-    res.status(201).json({ data: toTicketResponse(created as TicketWithRelations) });
+    // The create response is the one Requester shape with itPriority, because
+    // it echoes the stored row (Lab 3 api-spec section 4).
+    res.status(201).json({ data: { ...toTicketResponse(created), itPriority: created.itPriority } });
   } catch {
     res.status(500).json(buildError("INTERNAL_ERROR", "The ticket could not be created. Try again."));
   }
@@ -328,6 +344,7 @@ ticketsRouter.get("/tickets/:ticketId", ...requesterOnly, async (req: Request, r
         requester: { select: { id: true, fullName: true } },
         category: { select: { id: true, name: true } },
         relatedSystem: { select: { id: true, name: true } },
+        ...LAB3_SELECT,
         attachments: {
           orderBy: { uploadedAt: "asc" },
           select: {

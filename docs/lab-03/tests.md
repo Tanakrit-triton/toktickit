@@ -123,7 +123,7 @@ The schema is dropped afterwards.
 | UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Planned |
 | UT-09 | Unit | AC-39, BR-35 | Transition matrix, exhaustive | All 64 (from, to) pairs: exactly the 18 matrix rows are permitted, every other pair is refused, and none is permitted for the Requester role | `transitions.unit.test.ts` | #40 | Pass |
 | UT-10 | Unit | AC-40, AC-43, BR-36 | Status guards | The owner requirement per target status. The claimable, assignable, and IT-Priority-editable status sets match `specification.md` §5.6. | `transitions.unit.test.ts` | #40 | Pass |
-| UT-11 | Unit | AC-48, BR-47 | Comment and note body | Empty and whitespace-only rejected; 1 accepted; 2000 accepted; 2001 rejected; length measured after trimming | `comment-body.unit.test.ts` | #41 | Planned |
+| UT-11 | Unit | AC-48, BR-47 | Comment and note body | Empty and whitespace-only rejected; 1 accepted; 2000 accepted; 2001 rejected; length measured after trimming | `comment-body.unit.test.ts` | #41 | Pass |
 | UT-12 | Unit | AC-56, AC-57, BR-63 | Admin guard order | Given counts and actor: the sole Administrator deactivating self → `LAST_ADMINISTRATOR`; with two Administrators → `CANNOT_DEACTIVATE_SELF`; self role change → `CANNOT_CHANGE_OWN_ROLE`; open tickets → `USER_HAS_OPEN_TICKETS` | `admin-guards.unit.test.ts` | #42 | Planned |
 
 ### 2.2 Migration, seed, and session store — `server/tests/lab-03/`
@@ -222,18 +222,18 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| CMN-01 | API | AC-46, BR-48 | Staff comment visible to Requester | IT Staff posts → 201. The Requester's list contains it with the staff member's name and role and a server `createdAt`. A body `authorId` or `createdAt` is ignored. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-02 | API | AC-25 | Requester comment | The Requester posts on their own ticket → 201. IT Staff can read it. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-03 | API | AC-22 | Cross-Requester comments | Requester B listing or posting on A's ticket, and on a random UUID, gets identical 404 bodies | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-04 | API | AC-47 | Notes for staff | IT Staff posts a note → 201. Both IT Staff and the Administrator list it, oldest first. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-05 | API | AC-04, BR-23 | Notes refused to Requester | A Requester's GET and POST on notes, for their own ticket, another's, and a random UUID, get identical 403 bodies with no note content | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-06 | API | AC-47, BR-53 | No note leakage | After notes exist, no Requester-facing response contains the note body, a note id, or a note count. This covers ticket detail, comments, and My Tickets. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-07 | API | AC-48 | Body bounds over HTTP | Empty, whitespace-only, and 2001 characters → 422 `details.body`. 1 and 2000 → 201. Checked for comments and notes. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-08 | API | AC-43, BR-52 | CLOSED refuses, CANCELLED allows | Comment and note on CLOSED → 409 `TICKET_STATE_CONFLICT`. On CANCELLED → 201. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-09 | API | AC-26, AC-45, BR-43 | Appears resolved | The Requester on their own OPEN ticket → 200. `requesterIndicatedResolvedAt` is set, one `RESOLUTION_INDICATED` event exists, and the status is still OPEN. IT Staff see the indication on the staff detail. The queue item is covered elsewhere: see *CMN-09: where IT Staff see the indication* below. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-10 | API | AC-26, BR-44 | Appears-resolved refusals | In NEW, RESOLVED, CLOSED, and CANCELLED → 409 `TICKET_STATE_CONFLICT`. A second time → 409 `RESOLUTION_ALREADY_INDICATED`. On another's ticket → 404. As IT Staff → 403. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-11 | API | AC-49, BR-49 | Body stored verbatim | `<script>alert(1)</script>\nline two` is stored and returned exactly, trimmed only, without escaping or stripping | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-12 | API | AC-26 | Requester detail additions | `GET /tickets/{id}` includes `owner` and `requesterIndicatedResolvedAt`, and does not include `itPriority` | `comments-notes.api.test.ts` | #41 | Planned |
+| CMN-01 | API | AC-46, BR-48 | Staff comment visible to Requester | IT Staff posts → 201. The Requester's list contains it with the staff member's name and role and a server `createdAt`. A body `authorId` or `createdAt` is ignored. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-02 | API | AC-25 | Requester comment | The Requester posts on their own ticket → 201. IT Staff can read it. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-03 | API | AC-22 | Cross-Requester comments | Requester B listing or posting on A's ticket, and on a random UUID, gets identical 404 bodies | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-04 | API | AC-47 | Notes for staff | IT Staff posts a note → 201. Both IT Staff and the Administrator list it, oldest first. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-05 | API | AC-04, BR-23 | Notes refused to Requester | A Requester's GET and POST on notes, for their own ticket, another's, and a random UUID, get identical 403 bodies with no note content | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-06 | API | AC-47, BR-53 | No note leakage | After notes exist, no Requester-facing response contains the note body, a note id, or a note count. This covers ticket detail, comments, and My Tickets. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-07 | API | AC-48 | Body bounds over HTTP | Empty, whitespace-only, and 2001 characters → 422 `details.body`. 1 and 2000 → 201. Checked for comments and notes. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-08 | API | AC-43, BR-52 | CLOSED refuses, CANCELLED allows | Comment and note on CLOSED → 409 `TICKET_STATE_CONFLICT`. On CANCELLED → 201. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-09 | API | AC-26, AC-45, BR-43 | Appears resolved | The Requester on their own OPEN ticket → 200. `requesterIndicatedResolvedAt` is set, one `RESOLUTION_INDICATED` event exists, and the status is still OPEN. IT Staff see the indication on the staff detail. The queue item is covered elsewhere: see *CMN-09: where IT Staff see the indication* below. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-10 | API | AC-26, BR-44 | Appears-resolved refusals | In NEW, RESOLVED, CLOSED, and CANCELLED → 409 `TICKET_STATE_CONFLICT`. A second time → 409 `RESOLUTION_ALREADY_INDICATED`. On another's ticket → 404. As IT Staff → 403. | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-11 | API | AC-49, BR-49 | Body stored verbatim | `<script>alert(1)</script>\nline two` is stored and returned exactly, trimmed only, without escaping or stripping | `comments-notes.api.test.ts` | #41 | Pass |
+| CMN-12 | API | AC-26 | Requester detail additions | `GET /tickets/{id}` includes `owner` and `requesterIndicatedResolvedAt`, and does not include `itPriority` | `comments-notes.api.test.ts` | #41 | Pass |
 
 ### 2.8 API — user administration — `server/tests/lab-03/users-admin.api.test.ts`
 
