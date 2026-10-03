@@ -387,6 +387,27 @@ are the first to sign in.
 | API-12 | Afterwards, the rotated session is the user's only live session | BR-12 revokes every other session and the current one |
 | API-13 | Failure bodies (401, 422) and logout are checked as well as successes | BR-68 applies to every auth response |
 
+#37 added the assertions below inside its planned tests. All were committed
+with their tests and were red first.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| AUZ-04 | The 404 body has code `NOT_FOUND` | api-spec §3 "answers `404 NOT_FOUND`". Any unknown `/api/v1` path gets the same code, with a message that differs from the ownership refusal so the two never match byte for byte. |
+| AUZ-05 | A non-existent path under `/staff` and under `/admin` gets the same 403 | api-spec §5 and §7: "including paths that do not exist" (BR-23) |
+| AUZ-07 | `GET /tickets/{id}` is refused too | api-spec §10 lists it on the same row as `POST` and `GET /tickets` |
+| AUZ-10 | The must-change fixture's `POST /tickets` with no CSRF token gets `CSRF_INVALID`, not `PASSWORD_CHANGE_REQUIRED` | api-spec §1.1 checks step 3 before step 4 |
+| AUZ-14 | `/categories` and `/auth/me` are refused as well as `/tickets` | BR-19 applies to every protected endpoint, including the password-gate exemptions |
+
+**Fixture changes made in #37.** No assertion changed.
+
+| File | Change | Why |
+|---|---|---|
+| `require-session.unit.test.ts` (UT-06) | The harness sends the session's CSRF token on every request | #37 enforces CSRF inside `requireSession` at step 3, so UT-06's POST cases would otherwise stop at `CSRF_INVALID` before reaching the gate they test |
+| `server/tests/helpers/session.ts` | Adds `signInFields()`: a seed-password hash and `mustChangePassword: false` | Lets the users a test creates for itself sign in through `loginAs()` |
+| Lab 2 `attachments`, `my-tickets`, `ticket-detail` | The suite's own Requesters get `signInFields()`, sign in with `loginAs()`, and their sessions are deleted before the users | REG-01. A session row blocks deleting its user (ON DELETE RESTRICT, §7.4). |
+| Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
+| Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
+
 ---
 
 ## 3. Scope per Issue

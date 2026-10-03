@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
+import { loginAs, type SignedIn } from "../helpers/session.js";
 
 // API-38, API-39, API-40 from docs/lab-02/tests.md section 2.2.
 //
@@ -9,13 +10,20 @@ import { getPrisma } from "../../src/prisma.js";
 // creates one inactive record of each, asserts it never surfaces, and removes
 // it again. The inactive Requester is already a seeded fixture (AC-01, BR-13)
 // and is not created here.
+//
+// Since Lab 3 #37 the reference data needs a session, so API-38 and API-39
+// sign in through loginAs() (docs/lab-03/tests.md REG-01). Assertions are
+// unchanged.
 
 const prisma = getPrisma();
 
 const INACTIVE_CATEGORY = "ZZ Retired Category (test fixture)";
 const INACTIVE_SYSTEM = "ZZ Decommissioned System (test fixture)";
 
+let requester: SignedIn;
+
 beforeAll(async () => {
+  requester = await loginAs("napat.cha@kmutt.ac.th");
   await prisma.category.upsert({
     where: { name: INACTIVE_CATEGORY },
     update: { isActive: false },
@@ -52,7 +60,7 @@ function expectNonEmpty(data: unknown, what: string): asserts data is unknown[] 
 
 describe("GET /api/v1/categories (API-38 - AC-11)", () => {
   it("returns active Categories only, inactive absent, sorted by name", async () => {
-    const response = await request(app).get("/api/v1/categories");
+    const response = await requester.agent.get("/api/v1/categories");
 
     expect(response.status).toBe(200);
     expect(Object.keys(response.body)).toEqual(["data"]);
@@ -65,7 +73,7 @@ describe("GET /api/v1/categories (API-38 - AC-11)", () => {
   });
 
   it("exposes only id and name on each Category", async () => {
-    const response = await request(app).get("/api/v1/categories");
+    const response = await requester.agent.get("/api/v1/categories");
 
     expectNonEmpty(response.body.data, "categories");
 
@@ -77,7 +85,7 @@ describe("GET /api/v1/categories (API-38 - AC-11)", () => {
 
 describe("GET /api/v1/related-systems (API-39 - AC-11)", () => {
   it("returns active Related Systems only, inactive absent, sorted by name", async () => {
-    const response = await request(app).get("/api/v1/related-systems");
+    const response = await requester.agent.get("/api/v1/related-systems");
 
     expect(response.status).toBe(200);
     expect(Object.keys(response.body)).toEqual(["data"]);

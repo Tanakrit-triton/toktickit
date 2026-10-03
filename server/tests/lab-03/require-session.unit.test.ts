@@ -60,7 +60,10 @@ async function run(
   handler: ReturnType<typeof createRequireSession>,
   { method = "GET", url = "/api/v1/categories", cookie }: { method?: string; url?: string; cookie?: string } = {},
 ): Promise<Outcome> {
-  const req = { method, originalUrl: url, headers: cookie === undefined ? {} : { cookie } } as unknown as Request;
+  // Every request carries the session's CSRF token, so these cases exercise
+  // steps 1, 2, and 4 and never trip the CSRF check (step 3) that #37 adds.
+  const headers = { "x-csrf-token": "csrf-token", ...(cookie === undefined ? {} : { cookie }) };
+  const req = { method, originalUrl: url, headers } as unknown as Request;
   const outcome: Outcome = { nextCalled: false, req };
   const res = {
     status(code: number) {
