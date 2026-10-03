@@ -230,7 +230,7 @@ The schema is dropped afterwards.
 | CMN-06 | API | AC-47, BR-53 | No note leakage | After notes exist, no Requester-facing response contains the note body, a note id, or a note count. This covers ticket detail, comments, and My Tickets. | `comments-notes.api.test.ts` | #41 | Planned |
 | CMN-07 | API | AC-48 | Body bounds over HTTP | Empty, whitespace-only, and 2001 characters → 422 `details.body`. 1 and 2000 → 201. Checked for comments and notes. | `comments-notes.api.test.ts` | #41 | Planned |
 | CMN-08 | API | AC-43, BR-52 | CLOSED refuses, CANCELLED allows | Comment and note on CLOSED → 409 `TICKET_STATE_CONFLICT`. On CANCELLED → 201. | `comments-notes.api.test.ts` | #41 | Planned |
-| CMN-09 | API | AC-26, AC-45, BR-43 | Appears resolved | The Requester on their own OPEN ticket → 200. `requesterIndicatedResolvedAt` is set, one `RESOLUTION_INDICATED` event exists, and the status is still OPEN. The queue item shows the indication. | `comments-notes.api.test.ts` | #41 | Planned |
+| CMN-09 | API | AC-26, AC-45, BR-43 | Appears resolved | The Requester on their own OPEN ticket → 200. `requesterIndicatedResolvedAt` is set, one `RESOLUTION_INDICATED` event exists, and the status is still OPEN. IT Staff see the indication on the staff detail. The queue item is covered elsewhere: see *CMN-09: where IT Staff see the indication* below. | `comments-notes.api.test.ts` | #41 | Planned |
 | CMN-10 | API | AC-26, BR-44 | Appears-resolved refusals | In NEW, RESOLVED, CLOSED, and CANCELLED → 409 `TICKET_STATE_CONFLICT`. A second time → 409 `RESOLUTION_ALREADY_INDICATED`. On another's ticket → 404. As IT Staff → 403. | `comments-notes.api.test.ts` | #41 | Planned |
 | CMN-11 | API | AC-49, BR-49 | Body stored verbatim | `<script>alert(1)</script>\nline two` is stored and returned exactly, trimmed only, without escaping or stripping | `comments-notes.api.test.ts` | #41 | Planned |
 | CMN-12 | API | AC-26 | Requester detail additions | `GET /tickets/{id}` includes `owner` and `requesterIndicatedResolvedAt`, and does not include `itPriority` | `comments-notes.api.test.ts` | #41 | Planned |
@@ -439,6 +439,33 @@ and already passed. They are kept, and no code was changed to make them red.
 **OPS-07** was red, but only because `GET /staff/tickets/{id}`, which it reads
 through, did not exist yet (404). The behaviour it observes, `itPriority` set
 equal to `requestedPriority` on create, is #35's code and was not changed by #40.
+
+#41 added the assertions below inside its planned tests. All were committed
+with their tests and were red first. No existing test needed a fixture change.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UT-11 | `BODY_MAX` is 2000. Tabs and line breaks alone are whitespace-only. Only the ends are trimmed, so inner line breaks and markup are kept. A non-string body is rejected. | BR-47 measured after trimming; BR-49 plain text; api-spec §1.5 |
+| CMN-01 | The 201 body is exactly the `CommentOrNote` shape, with `role` on the author, and `createdAt` within the request window. The stored row's author is the caller. | api-spec §1.6; BR-48 |
+| CMN-02 | The Administrator and the Requester also read the comment. Comments list oldest first. | api-spec §6.1 access table; BR-51 |
+| CMN-03 | Each 404 is byte-identical to `GET /tickets/{random uuid}`, and the ticket's own Requester gets 200 on the same list. A malformed id → 400. IT Staff on an unknown ticket get the staff-detail 404 body. | AC-22: "identical to a ticket that does not exist", which the app's unknown-path 404 is not (AUZ-04 note); api-spec §1.5 |
+| CMN-04 | The Administrator also posts, and a body `authorId` or `createdAt` is ignored. Notes and comments are stored in their own tables, and neither list shows the other. An unknown ticket → 404; a malformed id → 400. | BR-48; BR-50; api-spec §6.3 |
+| CMN-05 | A malformed id also gets the identical 403, and no note is created | api-spec §1.1: step 5 runs before path validation in step 6 |
+| CMN-06 | Each Requester response is checked as a real 200 containing the ticket or comment, and no key anywhere in the body matches `note` | Proves the absence is not an error response, and covers a note count under any key name (BR-53) |
+| CMN-07 | A missing body and a number body → 422. The `details.body` messages are exactly "Comment must be 1–2000 characters." and "Note must be 1–2000 characters." | api-spec §6.2, §6.4 |
+| CMN-08 | The Requester and IT Staff are both refused on CLOSED. Existing comments and notes can still be listed on a CLOSED ticket. | BR-52 refuses posting only |
+| CMN-09 | Accepted in each of OPEN, IN_PROGRESS, WAITING_FOR_REQUESTER, and REOPENED, with the status unchanged. The event has the Requester as actor and payload `{}`. The response is exactly `{ requesterIndicatedResolvedAt }`, equal to the stored value. | BR-43; BR-55; api-spec §6.5 |
+| CMN-10 | A RESOLVED ticket that already has an indication → `TICKET_STATE_CONFLICT`. The foreign 404 equals `GET /tickets/{random uuid}`; a malformed id → 400. The Administrator → 403, and IT Staff on a random UUID get the same 403. Every refusal leaves the row and events unchanged. | api-spec §6.5 rule order; AC-22; BR-23 |
+| CMN-11 | The same check for notes, and the stored row as well as the response | AC-49 applies to comments and notes |
+| CMN-12 | An unassigned ticket returns `owner: null` and `requesterIndicatedResolvedAt: null`. **The `POST /tickets` 201 adds `itPriority` equal to `requestedPriority`, `owner: null`, and `requesterIndicatedResolvedAt: null`.** | api-spec §4. The create-response addition was found untested during #40. |
+
+**CMN-09: where IT Staff see the indication.** CMN-09 checks it through
+`GET /staff/tickets/{id}` (#40, api-spec §5.2), not the queue. The queue is #39
+(`GET /staff/tickets`), and #41 depends only on #40 (Section 3), so the queue
+endpoint is not on #41's branch. The queue part of AC-26 is covered by:
+- **QUE-01** (#39): the queue item carries `requesterIndicatedResolvedAt`. **QUE-01's own fixtures all have it null**, so QUE-01 checks the key and the null value only. It never checks a non-null value in the queue.
+- **UI-26** (#43): the queue row renders the indicator, with the API mocked.
+- **E2E-03** (#46): staff see the indicator after the Requester indicates "appears resolved", with real data. **E2E-03 is the only test of a non-null value in the queue**, so #46 must assert the indicator on the queue row, not only on Staff Detail.
 
 ---
 
