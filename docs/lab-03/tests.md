@@ -408,6 +408,38 @@ with their tests and were red first.
 | Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
 | Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
 
+#40 added the assertions below inside its planned tests. All were committed
+with their tests and were red first, except where the next table says otherwise.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| OPS-01 | The whole body equals the api-spec §5.2 shape, including the Requester's email, with no `storedFilename`. `availableTransitions` is `[WAITING_FOR_REQUESTER, RESOLVED, CANCELLED]` for an owned IN_PROGRESS ticket and `[CANCELLED]` for an unowned NEW or REOPENED ticket. | api-spec §5.2: computed from the matrix (BR-35) and the owner rule (BR-36). NEW → OPEN is never offered, because only claim or assign performs it (BR-38). |
+| OPS-03 | The race runs five times, and the losing body is `TICKET_ALREADY_CLAIMED` | A single run could pass by luck |
+| OPS-04 | Claiming a RESOLVED or CANCELLED ticket → `TICKET_STATE_CONFLICT`. An unknown id → 404; a malformed id → 400. | api-spec §5.4 lists RESOLVED, CLOSED, and CANCELLED |
+| OPS-05 | A malformed or missing `ownerId` → 422 with the api-spec message | api-spec §5.5 |
+| OPS-06 | Reassigning an IN_PROGRESS ticket keeps IN_PROGRESS. The no-op leaves the row, `updatedAt` included, unchanged. | BR-31; BR-30 "changes nothing" |
+| OPS-08 | `urgent`, `CRITICAL`, a missing value, and a number → 422 `details.itPriority` | api-spec §5.6 |
+| OPS-09 | Every row sends a padded reason. It is stored trimmed for CANCELLED and REOPENED, and absent from the payload otherwise. | api-spec §5.7: "for any other target, `reason` is ignored" |
+| OPS-10 | The message is "This ticket cannot move from New to Resolved." RESOLVED → CANCELLED with no reason is still 409, not 422. An unknown or missing `status` → 422 `details.status`. | api-spec §5.7 messages and order of evaluation |
+| OPS-11 | The `TICKET_OWNER_REQUIRED` message names In Progress. Claiming the REOPENED ticket leaves it REOPENED. | api-spec §5.7 messages; BR-31 moves only NEW |
+| OPS-12 | A reason of 4 characters padded with spaces, 501 characters, or a number → 422. 500 characters → 200. | BR-37: 5–500 characters after trimming |
+| OPS-13 | An owner who is still active but is now a Requester is cleared the same way | BR-40: "no longer an active IT Staff or Administrator user" |
+| OPS-17 | Payload keys are exactly the BR-55 set per event type. Searched for: the seed password, every hash, the raw session token, every session id and CSRF token of the users involved. | BR-55, BR-56 |
+| OPS-18 | Each item is exactly `{ id, fullName, role }` | api-spec §5.3 |
+
+**Green before the #40 implementation.** These were run with the tests commit
+and already passed. They are kept, and no code was changed to make them red.
+
+| Test | Why it was already green |
+|---|---|
+| OPS-16 | The `/staff` route-family guard from #37 (AUZ-05) refuses a Requester on every path, before any lookup. OPS-16 stays as #40's own role-negative test for its endpoints (Section 1, Lab 3 rules). |
+| OPS-18, Requester case | The same #37 guard |
+| OPS-09, "has 17 status-endpoint rows" | A check on the test's own table, not on behaviour |
+
+**OPS-07** was red, but only because `GET /staff/tickets/{id}`, which it reads
+through, did not exist yet (404). The behaviour it observes, `itPriority` set
+equal to `requestedPriority` on create, is #35's code and was not changed by #40.
+
 ---
 
 ## 3. Scope per Issue
