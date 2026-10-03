@@ -116,9 +116,9 @@ The schema is dropped afterwards.
 | UT-01 | Unit | BR-10 | Argon2id hashing | The hash starts with `$argon2id$`, two hashes of one password differ, verify accepts the right password and rejects a wrong one | `password-hash.unit.test.ts` | #35 | Pass |
 | UT-02 | Unit | BR-06 | Email normalisation | Trimmed and lowercased. Invalid syntax and 255 characters are rejected; 254 is accepted. | `email.unit.test.ts` | #35 | Pass |
 | UT-03 | Unit | AC-09, BR-16 | Session expiry | With a fake clock: idle 29:59 valid, 30:00 expired; an active session expires at 8 h absolute | `session-expiry.unit.test.ts` | #35 | Pass |
-| UT-04 | Unit | AC-10, BR-11 | Password policy | 11 code points rejected, 12 accepted, 128 accepted, 129 rejected. An emoji counts as one code point. Leading and trailing spaces are kept, not trimmed. Equal to current is rejected; a mismatched confirmation is rejected. | `password-policy.unit.test.ts` | #36 | Planned |
-| UT-05 | Unit | AC-07, BR-09 | Login throttle | Five failures allowed, the sixth blocked for the same address and email. A different email from the same address is not blocked. A success clears the counter. The fake-clock window expires at 15 min. `resetLoginThrottle()` clears all state. | `login-throttle.unit.test.ts` | #36 | Planned |
-| UT-06 | Unit | AC-02, AC-09, BR-21 | Session middleware gate | Missing, expired, or revoked session → 401. A `mustChangePassword` session → 403 `PASSWORD_CHANGE_REQUIRED`, except on the three exempt routes. | `require-session.unit.test.ts` | #36 | Planned |
+| UT-04 | Unit | AC-10, BR-11 | Password policy | 11 code points rejected, 12 accepted, 128 accepted, 129 rejected. An emoji counts as one code point. Leading and trailing spaces are kept, not trimmed. Equal to current is rejected; a mismatched confirmation is rejected. | `password-policy.unit.test.ts` | #36 | Pass |
+| UT-05 | Unit | AC-07, BR-09 | Login throttle | Five failures allowed, the sixth blocked for the same address and email. A different email from the same address is not blocked. A success clears the counter. The fake-clock window expires at 15 min. `resetLoginThrottle()` clears all state. | `login-throttle.unit.test.ts` | #36 | Pass |
+| UT-06 | Unit | AC-02, AC-09, BR-21 | Session middleware gate | Missing, expired, or revoked session → 401. A `mustChangePassword` session → 403 `PASSWORD_CHANGE_REQUIRED`, except on the three exempt routes. | `require-session.unit.test.ts` | #36 | Pass |
 | UT-07 | Unit | AC-32 | Queue query parser | Page size only 10/20/50, default 20. An unknown parameter, a bad `owner`, a bad `status`, and `q` over 150 characters are each rejected. | `queue-query.unit.test.ts` | #39 | Planned |
 | UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Planned |
 | UT-09 | Unit | AC-39, BR-35 | Transition matrix, exhaustive | All 64 (from, to) pairs: exactly the 18 matrix rows are permitted, every other pair is refused, and none is permitted for the Requester role | `transitions.unit.test.ts` | #40 | Planned |
@@ -145,19 +145,19 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| API-01 | API | AC-01 | Valid login | 200. `Set-Cookie toktickit_sid` with HttpOnly, SameSite=Lax, and no Secure in test. The body has the user, role, and `csrfToken`. | `auth.api.test.ts` | #36 | Planned |
-| API-02 | API | AC-05, BR-07 | Indistinguishable failures | Wrong password and unknown email return byte-identical 401 `INVALID_CREDENTIALS` bodies | `auth.api.test.ts` | #36 | Planned |
-| API-03 | API | AC-06, BR-08 | Inactive account | Correct password → 403 `ACCOUNT_INACTIVE`. Wrong password → the generic 401 body. | `auth.api.test.ts` | #36 | Planned |
-| API-04 | API | AC-13, BR-14 | Null password hash | A user with null `passwordHash` → the generic 401 body | `auth.api.test.ts` | #36 | Planned |
-| API-05 | API | AC-07, BR-09 | Throttling over HTTP | Five wrong passwords, then the correct one → 429 `TOO_MANY_ATTEMPTS` with `Retry-After`. After `resetLoginThrottle()`, the correct password → 200. | `auth.api.test.ts` | #36 | Planned |
-| API-06 | API | AC-01, BR-17 | Login rotation | A login sent with an existing session cookie revokes that session and issues a new one | `auth.api.test.ts` | #36 | Planned |
-| API-07 | API | AC-01, BR-06 | Case-insensitive email | Logging in with ` NAPAT.CHA@KMUTT.AC.TH ` succeeds | `auth.api.test.ts` | #36 | Planned |
-| API-08 | API | AC-01 | Current user | `GET /auth/me` with a session → user and `csrfToken`. Without one → 401 `UNAUTHENTICATED`. | `auth.api.test.ts` | #36 | Planned |
-| API-09 | API | AC-08, BR-18 | Logout | 204 and the cookie is cleared. The old cookie → 401. Logout without a session → 204. | `auth.api.test.ts` | #36 | Planned |
-| API-10 | API | AC-02, AC-10, BR-12 | Password change success | The must-change fixture changes its password: `mustChangePassword` becomes false, the new password logs in, the old one fails | `auth.api.test.ts` | #36 | Planned |
-| API-11 | API | AC-10 | Password change failures | A wrong current password, 11 code points, equal to current, and a mismatch each → 422 with the field named in `details`. All failures are reported together. | `auth.api.test.ts` | #36 | Planned |
-| API-12 | API | AC-11, BR-12 | Other sessions revoked | With two agents signed in as one user, a change on agent A gives agent B 401, while A continues with its rotated cookie and new `csrfToken` | `auth.api.test.ts` | #36 | Planned |
-| API-13 | API | AC-01, BR-10, BR-68 | No secrets in responses | No auth response body contains `passwordHash`, a `$argon2` string, or the session token | `auth.api.test.ts` | #36 | Planned |
+| API-01 | API | AC-01 | Valid login | 200. `Set-Cookie toktickit_sid` with HttpOnly, SameSite=Lax, and no Secure in test. The body has the user, role, and `csrfToken`. | `auth.api.test.ts` | #36 | Pass |
+| API-02 | API | AC-05, BR-07 | Indistinguishable failures | Wrong password and unknown email return byte-identical 401 `INVALID_CREDENTIALS` bodies | `auth.api.test.ts` | #36 | Pass |
+| API-03 | API | AC-06, BR-08 | Inactive account | Correct password → 403 `ACCOUNT_INACTIVE`. Wrong password → the generic 401 body. | `auth.api.test.ts` | #36 | Pass |
+| API-04 | API | AC-13, BR-14 | Null password hash | A user with null `passwordHash` → the generic 401 body | `auth.api.test.ts` | #36 | Pass |
+| API-05 | API | AC-07, BR-09 | Throttling over HTTP | Five wrong passwords, then the correct one → 429 `TOO_MANY_ATTEMPTS` with `Retry-After`. After `resetLoginThrottle()`, the correct password → 200. | `auth.api.test.ts` | #36 | Pass |
+| API-06 | API | AC-01, BR-17 | Login rotation | A login sent with an existing session cookie revokes that session and issues a new one | `auth.api.test.ts` | #36 | Pass |
+| API-07 | API | AC-01, BR-06 | Case-insensitive email | Logging in with ` NAPAT.CHA@KMUTT.AC.TH ` succeeds | `auth.api.test.ts` | #36 | Pass |
+| API-08 | API | AC-01 | Current user | `GET /auth/me` with a session → user and `csrfToken`. Without one → 401 `UNAUTHENTICATED`. | `auth.api.test.ts` | #36 | Pass |
+| API-09 | API | AC-08, BR-18 | Logout | 204 and the cookie is cleared. The old cookie → 401. Logout without a session → 204. | `auth.api.test.ts` | #36 | Pass |
+| API-10 | API | AC-02, AC-10, BR-12 | Password change success | The must-change fixture changes its password: `mustChangePassword` becomes false, the new password logs in, the old one fails | `auth.api.test.ts` | #36 | Pass |
+| API-11 | API | AC-10 | Password change failures | A wrong current password, 11 code points, equal to current, and a mismatch each → 422 with the field named in `details`. All failures are reported together. | `auth.api.test.ts` | #36 | Pass |
+| API-12 | API | AC-11, BR-12 | Other sessions revoked | With two agents signed in as one user, a change on agent A gives agent B 401, while A continues with its rotated cookie and new `csrfToken` | `auth.api.test.ts` | #36 | Pass |
+| API-13 | API | AC-01, BR-10, BR-68 | No secrets in responses | No auth response body contains `passwordHash`, a `$argon2` string, or the session token | `auth.api.test.ts` | #36 | Pass |
 
 ### 2.4 API — authorization and Requester migration — `server/tests/lab-03/authorization.api.test.ts`
 

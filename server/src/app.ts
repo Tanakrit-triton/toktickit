@@ -4,6 +4,7 @@ import { getPrisma } from "./prisma.js";
 import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 import { ticketsRouter } from "./lab-02/tickets.routes.js";
 import { attachmentsRouter } from "./lab-02/attachments.routes.js";
+import { authRouter } from "./lab-03/auth.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
@@ -49,5 +50,8 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 app.use("/api/v1", referenceDataRouter);
 app.use("/api/v1", ticketsRouter);
 app.use("/api/v1", attachmentsRouter);
+
+// Lab 3 -- authentication (docs/lab-03/api-spec.md section 2).
+app.use("/api/v1", authRouter);
 
 export default app;
