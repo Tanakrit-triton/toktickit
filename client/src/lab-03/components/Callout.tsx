@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 // The shared callout (docs/lab-03/ui-spec.md section 5.1). Always an icon plus
 // text, never colour alone, and never a status code or error code (AC-68).
 //
-// #38 uses the error and info variants. The forbidden state is its own
-// component (Forbidden.tsx) because it carries a heading and a link.
+// The forbidden state is its own component (Forbidden.tsx) because it carries
+// a heading and a link.
 
-export type CalloutVariant = "error" | "info";
+export type CalloutVariant = "error" | "info" | "conflict";
 
-const ICON: Record<CalloutVariant, string> = { error: "!", info: "i" };
+const ICON: Record<CalloutVariant, string> = { error: "!", info: "i", conflict: "⚠" };
 
 export function Callout({
   variant,
@@ -23,8 +23,8 @@ export function Callout({
     <div
       className={`zg-callout zg-callout--${variant}`}
       data-testid={testId}
-      // Errors interrupt; information is announced politely (ui-spec 10).
-      role={variant === "error" ? "alert" : "status"}
+      // Errors and conflicts interrupt; information is announced politely (ui-spec 10).
+      role={variant === "info" ? "status" : "alert"}
     >
       <span className="zg-callout-icon" aria-hidden="true">
         {ICON[variant]}

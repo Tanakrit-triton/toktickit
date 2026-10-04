@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import type { CurrentUser } from "../../src/lab-03/auth-api.js";
 import { ADMINISTRATOR, IT_STAFF, REQUESTER, mockRequesterScreens, mockStartupSession, renderApp } from "./helpers.js";
+import { TICKET_ID, entry, fakeApi, staffRoutes, staffTicket } from "./ticket-fixtures.js";
 
 // Lab 3 UI style assertions -- docs/lab-03/tests.md section 2.11.
 //
@@ -73,5 +75,53 @@ describe("STY-03 (AC-65) - role badge", () => {
     const css = readFileSync(STYLESHEET, "utf8");
     const body = ruleBody(css, /\.zg-header \.zg-badge--role-administrator/);
     expect(body).toMatch(/border:\s*1px solid var\(--zg-surface\)/);
+  });
+});
+
+describe("STY-04 (AC-50) - note vs comment", () => {
+  const NOTE_LABEL = "Internal note — not visible to Requester";
+  const comment = entry("c0000000-0000-4000-8000-000000000001", "Public reply.");
+  const note = entry("n0000000-0000-4000-8000-000000000001", "Private working note.");
+
+  async function openStaffDetail() {
+    fakeApi(staffRoutes(staffTicket(), [comment], [note]));
+    mockStartupSession(IT_STAFF);
+    renderApp(`/staff/tickets/${TICKET_ID}`);
+    return screen.findByTestId(`comment-item-${comment.id}`);
+  }
+
+  it("styles note items with the warning background, a 3px warning left border, and the text label", async () => {
+    await openStaffDetail();
+    await userEvent.click(screen.getByTestId("tab-notes"));
+
+    const item = screen.getByTestId(`note-item-${note.id}`);
+    expect(item).toHaveClass("zg-note-item");
+    const label = within(item).getByText(NOTE_LABEL);
+    expect(label).toHaveClass("zg-note-label");
+    // The label sits above the author line (ui-spec 8).
+    expect(label.compareDocumentPosition(within(item).getByText(IT_STAFF.fullName)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const css = readFileSync(STYLESHEET, "utf8");
+    const body = ruleBody(css, /\.zg-note-item/);
+    expect(body).toMatch(/background:\s*var\(--zg-warning-bg\)/);
+    expect(body).toMatch(/border-left:\s*3px solid var\(--zg-warning\)/);
+    const labelBody = ruleBody(css, /\.zg-note-label/);
+    expect(labelBody).toMatch(/color:\s*var\(--zg-warning\)/);
+    expect(labelBody).toMatch(/font-weight:\s*600/);
+  });
+
+  it("styles comment items on the surface, so the two backgrounds differ", async () => {
+    const item = await openStaffDetail();
+    expect(item).toHaveClass("zg-comment-item");
+    expect(item).not.toHaveClass("zg-note-item");
+
+    const css = readFileSync(STYLESHEET, "utf8");
+    const commentBody = ruleBody(css, /\.zg-comment-item/);
+    expect(commentBody).toMatch(/background:\s*var\(--zg-surface\)/);
+    expect(commentBody).toMatch(/border:\s*1px solid var\(--zg-border\)/);
+    expect(commentBody).toMatch(/border-radius:\s*var\(--zg-radius-lg\)/);
+
+    const background = (rule: string) => /background:\s*([^;]+);/.exec(rule)?.[1];
+    expect(background(commentBody)).not.toBe(background(ruleBody(css, /\.zg-note-item/)));
   });
 });

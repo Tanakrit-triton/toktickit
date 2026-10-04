@@ -7,16 +7,23 @@ import { humanSize, truncateMiddle, validateSelection } from "./AttachmentSelect
 //
 // This region carries every interactive control on the screen; the ticket
 // region above it carries none.
+//
+// Lab 3 (#44) adds two modes in which nothing can be changed and Download
+// stays: "locked" for the Requester's CLOSED and CANCELLED tickets (BR-59,
+// ui-spec 6.3) and "read-only" for IT Staff (BR-58, DEV-07, ui-spec 6.5).
 
 const MAX_ACTIVE = 5;
 const REASON_MIN = 5;
 const REASON_MAX = 200;
+
+export type AttachmentMode = "edit" | "locked" | "read-only";
 
 export interface AttachmentSectionProps {
   ticketId: string;
   requesterId: string;
   attachments: Attachment[];
   onChanged: () => void;
+  mode?: AttachmentMode;
 }
 
 const REFUSAL_TEXT: Record<api.UploadRefusal, string> = {
@@ -31,7 +38,9 @@ export function AttachmentSection({
   requesterId,
   attachments,
   onChanged,
+  mode = "edit",
 }: AttachmentSectionProps) {
+  const editable = mode === "edit";
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [pendingRemoval, setPendingRemoval] = useState<Attachment | null>(null);
@@ -124,7 +133,13 @@ export function AttachmentSection({
     <section className="zg-card" data-testid="attachment-section">
       <h2 className="zg-section-title">Attachments</h2>
 
-      {limitReached ? (
+      {mode === "locked" && (
+        <p className="zg-helper" data-testid="attachment-locked">
+          Attachments cannot be changed on a closed or cancelled ticket.
+        </p>
+      )}
+
+      {!editable ? null : limitReached ? (
         <p className="zg-helper" data-testid="attachment-limit-reached">
           Maximum of 5 attachments reached.
         </p>
@@ -194,17 +209,19 @@ export function AttachmentSection({
                   >
                     Download
                   </a>
-                  <button
-                    type="button"
-                    className="zg-btn zg-btn--destructive"
-                    data-testid="btn-remove"
-                    onClick={(event) => {
-                      triggerRef.current = event.currentTarget;
-                      setPendingRemoval(attachment);
-                    }}
-                  >
-                    Remove
-                  </button>
+                  {editable && (
+                    <button
+                      type="button"
+                      className="zg-btn zg-btn--destructive"
+                      data-testid="btn-remove"
+                      onClick={(event) => {
+                        triggerRef.current = event.currentTarget;
+                        setPendingRemoval(attachment);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </>
               )}
             </li>
