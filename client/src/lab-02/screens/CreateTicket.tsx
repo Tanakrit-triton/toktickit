@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import * as api from "../api.js";
 import type { ReferenceItem, Ticket } from "../api.js";
-import { useRequester } from "../RequesterContext.js";
+import { useAuth } from "../../lab-03/AuthContext.js";
 import { AttachmentSelection, type SelectedFile } from "../components/AttachmentSelection.js";
 
 // Create Ticket screen -- ui-spec.md section 5.2.
@@ -85,7 +85,8 @@ const today = () =>
   new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
 export function CreateTicket() {
-  const { requester } = useRequester();
+  // The signed-in Requester (Lab 3 #38); the route guard admits no other role.
+  const { user: requester } = useAuth();
   const [categories, setCategories] = useState<ReferenceItem[]>([]);
   const [systems, setSystems] = useState<ReferenceItem[]>([]);
   const [referenceLoading, setReferenceLoading] = useState(true);
