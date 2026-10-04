@@ -69,8 +69,11 @@ function badId(res: Response): void {
   res.status(400).json(buildError("BAD_REQUEST", "The identifier is not valid."));
 }
 
-/** storedFilename is deliberately absent from every shape below (BR-28). */
-function toAttachmentResponse(row: {
+/**
+ * storedFilename is deliberately absent from every shape below (BR-28).
+ * Also used by the Lab 3 staff ticket detail (api-spec.md section 5.2).
+ */
+export function toAttachmentResponse(row: {
   id: string;
   ticketId: string;
   originalFilename: string;
