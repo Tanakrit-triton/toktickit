@@ -7,6 +7,7 @@ import { buildError } from "./lab-02/errors.js";
 import { authRouter } from "./lab-03/auth.routes.js";
 import { requireRole } from "./lab-03/require-role.js";
 import { requireSession } from "./lab-03/require-session.js";
+import { staffQueueRouter } from "./lab-03/staff-queue.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
@@ -63,6 +64,8 @@ app.use("/api/v1", authRouter);
 // so they must stay ahead of the not-found fallback below.
 app.use("/api/v1/staff", requireSession, requireRole("IT_STAFF", "ADMINISTRATOR"));
 app.use("/api/v1/admin", requireSession, requireRole("ADMINISTRATOR"));
+
+app.use("/api/v1/staff", staffQueueRouter);
 
 // Any other /api/v1 path, including the removed GET /dev-requesters
 // (api-spec.md section 3). The message differs from the ownership refusal
