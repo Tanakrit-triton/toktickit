@@ -214,30 +214,8 @@ body {
   padding: var(--zg-space-4);
 }
 
-/* The development-mode notice required on every screen by BR-03. Warning
-   colours are reserved for warnings; this is one, not decoration. */
-.zg-dev-notice {
-  background: var(--zg-warning-bg);
-  color: var(--zg-warning);
-  font: var(--zg-font-small);
-  padding: var(--zg-space-2) var(--zg-space-4);
-  text-align: center;
-}
-
-/* --- 5.1 Development Requester Selection ---------------------------------
- * Centred card, maximum width 480px, on the page background.
- */
-
-.zg-selection-screen {
-  display: flex;
-  justify-content: center;
-  padding: var(--zg-space-7) var(--zg-space-4);
-}
-
-.zg-selection-card {
-  width: 100%;
-  max-width: 480px;
-}
+/* The Lab 2 development notice and Requester Selection screen were removed in
+   Lab 3 #38 (docs/lab-03/ui-spec.md section 3). */
 
 .zg-title {
   font: var(--zg-font-h1);
@@ -245,13 +223,8 @@ body {
   margin: 0 0 var(--zg-space-4);
 }
 
-.zg-selection-continue {
-  margin-top: var(--zg-space-5);
-  width: 100%;
-}
-
-/* Occupies the space the dropdown will take, so the card does not jump when
-   the request settles. */
+/* Occupies the space loading content will take, so the layout does not jump
+   when the request settles. */
 .zg-skeleton {
   display: block;
   height: 46px;
@@ -737,4 +710,394 @@ textarea.zg-field {
   border-radius: var(--zg-radius-lg);
   box-shadow: var(--zg-shadow-card);
   padding: var(--zg-space-5);
+}
+
+/* =========================================================================
+ * Lab 3 -- docs/lab-03/ui-spec.md. No new tokens (section 1): every value
+ * below is a Lab 2 token.
+ * ========================================================================= */
+
+/* --- 4. App start: full-screen loading until GET /auth/me resolves -------- */
+
+.zg-loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font: var(--zg-font-body);
+  color: var(--zg-text-muted);
+  background: var(--zg-bg);
+}
+
+/* --- 6.1 Login and 6.2 Change Password: a centred 480px card -------------- */
+
+.zg-auth-screen {
+  display: flex;
+  justify-content: center;
+  padding: var(--zg-space-7) var(--zg-space-4);
+}
+
+.zg-auth-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.zg-auth-card .zg-label {
+  display: block;
+  margin-top: var(--zg-space-4);
+}
+
+.zg-auth-card .zg-field {
+  width: 100%;
+}
+
+.zg-auth-card .zg-callout {
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-auth-explanation {
+  font: var(--zg-font-body);
+  color: var(--zg-text-muted);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-auth-field .zg-helper,
+.zg-auth-field .zg-message-error {
+  display: block;
+}
+
+.zg-auth-submit {
+  width: 100%;
+  margin-top: var(--zg-space-5);
+}
+
+.zg-auth-helper {
+  margin: var(--zg-space-4) 0 0;
+}
+
+@media (max-width: 767.98px) {
+  .zg-auth-screen {
+    padding: var(--zg-space-5) var(--zg-space-4);
+  }
+}
+
+/* --- 3. Shell additions ---------------------------------------------------- */
+
+.zg-brand:hover,
+.zg-brand:focus-visible {
+  color: var(--zg-surface);
+}
+
+.zg-identity-name {
+  font: var(--zg-font-label);
+}
+
+/* --- 5.1 Callouts: icon plus text, never colour alone --------------------- */
+
+.zg-callout {
+  display: flex;
+  gap: var(--zg-space-3);
+  align-items: flex-start;
+  border-left: 3px solid transparent;
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-text);
+  font: var(--zg-font-body);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-callout-icon {
+  font: var(--zg-font-label);
+  flex: none;
+}
+
+.zg-callout--error { background: var(--zg-error-bg); border-left-color: var(--zg-error); }
+.zg-callout--info { background: var(--zg-pale); border-left-color: var(--zg-secondary); }
+.zg-callout--forbidden { background: var(--zg-readonly-bg); border-left-color: var(--zg-text-muted); }
+
+.zg-callout-title {
+  font: var(--zg-font-h2);
+  margin: 0 0 var(--zg-space-2);
+}
+
+.zg-callout-text {
+  margin: 0 0 var(--zg-space-2);
+}
+
+/* Links use --zg-secondary (L2 ui-spec 1.1), not the Bootstrap default. */
+.zg-callout a { color: var(--zg-secondary); }
+
+/* --- 7.3 Role badge ------------------------------------------------------- */
+
+.zg-badge--role-requester { background: var(--zg-readonly-bg); color: var(--zg-text-muted); }
+.zg-badge--role-it-staff { background: var(--zg-pale); color: var(--zg-primary); }
+.zg-badge--role-administrator { background: var(--zg-primary); color: var(--zg-surface); }
+
+/* On the --zg-primary header bar the Administrator badge would vanish into
+   its own background, so it carries a surface border there. */
+.zg-header .zg-badge--role-administrator { border: 1px solid var(--zg-surface); }
+
+/* --- 7.1 Status badges (delivered with #44, tested by STY-01 in #43) ------ */
+
+.zg-badge--status-open { background: var(--zg-surface); color: var(--zg-secondary); border: 1px solid var(--zg-secondary); }
+.zg-badge--status-in-progress { background: var(--zg-secondary); color: var(--zg-surface); }
+.zg-badge--status-waiting-for-requester { background: var(--zg-warning-bg); color: var(--zg-warning); }
+.zg-badge--status-resolved { background: var(--zg-primary); color: var(--zg-surface); }
+.zg-badge--status-closed { background: var(--zg-disabled-bg); color: var(--zg-text-muted); }
+.zg-badge--status-reopened { background: var(--zg-pale); color: var(--zg-primary); border: 1px solid var(--zg-primary); }
+.zg-badge--status-cancelled { background: var(--zg-disabled-bg); color: var(--zg-text-muted); border: 1px solid var(--zg-border); }
+
+/* --- 7.4 Appears-resolved indicator --------------------------------------- */
+
+.zg-indicator {
+  display: inline-block;
+  background: var(--zg-pale);
+  color: var(--zg-primary);
+  border-radius: var(--zg-radius-sm);
+  font: var(--zg-font-small);
+  padding: var(--zg-space-1) var(--zg-space-3);
+}
+
+/* --- 5.1 Conflict callout ------------------------------------------------- */
+
+.zg-callout--conflict { background: var(--zg-warning-bg); border-left-color: var(--zg-warning); }
+
+/* --- 5.2 Confirmation dialog ---------------------------------------------- */
+
+.zg-dialog { max-width: 560px; }
+
+@media (max-width: 767.98px) {
+  .zg-dialog .zg-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* --- 6.5 Staff Ticket Detail ---------------------------------------------- */
+
+.zg-muted { color: var(--zg-text-muted); }
+
+.zg-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--zg-space-3);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-detail-header .zg-title { margin: 0; }
+
+/* Content 8 of 12 columns, operations 4. The operations card comes first in
+   the DOM so that on one column it sits directly after the header. */
+.zg-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: "content operations";
+  gap: var(--zg-space-5);
+  align-items: start;
+}
+
+.zg-detail-content { grid-area: content; min-width: 0; }
+.zg-operations { grid-area: operations; }
+
+.zg-ops-group {
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-ops-group .zg-field,
+.zg-ops-group .zg-btn { margin-top: var(--zg-space-2); }
+
+.zg-ops-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zg-space-2);
+}
+
+@media (max-width: 991.98px) {
+  .zg-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "operations" "content";
+  }
+}
+
+@media (max-width: 767.98px) {
+  .zg-ops-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* Tabs: WAI-ARIA pattern, active tab marked by border and aria-selected. */
+.zg-tabs {
+  display: flex;
+  gap: var(--zg-space-2);
+  border-bottom: var(--zg-border-width) solid var(--zg-border);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--zg-text-muted);
+  font: var(--zg-font-label);
+  padding: var(--zg-space-2) var(--zg-space-3);
+  min-height: 44px;
+}
+
+.zg-tab[aria-selected="true"] {
+  border-bottom-color: var(--zg-primary);
+  color: var(--zg-primary);
+}
+
+.zg-tab:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+/* --- 8. Public Comments and Internal Notes -------------------------------- */
+
+.zg-entry-list {
+  list-style: none;
+  margin: 0 0 var(--zg-space-4);
+  padding: 0;
+}
+
+.zg-comment-item {
+  background: var(--zg-surface);
+  border: 1px solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-3);
+}
+
+.zg-note-item {
+  background: var(--zg-warning-bg);
+  border-left: 3px solid var(--zg-warning);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-3);
+}
+
+/* The label carries the distinction in text, not colour alone (AC-50). */
+.zg-note-label {
+  display: block;
+  color: var(--zg-warning);
+  font: var(--zg-font-small);
+  font-weight: 600;
+  margin-bottom: var(--zg-space-1);
+}
+
+/* The note composer sits inside the note treatment (ui-spec 6.5). */
+.zg-note-composer {
+  background: var(--zg-warning-bg);
+  border-left: 3px solid var(--zg-warning);
+  padding: var(--zg-space-3) var(--zg-space-4);
+}
+
+.zg-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--zg-space-2);
+}
+
+.zg-entry-author { font: var(--zg-font-label); }
+
+.zg-entry-time {
+  color: var(--zg-text-muted);
+  font: var(--zg-font-small);
+}
+
+.zg-entry-body {
+  font: var(--zg-font-body);
+  margin: var(--zg-space-2) 0 0;
+}
+
+.zg-counter {
+  display: block;
+  color: var(--zg-text-muted);
+  font: var(--zg-font-small);
+  text-align: right;
+}
+
+.zg-counter--over { color: var(--zg-error); }
+
+/* --- 6.4 Ticket Queue (#43) ----------------------------------------------- */
+
+/* An unassigned owner reads "Unassigned" in muted text. */
+.zg-text-muted { color: var(--zg-text-muted); }
+
+/* Tablet drops the Requester column (ui-spec 6.4 and 9). */
+@media (max-width: 991.98px) {
+  .zg-col-requester { display: none; }
+}
+
+/* On mobile the whole card is the link (ui-spec 6.4). */
+.zg-ticket-card--link {
+  color: var(--zg-text);
+  text-decoration: none;
+}
+
+.zg-ticket-card--link .zg-indicator { margin-bottom: var(--zg-space-2); }
+
+/* --- 6.6 User Management (#45) -------------------------------------------- */
+
+/* 5.1 Success callout: "User saved." and "Initial password set." */
+.zg-callout--success { background: var(--zg-pale); color: var(--zg-success); border-left-color: var(--zg-primary); }
+
+/* 7.5 Account status */
+.zg-badge--account-active { background: var(--zg-pale); color: var(--zg-success); }
+.zg-badge--account-inactive { background: var(--zg-disabled-bg); color: var(--zg-text-muted); }
+
+.zg-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-2);
+}
+
+.zg-dialog .zg-label { display: block; margin-bottom: var(--zg-space-3); }
+
+/* The rule above outranks .zg-checkbox, which left the Active checkbox touching
+   its text in the user dialog. The checkbox label stays a flex row with its
+   gap (#47, RSP-05). */
+.zg-dialog .zg-checkbox { display: flex; }
+
+/* --- 9. Mobile touch targets (#47) ----------------------------------------- */
+
+/* L2 ui-spec 7 and Lab 3 ui-spec 9: below 768px every touch target is at
+   least 44x44px. The 44px value is the one .zg-btn already uses, so no new
+   spacing value is introduced. The brand, the collapsed navigation links, the
+   tertiary buttons (Download, Edit), the file chooser, and the Active checkbox
+   label were each smaller (RSP-05). */
+@media (max-width: 767.98px) {
+  .zg-brand,
+  .zg-nav-link,
+  .zg-btn--tertiary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .zg-btn--tertiary {
+    justify-content: center;
+  }
+
+  .zg-file-input {
+    min-height: 44px;
+  }
+
+  .zg-dialog .zg-checkbox {
+    min-height: 44px;
+  }
+}
+
+/* A long filename breaks inside its own box instead of painting over the size
+   and date beside it; below 768px it takes a line of its own (#47, RSP-03). */
+.zg-attachment-name {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767.98px) {
+  .zg-attachment-row {
+    flex-wrap: wrap;
+  }
+
+  .zg-attachment-name {
+    flex-basis: 100%;
+  }
 }

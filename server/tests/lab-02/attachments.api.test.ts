@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
-import request from "supertest";
-import { app } from "../../src/app.js";
 import { getPrisma } from "../../src/prisma.js";
+import { loginAs, signInFields, type SignedIn } from "../helpers/session.js";
 
 // API-24 .. API-37 from docs/lab-02/tests.md section 2.2.
+//
+// Since Lab 3 #37 each Requester signs in through loginAs() instead of sending
+// X-Dev-Requester-Id (docs/lab-03/tests.md REG-01). Assertions are unchanged.
 //
 // Every ownership-protected route gets a negative case: a passing happy path
 // is not evidence of ownership enforcement.
@@ -21,38 +23,42 @@ let ownerId = "";
 let otherId = "";
 let ticketId = "";
 let foreignTicketId = "";
+let owner: SignedIn;
+let other: SignedIn;
 
 const upload = (
   id: string,
-  header: string,
+  as: SignedIn,
   filename: string,
   mime: string,
   body: Buffer = PNG,
 ) =>
-  request(app)
+  as.agent
     .post(`/api/v1/tickets/${id}/attachments`)
-    .set("X-Dev-Requester-Id", header)
     .attach("file", body, { filename, contentType: mime });
 
 async function addOne(filename = "evidence.png") {
-  const response = await upload(ticketId, ownerId, filename, "image/png");
+  const response = await upload(ticketId, owner, filename, "image/png");
   expect(response.status, `fixture upload of ${filename} failed`).toBe(201);
   return response.body.data.id as string;
 }
 
 beforeAll(async () => {
-  const owner = await prisma.requesterUser.upsert({
+  const signIn = await signInFields();
+  const ownerRow = await prisma.user.upsert({
     where: { email: OWNER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ Attachment Owner", email: OWNER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ Attachment Owner", email: OWNER_EMAIL, isActive: true, ...signIn },
   });
-  const other = await prisma.requesterUser.upsert({
+  const otherRow = await prisma.user.upsert({
     where: { email: OTHER_EMAIL },
-    update: { isActive: true },
-    create: { fullName: "ZZ Attachment Other", email: OTHER_EMAIL, isActive: true },
+    update: { isActive: true, ...signIn },
+    create: { fullName: "ZZ Attachment Other", email: OTHER_EMAIL, isActive: true, ...signIn },
   });
-  ownerId = owner.id;
-  otherId = other.id;
+  ownerId = ownerRow.id;
+  otherId = otherRow.id;
+  owner = await loginAs(OWNER_EMAIL);
+  other = await loginAs(OTHER_EMAIL);
 
   const category = await prisma.category.findFirst({ where: { isActive: true } });
   const system = await prisma.relatedSystem.findFirst({ where: { isActive: true } });
@@ -67,6 +73,7 @@ beforeAll(async () => {
     relatedSystemId: system!.id,
     description: "A description long enough to satisfy the twenty character minimum.",
     requestedPriority: "HIGH" as const,
+    itPriority: "HIGH" as const,
   };
   const owned = await prisma.ticket.create({
     data: { ...base, ticketNumber: "TKT-2026-96001", requesterId: ownerId, summary: "Attachment fixture ticket" },
@@ -89,13 +96,14 @@ afterAll(async () => {
     where: { ticket: { requesterId: { in: [ownerId, otherId] } } },
   });
   await prisma.ticket.deleteMany({ where: { requesterId: { in: [ownerId, otherId] } } });
-  await prisma.requesterUser.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
+  await prisma.session.deleteMany({ where: { user: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } } });
+  await prisma.user.deleteMany({ where: { email: { in: [OWNER_EMAIL, OTHER_EMAIL] } } });
   await prisma.$disconnect();
 });
 
 describe("POST attachments (API-24 - AC-28)", () => {
   it("stores a permitted file and returns it as ACTIVE", async () => {
-    const response = await upload(ticketId, ownerId, "evidence.png", "image/png");
+    const response = await upload(ticketId, owner, "evidence.png", "image/png");
 
     expect(response.status).toBe(201);
     const attachment = response.body.data;
@@ -109,7 +117,7 @@ describe("POST attachments (API-24 - AC-28)", () => {
   });
 
   it("refuses an upload to another Requester's Ticket", async () => {
-    const response = await upload(foreignTicketId, ownerId, "evidence.png", "image/png");
+    const response = await upload(foreignTicketId, owner, "evidence.png", "image/png");
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe("NOT_FOUND");
@@ -125,7 +133,7 @@ describe("POST attachments (API-25 - AC-29)", () => {
       await addOne(`evidence-${i}.png`);
     }
 
-    const sixth = await upload(ticketId, ownerId, "evidence-6.png", "image/png");
+    const sixth = await upload(ticketId, owner, "evidence-6.png", "image/png");
 
     expect(sixth.status).toBe(409);
     expect(sixth.body.error.code).toBe("ATTACHMENT_LIMIT_REACHED");
@@ -140,7 +148,7 @@ describe("POST attachments (API-26 - AC-30)", () => {
   it("rejects a file over 5 MB", async () => {
     const oversized = Buffer.alloc(MAX_BYTES + 1, 0);
 
-    const response = await upload(ticketId, ownerId, "huge.pdf", "application/pdf", oversized);
+    const response = await upload(ticketId, owner, "huge.pdf", "application/pdf", oversized);
 
     expect(response.status).toBe(413);
     expect(response.body.error.code).toBe("FILE_TOO_LARGE");
@@ -150,7 +158,7 @@ describe("POST attachments (API-26 - AC-30)", () => {
 
 describe("POST attachments (API-27 - AC-31)", () => {
   it("rejects an impermissible type", async () => {
-    const response = await upload(ticketId, ownerId, "payload.exe", "application/x-msdownload");
+    const response = await upload(ticketId, owner, "payload.exe", "application/x-msdownload");
 
     expect(response.status).toBe(415);
     expect(response.body.error.code).toBe("UNSUPPORTED_FILE_TYPE");
@@ -158,7 +166,7 @@ describe("POST attachments (API-27 - AC-31)", () => {
   });
 
   it("rejects a permitted extension whose declared type disagrees", async () => {
-    const response = await upload(ticketId, ownerId, "report.pdf", "image/png");
+    const response = await upload(ticketId, owner, "report.pdf", "image/png");
 
     expect(response.status).toBe(415);
     expect(await prisma.attachment.count({ where: { ticketId } })).toBe(0);
@@ -169,9 +177,8 @@ describe("GET download (API-28 - AC-32)", () => {
   it("streams the file under its original filename", async () => {
     const id = await addOne("battery-report.png");
 
-    const response = await request(app)
-      .get(`/api/v1/attachments/${id}/download`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent
+      .get(`/api/v1/attachments/${id}/download`);
 
     expect(response.status).toBe(200);
     expect(response.headers["content-disposition"]).toContain('filename="battery-report.png"');
@@ -185,9 +192,8 @@ describe("DELETE attachment (API-29 - AC-33)", () => {
     const id = await addOne();
     const reason = "Uploaded the wrong screenshot by mistake";
 
-    const response = await request(app)
+    const response = await owner.agent
       .delete(`/api/v1/attachments/${id}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: reason });
 
     expect(response.status).toBe(200);
@@ -210,9 +216,8 @@ describe("DELETE attachment (API-29 - AC-33)", () => {
     const path = join("storage", "attachments", before!.storedFilename);
     expect(existsSync(path), "the binary should exist before removal").toBe(true);
 
-    await request(app)
+    await owner.agent
       .delete(`/api/v1/attachments/${id}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: "No longer relevant" });
 
     expect(existsSync(path), "the binary should be gone after removal").toBe(false);
@@ -225,9 +230,8 @@ describe("DELETE attachment (API-30 - AC-34)", () => {
     const id = await addOne();
 
     for (const body of [{}, { removalReason: "" }, { removalReason: "   " }, { removalReason: "abcd" }]) {
-      const response = await request(app)
+      const response = await owner.agent
         .delete(`/api/v1/attachments/${id}`)
-        .set("X-Dev-Requester-Id", ownerId)
         .send(body);
 
       expect(response.status, `${JSON.stringify(body)} should be rejected`).toBe(422);
@@ -242,9 +246,8 @@ describe("DELETE attachment (API-30 - AC-34)", () => {
   it("rejects a reason longer than 200 characters", async () => {
     const id = await addOne();
 
-    const response = await request(app)
+    const response = await owner.agent
       .delete(`/api/v1/attachments/${id}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: "x".repeat(201) });
 
     expect(response.status).toBe(422);
@@ -254,14 +257,12 @@ describe("DELETE attachment (API-30 - AC-34)", () => {
 describe("GET download (API-31 - AC-36)", () => {
   it("refuses a removed attachment with 410", async () => {
     const id = await addOne();
-    await request(app)
+    await owner.agent
       .delete(`/api/v1/attachments/${id}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: "Uploaded the wrong file" });
 
-    const response = await request(app)
-      .get(`/api/v1/attachments/${id}/download`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent
+      .get(`/api/v1/attachments/${id}/download`);
 
     expect(response.status).toBe(410);
     expect(response.body.error.code).toBe("ATTACHMENT_REMOVED");
@@ -273,14 +274,12 @@ describe("GET attachments (API-32 - AC-35)", () => {
     const activeId = await addOne("kept.png");
     const removedId = await addOne("discarded.png");
     const reason = "Uploaded the wrong screenshot by mistake";
-    await request(app)
+    await owner.agent
       .delete(`/api/v1/attachments/${removedId}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: reason });
 
-    const response = await request(app)
-      .get(`/api/v1/tickets/${ticketId}/attachments`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent
+      .get(`/api/v1/tickets/${ticketId}/attachments`);
 
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveLength(2);
@@ -301,9 +300,8 @@ describe("attachments ownership (API-33, API-34 - AC-37)", () => {
   it("refuses a download of another Requester's attachment", async () => {
     const id = await addOne();
 
-    const response = await request(app)
-      .get(`/api/v1/attachments/${id}/download`)
-      .set("X-Dev-Requester-Id", otherId);
+    const response = await other.agent
+      .get(`/api/v1/attachments/${id}/download`);
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe("NOT_FOUND");
@@ -313,12 +311,10 @@ describe("attachments ownership (API-33, API-34 - AC-37)", () => {
     const id = await addOne();
     const missing = "3f8b0c22-0000-4000-8000-000000000000";
 
-    const foreign = await request(app)
-      .get(`/api/v1/attachments/${id}/download`)
-      .set("X-Dev-Requester-Id", otherId);
-    const absent = await request(app)
-      .get(`/api/v1/attachments/${missing}/download`)
-      .set("X-Dev-Requester-Id", otherId);
+    const foreign = await other.agent
+      .get(`/api/v1/attachments/${id}/download`);
+    const absent = await other.agent
+      .get(`/api/v1/attachments/${missing}/download`);
 
     // Guarded: comparing two empty bodies is equality without meaning, and
     // would pass against a route that does not exist at all. Pin both to our
@@ -333,9 +329,8 @@ describe("attachments ownership (API-33, API-34 - AC-37)", () => {
   it("refuses removal of another Requester's attachment and leaves it active", async () => {
     const id = await addOne();
 
-    const response = await request(app)
+    const response = await other.agent
       .delete(`/api/v1/attachments/${id}`)
-      .set("X-Dev-Requester-Id", otherId)
       .send({ removalReason: "Not mine to remove" });
 
     expect(response.status).toBe(404);
@@ -345,9 +340,8 @@ describe("attachments ownership (API-33, API-34 - AC-37)", () => {
   });
 
   it("refuses to list another Requester's attachments", async () => {
-    const response = await request(app)
-      .get(`/api/v1/tickets/${foreignTicketId}/attachments`)
-      .set("X-Dev-Requester-Id", ownerId);
+    const response = await owner.agent
+      .get(`/api/v1/tickets/${foreignTicketId}/attachments`);
 
     expect(response.status).toBe(404);
     // A bare 404 is also what Express returns for a route that does not exist,
@@ -360,9 +354,8 @@ describe("DELETE attachment (API-35 - api-spec 4.4)", () => {
   it("rejects removing an already-removed attachment", async () => {
     const id = await addOne();
     const remove = () =>
-      request(app)
+      owner.agent
         .delete(`/api/v1/attachments/${id}`)
-        .set("X-Dev-Requester-Id", ownerId)
         .send({ removalReason: "Uploaded the wrong file" });
 
     expect((await remove()).status).toBe(200);
@@ -378,15 +371,14 @@ describe("POST attachments (API-36 - BR-32)", () => {
     const ids: string[] = [];
     for (let i = 0; i < ACTIVE_LIMIT; i += 1) ids.push(await addOne(`evidence-${i}.png`));
 
-    expect((await upload(ticketId, ownerId, "sixth.png", "image/png")).status).toBe(409);
+    expect((await upload(ticketId, owner, "sixth.png", "image/png")).status).toBe(409);
 
-    await request(app)
+    await owner.agent
       .delete(`/api/v1/attachments/${ids[0]}`)
-      .set("X-Dev-Requester-Id", ownerId)
       .send({ removalReason: "Making room for a better screenshot" });
 
     // Removed attachments stop counting toward the limit (BR-32).
-    expect((await upload(ticketId, ownerId, "sixth.png", "image/png")).status).toBe(201);
+    expect((await upload(ticketId, owner, "sixth.png", "image/png")).status).toBe(201);
     expect(await prisma.attachment.count({ where: { ticketId } })).toBe(ACTIVE_LIMIT + 1);
     expect(await prisma.attachment.count({ where: { ticketId, removedAt: null } })).toBe(ACTIVE_LIMIT);
   });
@@ -399,11 +391,10 @@ describe("attachments (API-37 - BR-28)", () => {
     expect(row!.storedFilename, "the fixture must have a stored name to leak").toBeTruthy();
 
     const responses = [
-      await request(app).get(`/api/v1/tickets/${ticketId}`).set("X-Dev-Requester-Id", ownerId),
-      await request(app).get(`/api/v1/tickets/${ticketId}/attachments`).set("X-Dev-Requester-Id", ownerId),
-      await request(app)
+      await owner.agent.get(`/api/v1/tickets/${ticketId}`),
+      await owner.agent.get(`/api/v1/tickets/${ticketId}/attachments`),
+      await owner.agent
         .delete(`/api/v1/attachments/${id}`)
-        .set("X-Dev-Requester-Id", ownerId)
         .send({ removalReason: "Checking the response shape" }),
     ];
 

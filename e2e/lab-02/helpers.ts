@@ -1,5 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { execSync, spawn } from "node:child_process";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { parseEnv } from "node:util";
 
 // Shared helpers for the Lab 2 end-to-end and responsive suites.
 
@@ -41,23 +44,59 @@ export async function painted(page: Page, locator: Locator, what: string): Promi
   expect(box!.y, `${what} should be within the viewport`).toBeLessThan(viewport!.height);
 }
 
-/** Selects a Development Requester if the selector is showing. */
-export async function enterAs(page: Page, name: string, path = "/tickets"): Promise<void> {
-  await page.goto(`${BASE}${path}`);
+/**
+ * The seeded Requesters' sign-in emails (docs/lab-03/specification.md 7.5).
+ * Since Lab 3 #38 these suites sign in instead of selecting a Development
+ * Requester (docs/lab-03/tests.md REG-03).
+ */
+export const EMAIL: Record<string, string> = {
+  [EMPTY_REQUESTER]: "pimchanok.son@kmutt.ac.th",
+  [REQUESTER]: "siriporn.mee@kmutt.ac.th",
+  [OTHER_REQUESTER]: "napat.cha@kmutt.ac.th",
+};
+
+/**
+ * The seed's local-only development password, from the environment or
+ * server/.env, the same source the seed reads.
+ */
+export function seedPassword(): string {
+  if (process.env.SEED_PASSWORD) return process.env.SEED_PASSWORD;
+  try {
+    const value = parseEnv(readFileSync("server/.env", "utf8")).SEED_PASSWORD;
+    if (value) return value;
+  } catch {
+    // No server/.env: fall through to the error below.
+  }
+  throw new Error("SEED_PASSWORD must be set, or present in server/.env, for the E2E suites.");
+}
+
+/** Fills and submits the Login form on the current page. */
+export async function submitLogin(page: Page, name: string): Promise<void> {
+  await page.getByTestId("field-email").fill(EMAIL[name]);
+  await page.getByTestId("field-password").fill(seedPassword());
+  await page.getByTestId("btn-sign-in").click();
+}
+
+const LANDED =
+  '[data-testid="my-tickets-screen"], [data-testid="create-ticket-screen"], [data-testid="ticket-detail-screen"]';
+
+/**
+ * Signs in as a seeded Requester through the Login screen, landing on `path`.
+ *
+ * A page that is already signed in is sent straight on to `path` by /login,
+ * so the form is filled only when it is actually showing.
+ */
+export async function signInAs(page: Page, name: string, path = "/tickets"): Promise<void> {
+  await page.goto(`${BASE}/login?next=${encodeURIComponent(path)}`);
   await page
-    .locator('[data-testid="field-dev-requester"], [data-testid="my-tickets-screen"], [data-testid="create-ticket-screen"], [data-testid="ticket-detail-screen"]')
+    .locator(`[data-testid="login-screen"], ${LANDED}`)
     .first()
     .waitFor({ state: "visible", timeout: 25000 });
 
-  const selector = page.getByTestId("field-dev-requester");
-  if (await selector.isVisible().catch(() => false)) {
-    const value = await page.evaluate((who) => {
-      const sel = document.querySelector("[data-testid='field-dev-requester']") as HTMLSelectElement;
-      return Array.from(sel.options).find((o) => o.textContent!.includes(who))!.value;
-    }, name);
-    await selector.selectOption(value);
-    await page.getByTestId("btn-continue").click();
+  if (await page.getByTestId("login-screen").isVisible().catch(() => false)) {
+    await submitLogin(page, name);
   }
+  await page.locator(LANDED).first().waitFor({ state: "visible", timeout: 25000 });
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(300);
 }
@@ -103,12 +142,19 @@ export async function expectApiClosed(timeoutMs = 15000): Promise<void> {
 }
 
 
+/** Where startApi records the PID of the API it started, for e2e/global-teardown.ts. */
+export const RESTARTED_API_PID_FILE = "test-results/.restarted-api.pid";
+
 /**
  * Restarts the API, detached so it outlives the test process.
  *
  * E2E-05 has to stop the real server to prove the failure state, which leaves
  * the environment broken for every later suite and for the screenshots. The
  * test that breaks it is the test that repairs it.
+ *
+ * The PID is recorded so the global teardown can stop the process tree once
+ * the run ends; otherwise the restarted API outlives the run as a detached
+ * process that nothing owns.
  */
 export function startApi(): void {
   const child = spawn("npm", ["run", "dev"], {
@@ -117,6 +163,8 @@ export function startApi(): void {
     stdio: "ignore",
     shell: true,
   });
+  mkdirSync(dirname(RESTARTED_API_PID_FILE), { recursive: true });
+  writeFileSync(RESTARTED_API_PID_FILE, String(child.pid));
   child.unref();
 }
 

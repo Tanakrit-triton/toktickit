@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { buildError, type ErrorDetails } from "./errors.js";
-import { requireRequester } from "./requester-context.js";
+import { requireRole } from "../lab-03/require-role.js";
+import { requireSession } from "../lab-03/require-session.js";
 import { allocateTicketNumber } from "./ticket-number.js";
 import { parseTicketListQuery } from "./ticket-query.js";
 import {
@@ -13,6 +14,12 @@ import {
 } from "./validation.js";
 
 // Ticket endpoints (api-spec.md section 3).
+//
+// Since Lab 3 #37 the Requester is the session user, and the whole family is
+// for the REQUESTER role only (docs/lab-03/api-spec.md section 4, BR-25).
+
+/** Steps 1 to 5 of api-spec.md section 1.1 for a Requester-only route. */
+const requesterOnly = [requireSession, requireRole("REQUESTER")];
 
 export const ticketsRouter = Router();
 
@@ -23,12 +30,20 @@ type TicketWithRelations = {
   description: string;
   requestedPriority: string;
   currentStatus: string;
+  requesterIndicatedResolvedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   requester: { id: string; fullName: string };
+  owner: { id: string; fullName: string } | null;
   category: { id: number; name: string };
   relatedSystem: { id: number; name: string };
 };
+
+/** The Lab 3 additions to the Requester's ticket shape (Lab 3 api-spec section 4). */
+const LAB3_SELECT = {
+  requesterIndicatedResolvedAt: true,
+  owner: { select: { id: true, fullName: true } },
+} as const;
 
 /**
  * The 201 body from api-spec.md 3.1.
@@ -50,16 +65,20 @@ function toTicketResponse(ticket: TicketWithRelations) {
     requestedPriority: ticket.requestedPriority,
     description: ticket.description,
     currentStatus: ticket.currentStatus,
+    // Lab 3 api-spec section 4. itPriority is deliberately absent: the
+    // Requester sees their own Requested Priority.
+    owner: ticket.owner,
+    requesterIndicatedResolvedAt: ticket.requesterIndicatedResolvedAt?.toISOString() ?? null,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
   };
 }
 
-/** POST /api/v1/tickets -- create one Ticket owned by the selected Requester (FR-08). */
-ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Response) => {
+/** POST /api/v1/tickets -- create one Ticket for the signed-in Requester (FR-08). */
+ticketsRouter.post("/tickets", ...requesterOnly, async (req: Request, res: Response) => {
   const prisma = getPrisma();
-  // requireRequester guarantees this is set before the handler runs.
-  const requester = req.requester!;
+  // requireSession guarantees this is set before the handler runs.
+  const requester = req.auth!.user;
   const body = (req.body ?? {}) as Record<string, unknown>;
 
   // Shape checks first. Every failing field is collected rather than returned
@@ -103,8 +122,8 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
     return;
   }
 
-  // requesterId is never read from the body. Ownership comes from the header
-  // alone, and a client-supplied value is ignored outright rather than
+  // requesterId is never read from the body. Ownership comes from the session
+  // alone (BR-03), and a client-supplied value is ignored outright rather than
   // compared against it (BR-08): consistency-checking would invite clients to
   // send the field, and ownership must have exactly one source.
   try {
@@ -123,6 +142,10 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
           summary: (body.summary as string).trim(),
           description: (body.description as string).trim(),
           requestedPriority: body.requestedPriority as RequestedPriorityValue,
+          // IT Priority starts equal to Requested Priority (Lab 3 BR-33). Set
+          // here by #35, because the column is NOT NULL from #35's migration;
+          // OPS-07 in #40 is the test that observes it.
+          itPriority: body.requestedPriority as RequestedPriorityValue,
           // currentStatus is left to the schema default of NEW (BR-02). Lab 2
           // never writes any other status (DEC-06).
         },
@@ -132,17 +155,21 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
           summary: true,
           description: true,
           requestedPriority: true,
+          itPriority: true,
           currentStatus: true,
           createdAt: true,
           updatedAt: true,
           requester: { select: { id: true, fullName: true } },
           category: { select: { id: true, name: true } },
           relatedSystem: { select: { id: true, name: true } },
+          ...LAB3_SELECT,
         },
       });
     });
 
-    res.status(201).json({ data: toTicketResponse(created as TicketWithRelations) });
+    // The create response is the one Requester shape with itPriority, because
+    // it echoes the stored row (Lab 3 api-spec section 4).
+    res.status(201).json({ data: { ...toTicketResponse(created), itPriority: created.itPriority } });
   } catch {
     res.status(500).json(buildError("INTERNAL_ERROR", "The ticket could not be created. Try again."));
   }
@@ -150,12 +177,12 @@ ticketsRouter.post("/tickets", requireRequester, async (req: Request, res: Respo
 
 
 /**
- * GET /api/v1/tickets -- the selected Requester's Tickets, paginated
+ * GET /api/v1/tickets -- the signed-in Requester's Tickets, paginated
  * (FR-16 to FR-20).
  */
-ticketsRouter.get("/tickets", requireRequester, async (req: Request, res: Response) => {
+ticketsRouter.get("/tickets", ...requesterOnly, async (req: Request, res: Response) => {
   const prisma = getPrisma();
-  const requester = req.requester!;
+  const requester = req.auth!.user;
 
   const parsed = parseTicketListQuery(req.query as Record<string, unknown>);
   if (!parsed.ok) {
@@ -288,9 +315,9 @@ function refuse(res: Response): void {
 }
 
 /** GET /api/v1/tickets/{ticketId} -- one owned Ticket with its attachments (FR-24). */
-ticketsRouter.get("/tickets/:ticketId", requireRequester, async (req: Request, res: Response) => {
+ticketsRouter.get("/tickets/:ticketId", ...requesterOnly, async (req: Request, res: Response) => {
   const prisma = getPrisma();
-  const requester = req.requester!;
+  const requester = req.auth!.user;
   const { ticketId } = req.params;
 
   if (!UUID_PATTERN.test(ticketId)) {
@@ -317,6 +344,7 @@ ticketsRouter.get("/tickets/:ticketId", requireRequester, async (req: Request, r
         requester: { select: { id: true, fullName: true } },
         category: { select: { id: true, name: true } },
         relatedSystem: { select: { id: true, name: true } },
+        ...LAB3_SELECT,
         attachments: {
           orderBy: { uploadedAt: "asc" },
           select: {

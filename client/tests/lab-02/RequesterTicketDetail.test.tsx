@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { RequesterTicketDetail } from "../../src/lab-02/screens/RequesterTicketDetail.js";
 import * as api from "../../src/lab-02/api.js";
 import type { TicketDetail } from "../../src/lab-02/api.js";
 
-// UI-27 and UI-28 from docs/lab-02/tests.md section 2.3.
+// UI-27 from docs/lab-02/tests.md section 2.3. L2 UI-28 is superseded by
+// UI-35 and UI-37 in client/tests/lab-03/RequesterTicketDetail.test.tsx
+// (docs/lab-03/tests.md section 4.1).
 
 const ALICE = {
   id: "aaaaaaaa-0000-0000-0000-000000000001",
@@ -31,21 +34,21 @@ const TICKET: TicketDetail = {
 };
 
 function renderDetail() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={[`/tickets/${TICKET.id}`]}>
         <Routes>
           <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
         </Routes>
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem("toktickit.selectedRequester", JSON.stringify(ALICE));
 });
 
 afterEach(() => {
@@ -100,37 +103,5 @@ describe("RequesterTicketDetail (UI-27 - AC-26)", () => {
     const rendered = document.body.textContent ?? "";
     expect(rendered).not.toMatch(/\b404\b/);
     expect(rendered).not.toMatch(/app\.ts/);
-  });
-});
-
-describe("RequesterTicketDetail (UI-28 - scope section 3)", () => {
-  it("renders nothing from the Lab 3 exclusion list", async () => {
-    vi.spyOn(api, "fetchTicket").mockResolvedValue(TICKET);
-
-    renderDetail();
-    await screen.findByTestId("ticket-information");
-
-    // Comments, internal notes, actions taken, and any status control are all
-    // explicitly out of Lab 2 scope. Their presence would be a defect, not a
-    // feature, so this guards the exclusion rather than a behaviour.
-    const text = (document.body.textContent ?? "").toLowerCase();
-    for (const forbidden of ["public comment", "internal note", "actions taken", "add comment"]) {
-      expect(text, `${forbidden} must not appear`).not.toContain(forbidden);
-    }
-
-    for (const testId of [
-      "field-status",
-      "btn-change-status",
-      "btn-resolve",
-      "btn-close-ticket",
-      "field-comment",
-      "field-internal-note",
-      "field-it-priority",
-    ]) {
-      expect(screen.queryByTestId(testId), `${testId} must not exist`).not.toBeInTheDocument();
-    }
-
-    // The status is shown, but as a badge -- a value, not a control.
-    expect(screen.getByTestId("badge-status")).toHaveTextContent(/new/i);
   });
 });

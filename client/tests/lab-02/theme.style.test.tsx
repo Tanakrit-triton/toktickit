@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { CreateTicket } from "../../src/lab-02/screens/CreateTicket.js";
 import * as api from "../../src/lab-02/api.js";
 
@@ -28,19 +29,19 @@ const SYSTEMS = [{ id: 5, name: "Corporate Laptop" }];
 const REQUIRED_FIELDS = ["category", "related-system", "priority", "summary", "description"];
 
 function renderCreateTicket() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={["/tickets/new"]}>
         <CreateTicket />
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem("toktickit.selectedRequester", JSON.stringify(ALICE));
   vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
   vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
 });
@@ -157,7 +158,11 @@ describe("STY-05 (AC-15) - busy state", () => {
 });
 
 // ---------------------------------------------------------------------------
-// STY-03, STY-04, STY-06, STY-07, STY-08, STY-09, STY-10, STY-11, STY-12
+// STY-03, STY-04, STY-06, STY-07, STY-08, STY-10, STY-11, STY-12
+//
+// STY-09 (the status badge renders "New") was superseded by Lab 3 STY-01,
+// which covers all eight statuses, and removed in #43 (docs/lab-03/tests.md
+// section 4.1).
 //
 // jsdom loads no stylesheet, so getComputedStyle returns nothing a CSS file
 // set. Assertions about appearance therefore target the attribute and class
@@ -220,7 +225,11 @@ describe("STY-04 (ui-spec 2) - disabled versus read-only", () => {
     expect(css).toMatch(/\.zg-field:disabled/);
     expect(css).toMatch(/--zg-disabled-bg/);
 
-    release({} as api.Ticket);
+    // Settled inside act(): the screen's post-submit state updates then land
+    // within the test instead of after it.
+    await act(async () => {
+      release({} as api.Ticket);
+    });
   });
 });
 
@@ -253,7 +262,7 @@ describe("STY-07 (ui-spec 3) - every control carries visible text", () => {
   });
 });
 
-describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
+describe("STY-08 (AC-43) - badges convey value by text", () => {
   const ROW = {
     id: "t1",
     ticketNumber: "TKT-2026-00042",
@@ -267,16 +276,17 @@ describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
   };
 
   function renderList(priority: string) {
+    signInAs(ALICE);
     vi.spyOn(api, "fetchTickets").mockResolvedValue({
       data: [{ ...ROW, requestedPriority: priority }],
       meta: { page: 1, pageSize: 10, totalItems: 1, totalPages: 1 },
     });
     return render(
-      <RequesterProvider>
+      <AuthProvider>
         <MemoryRouter initialEntries={["/tickets"]}>
           <MyTickets />
         </MemoryRouter>
-      </RequesterProvider>,
+      </AuthProvider>,
     );
   }
 
@@ -307,12 +317,6 @@ describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
 
     // Four distinct glyphs: one repeated everywhere would carry no severity.
     expect(glyphs.size).toBe(4);
-  });
-
-  it("renders the status as the word New", async () => {
-    renderList("HIGH");
-    const badge = await screen.findByTestId("badge-status");
-    expect(badge).toHaveTextContent(/^New$/);
   });
 });
 

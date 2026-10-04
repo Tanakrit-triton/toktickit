@@ -7,7 +7,6 @@
 /** Stable machine-readable identifiers. Never localised, never reworded. */
 export type ErrorCode =
   | "BAD_REQUEST"
-  | "REQUESTER_INACTIVE"
   | "NOT_FOUND"
   | "ATTACHMENT_LIMIT_REACHED"
   | "ATTACHMENT_ALREADY_REMOVED"
@@ -15,8 +14,26 @@ export type ErrorCode =
   | "FILE_TOO_LARGE"
   | "UNSUPPORTED_FILE_TYPE"
   | "VALIDATION_ERROR"
-  | "REQUESTER_NOT_SELECTED"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  // Lab 3 (docs/lab-03/api-spec.md section 9). REQUESTER_NOT_SELECTED and
+  // REQUESTER_INACTIVE are retired with the X-Dev-Requester-Id header (#37).
+  | "UNAUTHENTICATED"
+  | "INVALID_CREDENTIALS"
+  | "ACCOUNT_INACTIVE"
+  | "FORBIDDEN"
+  | "EMAIL_ALREADY_EXISTS"
+  | "LAST_ADMINISTRATOR"
+  | "CANNOT_DEACTIVATE_SELF"
+  | "CANNOT_CHANGE_OWN_ROLE"
+  | "USER_HAS_OPEN_TICKETS"
+  | "CSRF_INVALID"
+  | "PASSWORD_CHANGE_REQUIRED"
+  | "TICKET_STATE_CONFLICT"
+  | "TICKET_ALREADY_CLAIMED"
+  | "INVALID_STATUS_TRANSITION"
+  | "TICKET_OWNER_REQUIRED"
+  | "RESOLUTION_ALREADY_INDICATED"
+  | "TOO_MANY_ATTEMPTS";
 
 /** Flat field-to-message map, so the UI can place each message beside its own field (FR-11). */
 export type ErrorDetails = Record<string, string>;
