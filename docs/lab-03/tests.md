@@ -341,15 +341,15 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| E2E-01 | E2E | AC-01, AC-05, AC-06, AC-08 | Sign-in journey | An invalid login shows the generic message. The inactive account shows the inactive message. A valid login shows the shell with name and role. Logout, then visiting `/tickets` directly, shows Login. | `authentication.spec.ts` | #46 | Planned |
-| E2E-02 | E2E | AC-02 | First-login change | The must-change fixture signs in, is held on Change Password, sets a new password, and lands on My Tickets | `authentication.spec.ts` | #46 | Planned |
-| E2E-03 | E2E | AC-26, AC-35, AC-38, AC-39, AC-46, AC-47 | Staff ticket flow | Staff claim a NEW ticket, raise IT Priority, Start work, post a comment, and post a note. The Requester sees the comment but not the note, and indicates appears resolved. Staff see the indicator, Resolve, then Close. | `staff-ticket-flow.spec.ts` | #46 | Planned |
-| E2E-04 | E2E | AC-04, AC-16, AC-19 | Requester boundaries | A Requester opening `/staff/queue` sees the forbidden state. Their `page.request` to `/staff/tickets` and to `/tickets/{id}/notes` → 403 with no note text. | `staff-ticket-flow.spec.ts` | #46 | Planned |
-| E2E-05 | E2E | AC-23 | Real Download click | Clicking Download on Requester Detail, and on Staff Detail, triggers a browser download whose suggested filename is the original filename (D-25) | `staff-ticket-flow.spec.ts` | #46 | Planned |
-| E2E-06 | E2E | AC-52 | Create user and first login | Through the UI, the Administrator creates an IT Staff user with an email unique to the run, `e2e-staff-{timestamp}-{random}@example.test`. That user signs in, must change the password, and then sees the Ticket Queue. In `finally`, the user is deactivated through the API. | `user-administration.spec.ts` | #46 | Planned |
-| E2E-07 | E2E | AC-54, AC-55, AC-59 | Edit, deactivate, new password | **Setup:** through the API, the test creates its own target user with an email unique to the run, `e2e-target-{timestamp}-{random}@example.test`, then signs in as that user and changes the password, so `mustChangePassword` is false. **Flow, through the UI:** the Administrator edits the target's name. The Administrator deactivates the target, who then cannot sign in (inactive message). The Administrator reactivates the target and sets a new initial password; the target's next sign-in requires a change. In `finally`, the target is deactivated through the API. | `user-administration.spec.ts` | #46 | Planned |
-| E2E-08 | E2E | AC-56, AC-57, AC-60 | Safety and access | Precondition steps (a)–(c) in Section 1, *E2E-08 precondition*, run as part of the test. After step (a), the seeded Administrator, as sole active Administrator, tries to deactivate their own account and sees the last-Administrator message. After step (b) creates a second Administrator, the same attempt shows the self-deactivation message. IT Staff opening `/admin/users` sees the forbidden state. Step (c) then runs. | `user-administration.spec.ts` | #46 | Planned |
-| E2E-09 | E2E | AC-41 | Cancel and reopen | Staff cancel a ticket with a reason through the dialog, then reopen it with a reason. The status badge shows Cancelled, then Reopened. | `staff-ticket-flow.spec.ts` | #46 | Planned |
+| E2E-01 | E2E | AC-01, AC-05, AC-06, AC-08 | Sign-in journey | An invalid login shows the generic message. The inactive account shows the inactive message. A valid login shows the shell with name and role. Logout, then visiting `/tickets` directly, shows Login. | `authentication.spec.ts` | #46 | Pass |
+| E2E-02 | E2E | AC-02 | First-login change | The must-change fixture signs in, is held on Change Password, sets a new password, and lands on My Tickets | `authentication.spec.ts` | #46 | Pass |
+| E2E-03 | E2E | AC-26, AC-35, AC-38, AC-39, AC-46, AC-47 | Staff ticket flow | Staff claim a NEW ticket, raise IT Priority, Start work, post a comment, and post a note. The Requester sees the comment but not the note, and indicates appears resolved. Staff see the indicator, Resolve, then Close. | `staff-ticket-flow.spec.ts` | #46 | Pass |
+| E2E-04 | E2E | AC-04, AC-16, AC-19 | Requester boundaries | A Requester opening `/staff/queue` sees the forbidden state. Their `page.request` to `/staff/tickets` and to `/tickets/{id}/notes` → 403 with no note text. | `staff-ticket-flow.spec.ts` | #46 | Pass |
+| E2E-05 | E2E | AC-23 | Real Download click | Clicking Download on Requester Detail, and on Staff Detail, triggers a browser download whose suggested filename is the original filename (D-25) | `staff-ticket-flow.spec.ts` | #46 | Pass |
+| E2E-06 | E2E | AC-52 | Create user and first login | Through the UI, the Administrator creates an IT Staff user with an email unique to the run, `e2e-staff-{timestamp}-{random}@example.test`. That user signs in, must change the password, and then sees the Ticket Queue. In `finally`, the user is deactivated through the API. | `user-administration.spec.ts` | #46 | Pass |
+| E2E-07 | E2E | AC-54, AC-55, AC-59 | Edit, deactivate, new password | **Setup:** through the API, the test creates its own target user with an email unique to the run, `e2e-target-{timestamp}-{random}@example.test`, then signs in as that user and changes the password, so `mustChangePassword` is false. **Flow, through the UI:** the Administrator edits the target's name. The Administrator deactivates the target, who then cannot sign in (inactive message). The Administrator reactivates the target and sets a new initial password; the target's next sign-in requires a change. In `finally`, the target is deactivated through the API. | `user-administration.spec.ts` | #46 | Pass |
+| E2E-08 | E2E | AC-56, AC-57, AC-60 | Safety and access | Precondition steps (a)–(c) in Section 1, *E2E-08 precondition*, run as part of the test. After step (a), the seeded Administrator, as sole active Administrator, tries to deactivate their own account and sees the last-Administrator message. After step (b) creates a second Administrator, the same attempt shows the self-deactivation message. IT Staff opening `/admin/users` sees the forbidden state. Step (c) then runs. | `user-administration.spec.ts` | #46 | Pass |
+| E2E-09 | E2E | AC-41 | Cancel and reopen | Staff cancel a ticket with a reason through the dialog, then reopen it with a reason. The status badge shows Cancelled, then Reopened. | `staff-ticket-flow.spec.ts` | #46 | Pass |
 
 ### Tests added after the plan was written
 
@@ -645,6 +645,36 @@ case failed waiting for `user-management-screen`.
 - **Busy text.** Save and Set password both read "Saving…" in flight (ui-spec 2 Busy text).
 
 **Components delivered for #45.** `ConfirmDialog` gains an optional password field validated against BR-11, with its own busy label; existing callers are unchanged. `Callout` gains the ui-spec 5.1 Success variant. `AccountStatusBadge` (ui-spec 7.5) is added to `Badges.tsx`. Their CSS is in `zen-green.css`. No fixture file changed: the suite uses `fakeApi()`, `ok()`, `created()`, and `failure()` from `ticket-fixtures.ts`.
+
+**#46 — Lab 3 E2E.** E2E-01 to E2E-09 are in `e2e/lab-03/authentication.spec.ts`, `staff-ticket-flow.spec.ts`, and `user-administration.spec.ts`, with shared setup in `e2e/lab-03/helpers.ts`. No new test IDs.
+
+*Red first.* The screens (#38, #43–#45) and the APIs (#36–#42) existed before these specs, so the specs were not red against missing code. Before the specs were written, the deferred real-browser check ran against the real API, signed in as each role:
+- Login;
+- Change Password;
+- Staff Ticket Queue;
+- Staff Ticket Detail (operations, comments, notes, Download);
+- Requester Ticket Detail (comments, appears resolved, Download);
+- User Management.
+
+It found no disagreement between the UI and the API, so #46 has no fix commit. The one apparent mismatch, a notes count of 0 after posting, came from the check itself: `getByText` matched the composer's textarea before the post completed. The specs therefore assert on `comment-item-*` and `note-item-*`.
+
+| Test | Added assertion or approach | Reason |
+|---|---|---|
+| E2E-01 | The wrong password is cleared; after logout, `GET /tickets` through the page's session is 401 | BR-07; AC-08 at the API as well as the route |
+| E2E-02 | In `finally`, the Administrator API sets the must-change fixture's password back to `SEED_PASSWORD` (`POST /admin/users/{id}/initial-password`), which also sets `mustChangePassword` again | The fixture returns to its seeded state, so the test repeats without a reseed |
+| E2E-03 | The ticket is created by the test through the Requester API. The queue row's status stays IN_PROGRESS beside the indicator. Closed shows the closed text in the conversation. | No dependence on a seeded NEW ticket; BR-43 (the indication changes no status); BR-52 |
+| E2E-04 | A real Internal Note is posted on the Requester's own ticket first, so "no note text" is checked against text that exists | AC-04 |
+| E2E-05 | The file is uploaded through the UI. Download is clicked on each screen in a separate browser context, and the download has no failure. | D-25: the click, not a request built from `href` |
+| E2E-06, E2E-07 | Emails `e2e-staff-…` and `e2e-target-…` are unique to the run; each user is deactivated in `finally` | Section 1, *Users created by E2E tests* |
+| E2E-08 | Steps (a)–(c) as in Section 1. **Deviation, agreed during #46:** ui-spec 6.6 and UI-41 disable Role and Active on one's own row, so the UI cannot attempt self-deactivation. With one active Administrator, `LAST_ADMINISTRATOR` cannot arise any other way. The test asserts the disabled fields and their explanation in the UI. It then sends the attempt as `PATCH /admin/users/{self}` through the Administrator's own browser session and CSRF token, and asserts 409 with the exact api-spec 7.3 messages: `LAST_ADMINISTRATOR`, then `CANNOT_DEACTIVATE_SELF`. | Contradiction between the E2E-08 row ("sees the message") and ui-spec 6.6 |
+| E2E-09 | The status is read from `data-status` and from the visible label | ui-spec 7.1 |
+
+*Suite changes for #46.*
+- **Root script.** `test:e2e` runs `playwright test e2e` (Section 7).
+- **Desktop only.** `playwright.config.ts` keeps the three Lab 3 journey specs out of the tablet and mobile projects with `testIgnore`, so they run at desktop and none is reported as skipped. The Lab 2 specs keep their existing run-time skips.
+- **E2E-05 teardown.** Lab 2 E2E-05 restarts the API detached. `startApi()` now records its PID in `test-results/.restarted-api.pid`, and `e2e/global-teardown.ts` stops that process tree when the run ends, so no detached API outlives the run. The test's assertions are unchanged.
+
+*Repeatability.* After one reseed, the whole `e2e/` folder passed. The Lab 3 specs then passed twice more back to back, with no reseed between runs.
 
 ---
 
