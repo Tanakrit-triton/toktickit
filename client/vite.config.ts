@@ -3,7 +3,13 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    // The browser talks to the API same-origin: /api is forwarded to the
+    // Express server, so the session cookie is sent and no CORS is needed
+    // (docs/lab-03/api-spec.md section 1.3, DEC-04).
+    proxy: { "/api": "http://localhost:3000" },
+  },
   test: {
     environment: "jsdom",
     globals: true,
