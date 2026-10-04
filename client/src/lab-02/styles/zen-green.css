@@ -1050,3 +1050,54 @@ textarea.zg-field {
 }
 
 .zg-dialog .zg-label { display: block; margin-bottom: var(--zg-space-3); }
+
+/* The rule above outranks .zg-checkbox, which left the Active checkbox touching
+   its text in the user dialog. The checkbox label stays a flex row with its
+   gap (#47, RSP-05). */
+.zg-dialog .zg-checkbox { display: flex; }
+
+/* --- 9. Mobile touch targets (#47) ----------------------------------------- */
+
+/* L2 ui-spec 7 and Lab 3 ui-spec 9: below 768px every touch target is at
+   least 44x44px. The 44px value is the one .zg-btn already uses, so no new
+   spacing value is introduced. The brand, the collapsed navigation links, the
+   tertiary buttons (Download, Edit), the file chooser, and the Active checkbox
+   label were each smaller (RSP-05). */
+@media (max-width: 767.98px) {
+  .zg-brand,
+  .zg-nav-link,
+  .zg-btn--tertiary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .zg-btn--tertiary {
+    justify-content: center;
+  }
+
+  .zg-file-input {
+    min-height: 44px;
+  }
+
+  .zg-dialog .zg-checkbox {
+    min-height: 44px;
+  }
+}
+
+/* A long filename breaks inside its own box instead of painting over the size
+   and date beside it; below 768px it takes a line of its own (#47, RSP-03). */
+.zg-attachment-name {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767.98px) {
+  .zg-attachment-row {
+    flex-wrap: wrap;
+  }
+
+  .zg-attachment-name {
+    flex-basis: 100%;
+  }
+}
