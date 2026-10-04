@@ -3,8 +3,27 @@ import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import type { CurrentUser } from "../../src/lab-03/auth-api.js";
-import { ADMINISTRATOR, IT_STAFF, REQUESTER, mockRequesterScreens, mockStartupSession, renderApp } from "./helpers.js";
-import { TICKET_ID, entry, fakeApi, staffRoutes, staffTicket } from "./ticket-fixtures.js";
+import {
+  ADMINISTRATOR,
+  IT_STAFF,
+  REQUESTER,
+  mockRequesterScreens,
+  mockStartupSession,
+  renderApp,
+  ticketRow,
+} from "./helpers.js";
+import {
+  ALL_STATUSES,
+  STATUS_TEXT,
+  TICKET_ID,
+  entry,
+  fakeApi,
+  queueItem,
+  queuePage,
+  queueRoutes,
+  staffRoutes,
+  staffTicket,
+} from "./ticket-fixtures.js";
 
 // Lab 3 UI style assertions -- docs/lab-03/tests.md section 2.11.
 //
@@ -30,6 +49,90 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+const kebab = (value: string) => value.toLowerCase().replace(/_/g, "-");
+
+describe("STY-01 (AC-65) - status badges", () => {
+  // ui-spec 7.1: background, text, and border tokens per status.
+  const TOKENS: Record<string, [string, string, string | null]> = {
+    NEW: ["--zg-pale", "--zg-secondary", null],
+    OPEN: ["--zg-surface", "--zg-secondary", "--zg-secondary"],
+    IN_PROGRESS: ["--zg-secondary", "--zg-surface", null],
+    WAITING_FOR_REQUESTER: ["--zg-warning-bg", "--zg-warning", null],
+    RESOLVED: ["--zg-primary", "--zg-surface", null],
+    CLOSED: ["--zg-disabled-bg", "--zg-text-muted", null],
+    REOPENED: ["--zg-pale", "--zg-primary", "--zg-primary"],
+    CANCELLED: ["--zg-disabled-bg", "--zg-text-muted", "--zg-border"],
+  };
+
+  it("renders all eight statuses in the queue with their display text and class", async () => {
+    const items = ALL_STATUSES.map((status, i) => queueItem(`TKT-2026-0010${i}`, { currentStatus: status }));
+    fakeApi(queueRoutes(queuePage(items)));
+    mockStartupSession(IT_STAFF);
+    renderApp("/staff/queue");
+
+    for (const [i, status] of ALL_STATUSES.entries()) {
+      const row = await screen.findByTestId(`queue-row-TKT-2026-0010${i}`);
+      const badge = within(row).getByTestId("badge-status");
+      expect(badge, status).toHaveTextContent(new RegExp(`^${STATUS_TEXT[status]}$`));
+      expect(badge, status).toHaveAttribute("data-status", status);
+      expect(badge, status).toHaveClass(`zg-badge--status-${kebab(status)}`);
+    }
+  });
+
+  it("renders each status's display text in My Tickets, not a fixed New", async () => {
+    mockRequesterScreens(
+      ALL_STATUSES.map((status, i) => ({ ...ticketRow(`TKT-2026-0020${i}`, `Ticket ${i}`), currentStatus: status })),
+    );
+    mockStartupSession(REQUESTER);
+    renderApp("/tickets");
+
+    for (const [i, status] of ALL_STATUSES.entries()) {
+      const row = await screen.findByTestId(`ticket-row-TKT-2026-0020${i}`);
+      const badge = within(row).getByTestId("badge-status");
+      expect(badge, status).toHaveTextContent(new RegExp(`^${STATUS_TEXT[status]}$`));
+      expect(badge, status).toHaveClass(`zg-badge--status-${kebab(status)}`);
+    }
+  });
+
+  it("colours each status with the ui-spec 7.1 tokens", () => {
+    const css = readFileSync(STYLESHEET, "utf8");
+    for (const [status, [background, text, border]] of Object.entries(TOKENS)) {
+      const body = ruleBody(css, new RegExp(`\\.zg-badge--status-${kebab(status)}(?![\\w-])`));
+      expect(body, status).toMatch(new RegExp(`background:\\s*var\\(${background}\\)`));
+      expect(body, status).toMatch(new RegExp(`color:\\s*var\\(${text}\\)`));
+      if (border === null) expect(body, status).not.toMatch(/border:/);
+      else expect(body, status).toMatch(new RegExp(`border:\\s*1px solid var\\(${border}\\)`));
+    }
+  });
+});
+
+describe("STY-02 (AC-65) - IT Priority badge", () => {
+  it("renders each IT Priority in the queue as text plus a distinct glyph", async () => {
+    const priorities: [string, string][] = [
+      ["LOW", "Low"],
+      ["MEDIUM", "Medium"],
+      ["HIGH", "High"],
+      ["URGENT", "Urgent"],
+    ];
+    const items = priorities.map(([itPriority], i) => queueItem(`TKT-2026-0030${i}`, { itPriority }));
+    fakeApi(queueRoutes(queuePage(items)));
+    mockStartupSession(IT_STAFF);
+    renderApp("/staff/queue");
+
+    const glyphs = new Set<string>();
+    for (const [i, [priority, text]] of priorities.entries()) {
+      const row = await screen.findByTestId(`queue-row-TKT-2026-0030${i}`);
+      const badge = within(row).getByTestId("badge-it-priority");
+      const [glyph, ...rest] = (badge.textContent ?? "").trim().split(/\s+/);
+      expect(rest.join(" "), priority).toBe(text);
+      expect(glyph, `${priority} needs a leading glyph`).toMatch(/^[○◔◑●]$/);
+      expect(badge, priority).toHaveClass(`zg-badge--priority-${priority.toLowerCase()}`);
+      glyphs.add(glyph);
+    }
+    expect(glyphs.size).toBe(4);
+  });
 });
 
 describe("STY-03 (AC-65) - role badge", () => {

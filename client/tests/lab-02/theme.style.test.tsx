@@ -158,7 +158,11 @@ describe("STY-05 (AC-15) - busy state", () => {
 });
 
 // ---------------------------------------------------------------------------
-// STY-03, STY-04, STY-06, STY-07, STY-08, STY-09, STY-10, STY-11, STY-12
+// STY-03, STY-04, STY-06, STY-07, STY-08, STY-10, STY-11, STY-12
+//
+// STY-09 (the status badge renders "New") was superseded by Lab 3 STY-01,
+// which covers all eight statuses, and removed in #43 (docs/lab-03/tests.md
+// section 4.1).
 //
 // jsdom loads no stylesheet, so getComputedStyle returns nothing a CSS file
 // set. Assertions about appearance therefore target the attribute and class
@@ -258,7 +262,7 @@ describe("STY-07 (ui-spec 3) - every control carries visible text", () => {
   });
 });
 
-describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
+describe("STY-08 (AC-43) - badges convey value by text", () => {
   const ROW = {
     id: "t1",
     ticketNumber: "TKT-2026-00042",
@@ -313,12 +317,6 @@ describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
 
     // Four distinct glyphs: one repeated everywhere would carry no severity.
     expect(glyphs.size).toBe(4);
-  });
-
-  it("renders the status as the word New", async () => {
-    renderList("HIGH");
-    const badge = await screen.findByTestId("badge-status");
-    expect(badge).toHaveTextContent(/^New$/);
   });
 });
 
