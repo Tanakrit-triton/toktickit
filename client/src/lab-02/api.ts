@@ -4,34 +4,17 @@
 // safe message on failure and never surface the thrown error: BR-28 forbids
 // leaking a status code, stack trace, or path into the UI, and AC-05 is
 // asserted by UI-04.
+//
+// Since Lab 3 #38 every call goes through apiFetch (src/lab-03/api-client.ts):
+// relative /api/v1 URLs through the Vite proxy, the session cookie as identity,
+// and the CSRF token on state changes. The X-Dev-Requester-Id header is gone.
+// The leading requesterId parameters are kept so the callers and the Lab 2
+// tests are unchanged; the server takes identity from the session and they
+// are no longer sent (BR-03).
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-
-export interface DevRequester {
-  id: string;
-  fullName: string;
-  email: string;
-}
+import { API_BASE, apiFetch } from "../lab-03/api-client.js";
 
 type ListResponse<T> = { data: T[] };
-
-/**
- * GET /api/v1/dev-requesters
- *
- * Unscoped: this populates the selector before any Requester exists in
- * context. Only active Requesters are returned, filtered server-side (BR-10),
- * so the inactive seed fixture never reaches the client at all.
- */
-export async function fetchDevRequesters(): Promise<DevRequester[]> {
-  const response = await fetch(`${API_BASE}/api/v1/dev-requesters`);
-
-  if (!response.ok) {
-    throw new Error(`dev-requesters request failed with ${response.status}`);
-  }
-
-  const body = (await response.json()) as ListResponse<DevRequester>;
-  return body.data;
-}
 
 export interface ReferenceItem {
   id: number;
@@ -75,7 +58,7 @@ export class TicketValidationError extends Error {
 
 /** GET /api/v1/categories -- active Categories (FR-06). Unscoped. */
 export async function fetchCategories(): Promise<ReferenceItem[]> {
-  const response = await fetch(`${API_BASE}/api/v1/categories`);
+  const response = await apiFetch(`/categories`);
   if (!response.ok) {
     throw new Error(`categories request failed with ${response.status}`);
   }
@@ -84,7 +67,7 @@ export async function fetchCategories(): Promise<ReferenceItem[]> {
 
 /** GET /api/v1/related-systems -- active Related Systems (FR-07). Unscoped. */
 export async function fetchRelatedSystems(): Promise<ReferenceItem[]> {
-  const response = await fetch(`${API_BASE}/api/v1/related-systems`);
+  const response = await apiFetch(`/related-systems`);
   if (!response.ok) {
     throw new Error(`related-systems request failed with ${response.status}`);
   }
@@ -94,18 +77,17 @@ export async function fetchRelatedSystems(): Promise<ReferenceItem[]> {
 /**
  * POST /api/v1/tickets -- Scoped (DEC-02).
  *
- * requesterId is deliberately not sent: ownership is taken from the header on
+ * requesterId is deliberately not sent: ownership is taken from the session on
  * the server and a body value would be ignored (BR-08).
  */
 export async function createTicket(
   requesterId: string,
   input: CreateTicketInput,
 ): Promise<Ticket> {
-  const response = await fetch(`${API_BASE}/api/v1/tickets`, {
+  const response = await apiFetch(`/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Dev-Requester-Id": requesterId,
     },
     body: JSON.stringify(input),
   });
@@ -172,9 +154,7 @@ export async function fetchTickets(
     if (value !== undefined && value !== "") search.set(key, String(value));
   }
 
-  const response = await fetch(`${API_BASE}/api/v1/tickets?${search.toString()}`, {
-    headers: { "X-Dev-Requester-Id": requesterId },
-  });
+  const response = await apiFetch(`/tickets?${search.toString()}`);
 
   if (!response.ok) {
     throw new Error(`ticket list failed with ${response.status}`);
@@ -201,9 +181,7 @@ export interface TicketDetail extends Ticket {
 
 /** GET /api/v1/tickets/{id} -- Scoped. A foreign ticket is refused as a miss. */
 export async function fetchTicket(requesterId: string, ticketId: string): Promise<TicketDetail> {
-  const response = await fetch(`${API_BASE}/api/v1/tickets/${ticketId}`, {
-    headers: { "X-Dev-Requester-Id": requesterId },
-  });
+  const response = await apiFetch(`/tickets/${ticketId}`);
   if (!response.ok) {
     throw new Error(`ticket request failed with ${response.status}`);
   }
@@ -233,9 +211,8 @@ export async function uploadAttachment(
   const form = new FormData();
   form.append("file", file);
 
-  const response = await fetch(`${API_BASE}/api/v1/tickets/${ticketId}/attachments`, {
+  const response = await apiFetch(`/tickets/${ticketId}/attachments`, {
     method: "POST",
-    headers: { "X-Dev-Requester-Id": requesterId },
     body: form,
   });
 
@@ -259,11 +236,10 @@ export async function removeAttachment(
   attachmentId: string,
   removalReason: string,
 ): Promise<Attachment> {
-  const response = await fetch(`${API_BASE}/api/v1/attachments/${attachmentId}`, {
+  const response = await apiFetch(`/attachments/${attachmentId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "X-Dev-Requester-Id": requesterId,
     },
     body: JSON.stringify({ removalReason }),
   });
@@ -275,5 +251,5 @@ export async function removeAttachment(
 
 /** The download is a plain navigation so the browser handles the save dialogue. */
 export function attachmentDownloadUrl(attachmentId: string): string {
-  return `${API_BASE}/api/v1/attachments/${attachmentId}/download`;
+  return `${API_BASE}/attachments/${attachmentId}/download`;
 }

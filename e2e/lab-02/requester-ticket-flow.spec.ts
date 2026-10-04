@@ -3,7 +3,8 @@ import {
   BASE,
   OTHER_REQUESTER,
   REQUESTER,
-  enterAs,
+  signInAs,
+  submitLogin,
   expectApiClosed,
   expectApiOpen,
   startApi,
@@ -13,6 +14,10 @@ import {
 } from "./helpers.js";
 
 // E2E-01 .. E2E-05 from docs/lab-02/tests.md section 2.6.
+//
+// Since Lab 3 #38 they sign in (docs/lab-03/tests.md REG-03). E2E-01 to E2E-03
+// are rewritten in place: selecting a Requester becomes signing in, and the
+// Requester switch becomes logging out as A and signing in as B.
 //
 // The full stack through a real browser against a real database. These are the
 // flows a Requester actually performs, so they are written as journeys rather
@@ -35,8 +40,8 @@ test.beforeEach(({ }, testInfo) => {
 let createdTicketNumber = "";
 let createdTicketUrl = "";
 
-test("E2E-01: select a Requester, create a Ticket, and find it in My Tickets", async ({ page }) => {
-  await enterAs(page, REQUESTER, "/tickets/new");
+test("E2E-01: sign in as a Requester, create a Ticket, and find it in My Tickets", async ({ page }) => {
+  await signInAs(page, REQUESTER, "/tickets/new");
 
   const summary = `End to end creation ${Date.now()}`;
   await fillTicketForm(page, summary);
@@ -63,24 +68,18 @@ test("E2E-01: select a Requester, create a Ticket, and find it in My Tickets", a
   await expect(row).toContainText(summary);
 });
 
-test("E2E-02: switching Requester replaces the visible list", async ({ page }) => {
-  await enterAs(page, REQUESTER);
+test("E2E-02: logging out as A and signing in as B replaces the visible list", async ({ page }) => {
+  await signInAs(page, REQUESTER);
   await page.getByTestId("field-search").fill(createdTicketNumber);
   await page.waitForTimeout(900);
   await expect(page.getByTestId(`ticket-row-${createdTicketNumber}`)).toBeVisible();
 
-  await page.getByTestId("btn-change-requester").click();
-  await page.getByTestId("field-dev-requester").waitFor({ state: "visible" });
-
-  const value = await page.evaluate((who) => {
-    const sel = document.querySelector("[data-testid='field-dev-requester']") as HTMLSelectElement;
-    return Array.from(sel.options).find((o) => o.textContent!.includes(who))!.value;
-  }, OTHER_REQUESTER);
-  await page.getByTestId("field-dev-requester").selectOption(value);
-  await page.getByTestId("btn-continue").click();
+  await page.getByTestId("btn-logout").click();
+  await page.getByTestId("login-screen").waitFor({ state: "visible" });
+  await submitLogin(page, OTHER_REQUESTER);
 
   await page.getByTestId("my-tickets-screen").waitFor({ state: "visible" });
-  await expect(page.getByTestId("shell-requester-name")).toContainText(OTHER_REQUESTER);
+  await expect(page.getByTestId("shell-user-name")).toContainText(OTHER_REQUESTER);
   // Requester A's ticket is gone, not merely re-sorted (AC-04, AC-18).
   await expect(page.getByTestId(`ticket-row-${createdTicketNumber}`)).toHaveCount(0);
 });
@@ -88,7 +87,7 @@ test("E2E-02: switching Requester replaces the visible list", async ({ page }) =
 test("E2E-03: another Requester's ticket URL is refused", async ({ page }) => {
   expect(createdTicketUrl, "E2E-01 must have produced a ticket URL").not.toBe("");
 
-  await enterAs(page, OTHER_REQUESTER);
+  await signInAs(page, OTHER_REQUESTER);
   await page.goto(createdTicketUrl);
 
   // Typing the URL is the attack this defends against, so it is typed rather
@@ -101,7 +100,7 @@ test("E2E-03: another Requester's ticket URL is refused", async ({ page }) => {
 });
 
 test("E2E-04: attachment lifecycle from Ticket Detail", async ({ page }) => {
-  await enterAs(page, REQUESTER);
+  await signInAs(page, REQUESTER);
   await page.goto(createdTicketUrl);
   await page.getByTestId("ticket-detail-screen").waitFor({ state: "visible" });
 
@@ -116,14 +115,10 @@ test("E2E-04: attachment lifecycle from Ticket Detail", async ({ page }) => {
   await painted(page, row, "uploaded attachment");
   await expect(row).toContainText("e2e-evidence.png");
 
-  // Download is a real request, not a rendered link that might 404.
+  // Download is a real request, not a rendered link that might 404. It runs
+  // in the page's context, so the session cookie goes with it.
   const downloadUrl = await row.locator('[data-testid="btn-download"]').getAttribute("href");
-  const requesterId = await page.evaluate(() =>
-    JSON.parse(window.sessionStorage.getItem("toktickit.selectedRequester")!).id,
-  );
-  const download = await page.request.get(downloadUrl!, {
-    headers: { "X-Dev-Requester-Id": requesterId },
-  });
+  const download = await page.request.get(downloadUrl!);
   expect(download.status()).toBe(200);
   expect(download.headers()["content-disposition"]).toContain("e2e-evidence.png");
 
@@ -139,14 +134,12 @@ test("E2E-04: attachment lifecycle from Ticket Detail", async ({ page }) => {
   await expect(removed.first().locator('[data-testid="btn-download"]')).toHaveCount(0);
 
   // The binary is gone, so even the direct URL cannot serve it (AC-36, DEC-05).
-  const afterRemoval = await page.request.get(downloadUrl!, {
-    headers: { "X-Dev-Requester-Id": requesterId },
-  });
+  const afterRemoval = await page.request.get(downloadUrl!);
   expect(afterRemoval.status()).toBe(410);
 });
 
 test("E2E-05: submission with the backend stopped keeps every entered value", async ({ page }) => {
-  await enterAs(page, REQUESTER, "/tickets/new");
+  await signInAs(page, REQUESTER, "/tickets/new");
 
   const summary = `Backend down ${Date.now()}`;
   const description = "Typed before the backend was stopped, and it must survive the failure.";

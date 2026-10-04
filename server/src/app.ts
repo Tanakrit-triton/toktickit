@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express";
-import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 import { ticketsRouter } from "./lab-02/tickets.routes.js";
@@ -9,12 +8,16 @@ import { adminUsersRouter } from "./lab-03/admin-users.routes.js";
 import { authRouter } from "./lab-03/auth.routes.js";
 import { requireRole } from "./lab-03/require-role.js";
 import { requireSession } from "./lab-03/require-session.js";
+import { staffQueueRouter } from "./lab-03/staff-queue.routes.js";
+import { staffTicketOpsRouter } from "./lab-03/staff-ticket-ops.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
 export const app = express();
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+// No cors(): the browser reaches the API same-origin through the Vite proxy
+// in development, so the API sends no CORS headers (docs/lab-03/api-spec.md
+// section 1.3, DEC-04).
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
@@ -63,6 +66,9 @@ app.use("/api/v1", authRouter);
 // so they must stay ahead of the not-found fallback below.
 app.use("/api/v1/staff", requireSession, requireRole("IT_STAFF", "ADMINISTRATOR"));
 app.use("/api/v1/admin", requireSession, requireRole("ADMINISTRATOR"), adminUsersRouter);
+
+app.use("/api/v1/staff", staffQueueRouter);
+app.use("/api/v1/staff", staffTicketOpsRouter); // #40, api-spec.md sections 5.2 to 5.7
 
 // Any other /api/v1 path, including the removed GET /dev-requesters
 // (api-spec.md section 3). The message differs from the ownership refusal

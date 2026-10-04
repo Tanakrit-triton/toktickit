@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { CreateTicket } from "../../src/lab-02/screens/CreateTicket.js";
 import * as api from "../../src/lab-02/api.js";
 
@@ -28,19 +29,19 @@ const SYSTEMS = [{ id: 5, name: "Corporate Laptop" }];
 const REQUIRED_FIELDS = ["category", "related-system", "priority", "summary", "description"];
 
 function renderCreateTicket() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={["/tickets/new"]}>
         <CreateTicket />
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem("toktickit.selectedRequester", JSON.stringify(ALICE));
   vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
   vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
 });
@@ -220,7 +221,11 @@ describe("STY-04 (ui-spec 2) - disabled versus read-only", () => {
     expect(css).toMatch(/\.zg-field:disabled/);
     expect(css).toMatch(/--zg-disabled-bg/);
 
-    release({} as api.Ticket);
+    // Settled inside act(): the screen's post-submit state updates then land
+    // within the test instead of after it.
+    await act(async () => {
+      release({} as api.Ticket);
+    });
   });
 });
 
@@ -267,16 +272,17 @@ describe("STY-08, STY-09 (AC-43) - badges convey value by text", () => {
   };
 
   function renderList(priority: string) {
+    signInAs(ALICE);
     vi.spyOn(api, "fetchTickets").mockResolvedValue({
       data: [{ ...ROW, requestedPriority: priority }],
       meta: { page: 1, pageSize: 10, totalItems: 1, totalPages: 1 },
     });
     return render(
-      <RequesterProvider>
+      <AuthProvider>
         <MemoryRouter initialEntries={["/tickets"]}>
           <MyTickets />
         </MemoryRouter>
-      </RequesterProvider>,
+      </AuthProvider>,
     );
   }
 

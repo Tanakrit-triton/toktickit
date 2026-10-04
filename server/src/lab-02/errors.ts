@@ -29,6 +29,9 @@ export type ErrorCode =
   | "CSRF_INVALID"
   | "PASSWORD_CHANGE_REQUIRED"
   | "TICKET_STATE_CONFLICT"
+  | "TICKET_ALREADY_CLAIMED"
+  | "INVALID_STATUS_TRANSITION"
+  | "TICKET_OWNER_REQUIRED"
   | "TOO_MANY_ATTEMPTS";
 
 /** Flat field-to-message map, so the UI can place each message beside its own field (FR-11). */

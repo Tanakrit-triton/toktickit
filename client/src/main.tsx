@@ -3,19 +3,20 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./lab-02/styles/zen-green.css";
-import { RequesterProvider } from "./lab-02/RequesterContext.js";
-import { AppRoutes } from "./lab-02/AppRoutes.js";
+import { AuthProvider } from "./lab-03/AuthContext.js";
+import { AppRoutes } from "./lab-03/AppRoutes.js";
 
-// RequesterProvider sits ABOVE the router so the selected Requester survives
-// navigation. AppShell wraps only the Lab 2 routes; /lab-01 renders outside it
-// so the Lab 1 slice is unchanged (A-04).
+// AuthProvider sits ABOVE the router so the signed-in user survives
+// navigation, as the Lab 2 RequesterProvider did. AppShell wraps only the
+// authenticated routes; /lab-01 renders outside it so the Lab 1 slice is
+// unchanged (A-04).
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RequesterProvider>
+    <AuthProvider>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
-    </RequesterProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
