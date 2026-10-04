@@ -1084,8 +1084,72 @@ Screenshots are written to `artifacts/lab-03/screenshots/` by `e2e/lab-03/respon
 
 ## 8. Final results
 
-To be completed by #48 from `main`, in the L2 §6 format: suite, command, tests,
-passed, failed, and skipped, with every skip declared and justified.
+Run on 4 October 2026 on `feature/lab3-16-release-docs-restore`: `lab3-staging`
+at `82b9293`, with every Lab 3 Issue (#33 to #47) merged, plus the restored #48
+documentation. This is the release candidate. It was run before the release
+merge to `main`. The application code is the same as at `5d0b1ec`, where the
+first #48 run gave the same totals. The database was migrated and seeded from
+the Section 7 commands, with the API on :3000 and the client on :5173.
+
+| Suite | Command | Tests | Passed | Failed | Skipped |
+|---|---|---|---|---|---|
+| Unit, migration, seed, API (Labs 1 to 3) | `cd server && npm test` | 445 | 445 | 0 | 0 |
+| UI component and style (Labs 1 to 3) | `cd client && npm test` | 287 | 287 | 0 | 0 |
+| Responsive and E2E (Labs 2 and 3) | `npm run test:e2e` | 65 | 49 | 0 | 16 |
+| **Total** | | **797** | **781** | **0** | **16** |
+
+By lab:
+
+| Suite | Lab 1 | Lab 2 | Lab 3 |
+|---|---|---|---|
+| Server | 2 | 83 | 360 |
+| Client | 3 | 52 | 232 |
+| E2E | — | 23 passed, 16 skipped | 26 |
+
+The complete output of each run is saved in `artifacts/lab-03/test-output/`
+as `server.txt`, `client.txt`, and `e2e.txt`.
+
+**All 16 skips are the Lab 2 viewport guards (L2 §6), not failures and not
+disabled tests.** No Lab 3 test is skipped. The Lab 3 specs that run at one
+width are excluded from the other projects in `playwright.config.ts`, so they
+are not reported as skipped.
+
+| Skipped | Why |
+|---|---|
+| L2 E2E-01 to E2E-05 at tablet and mobile (10) | The journeys run at one viewport (L2 §6). |
+| L2 RSP-06 at desktop and tablet (2) | The 44px touch minimum is a mobile requirement. |
+| L2 RSP-07, two specs, at tablet and mobile (4) | `ui-spec.md` §10 lists these screenshot paths at desktop only. |
+
+Lab 2 recorded 18 skips. The difference is the RSP-07 "requester selection
+states" case, superseded in Section 4.1 (#38), which was skipped at tablet and
+mobile.
+
+Verifiable: `grep -rn "test.skip\|\.only\|xit(\|xdescribe(" server/tests client/tests e2e`
+returns only the four conditional viewport guards behind the skips above.
+
+**An earlier E2E run failed.** Of three E2E runs on the same application code,
+one failed and two passed:
+
+| Run | Result |
+|---|---|
+| First #48 run, at `5d0b1ec` | 49 passed, 16 skipped, 0 failed |
+| First run on this branch | **1 failed** (L3 RSP-02), 39 passed, 16 skipped, 9 did not run |
+| Rerun on this branch, on a freshly seeded database | 49 passed, 16 skipped, 0 failed. These are the figures above, and `artifacts/lab-03/test-output/e2e.txt` is this run's output. |
+
+**The failure was a transient queue request failure in L3 RSP-02 (tablet).**
+`openQueue` timed out after 20 s waiting for a queue row. The page showed the
+queue's "Something went wrong" state, which `StaffTicketQueue.tsx` sets when its
+one queue request fails with anything other than a 403. A 401 would have
+redirected to sign-in instead. Sign-in had succeeded, RSP-01 had just loaded the
+same queue at desktop width, and the staff-flow tests after the failure passed.
+The other 9 tests in the serial file did not run.
+
+**The cause is not established.** *Hypothesis:* the API was briefly unavailable
+or restarting. At that point it was the copy that L2 E2E-05 restarts with
+`npm run dev` (`tsx watch`) and its output discarded, so no server log exists.
+An intermittent 500 from the queue endpoint is not ruled out. Until the cause is
+found, RSP-02 is a possible flaky test, not a closed one. The investigation is
+post-Lab-3 work, tracked as Issue #66.
 
 **Definition of Done gate:**
 - every planned test above is implemented and passing;
