@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import * as api from "../api.js";
 import type { ReferenceItem, TicketListPage, TicketListParams } from "../api.js";
-import { useRequester } from "../RequesterContext.js";
+import { useAuth } from "../../lab-03/AuthContext.js";
 import { MOBILE_QUERY, useMediaQuery } from "../useMediaQuery.js";
 
 // My Tickets -- ui-spec.md section 5.4.
@@ -97,7 +97,8 @@ function toParams(f: Filters): TicketListParams {
 }
 
 export function MyTickets() {
-  const { requester } = useRequester();
+  // The signed-in Requester (Lab 3 #38); the route guard admits no other role.
+  const { user: requester } = useAuth();
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const [filters, setFilters] = useState<Filters>(DEFAULTS);
   const [debouncedQ, setDebouncedQ] = useState("");

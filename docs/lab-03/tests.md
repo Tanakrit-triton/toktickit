@@ -119,8 +119,8 @@ The schema is dropped afterwards.
 | UT-04 | Unit | AC-10, BR-11 | Password policy | 11 code points rejected, 12 accepted, 128 accepted, 129 rejected. An emoji counts as one code point. Leading and trailing spaces are kept, not trimmed. Equal to current is rejected; a mismatched confirmation is rejected. | `password-policy.unit.test.ts` | #36 | Pass |
 | UT-05 | Unit | AC-07, BR-09 | Login throttle | Five failures allowed, the sixth blocked for the same address and email. A different email from the same address is not blocked. A success clears the counter. The fake-clock window expires at 15 min. `resetLoginThrottle()` clears all state. | `login-throttle.unit.test.ts` | #36 | Pass |
 | UT-06 | Unit | AC-02, AC-09, BR-21 | Session middleware gate | Missing, expired, or revoked session → 401. A `mustChangePassword` session → 403 `PASSWORD_CHANGE_REQUIRED`, except on the three exempt routes. | `require-session.unit.test.ts` | #36 | Pass |
-| UT-07 | Unit | AC-32 | Queue query parser | Page size only 10/20/50, default 20. An unknown parameter, a bad `owner`, a bad `status`, and `q` over 150 characters are each rejected. | `queue-query.unit.test.ts` | #39 | Planned |
-| UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Planned |
+| UT-07 | Unit | AC-32 | Queue query parser | Page size only 10/20/50, default 20. An unknown parameter, a bad `owner`, a bad `status`, and `q` over 150 characters are each rejected. | `queue-query.unit.test.ts` | #39 | Pass |
+| UT-08 | Unit | AC-31 | Queue comparators | IT Priority orders LOW < MEDIUM < HIGH < URGENT. Status orders in lifecycle order. The default key is `itPriority desc, createdAt asc, id asc`. | `queue-query.unit.test.ts` | #39 | Pass |
 | UT-09 | Unit | AC-39, BR-35 | Transition matrix, exhaustive | All 64 (from, to) pairs: exactly the 18 matrix rows are permitted, every other pair is refused, and none is permitted for the Requester role | `transitions.unit.test.ts` | #40 | Pass |
 | UT-10 | Unit | AC-40, AC-43, BR-36 | Status guards | The owner requirement per target status. The claimable, assignable, and IT-Priority-editable status sets match `specification.md` §5.6. | `transitions.unit.test.ts` | #40 | Pass |
 | UT-11 | Unit | AC-48, BR-47 | Comment and note body | Empty and whitespace-only rejected; 1 accepted; 2000 accepted; 2001 rejected; length measured after trimming | `comment-body.unit.test.ts` | #41 | Planned |
@@ -183,17 +183,17 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| QUE-01 | API | AC-28 | Queue contents | IT Staff and Administrator see tickets from every Requester. Items carry the `api-spec.md` §5.1 fields and no `description`. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-02 | API | AC-16, AC-28 | Requester refused | A Requester gets 403 on `GET /staff/tickets` with any parameters | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-03 | API | AC-29 | Search | `q` matches a partial Ticket Number, a summary word, and a Requester name, case-insensitively, and nothing else | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-04 | API | AC-30 | Status filter | Only tickets in the given status | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-05 | API | AC-30 | IT Priority and category filters | Only tickets matching each filter, and both together | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-06 | API | AC-30 | Owner filter | `me` returns the caller's tickets, `unassigned` returns those with a null owner, `{uuid}` returns that user's tickets. A Requester's UUID → 400. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-07 | API | AC-31 | Default order | Without `sortBy`: URGENT before HIGH, and within a priority the oldest first | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-08 | API | AC-31 | Explicit sorts | `itPriority` asc and desc by severity, `status` in lifecycle order, `updatedAt` desc, `ticketNumber` asc | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-09 | API | AC-32 | Pagination | Default page size 20. Page 2 returns the next set with correct `meta`. | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-10 | API | AC-32 | Invalid parameters | `pageSize=25`, `foo=1`, `owner=someone`, and `status=ASSIGNED` each → 400 | `staff-queue.api.test.ts` | #39 | Planned |
-| QUE-11 | API | AC-32 | Page past the end | Empty `data` with correct `meta` | `staff-queue.api.test.ts` | #39 | Planned |
+| QUE-01 | API | AC-28 | Queue contents | IT Staff and Administrator see tickets from every Requester. Items carry the `api-spec.md` §5.1 fields and no `description`. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-02 | API | AC-16, AC-28 | Requester refused | A Requester gets 403 on `GET /staff/tickets` with any parameters | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-03 | API | AC-29 | Search | `q` matches a partial Ticket Number, a summary word, and a Requester name, case-insensitively, and nothing else | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-04 | API | AC-30 | Status filter | Only tickets in the given status | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-05 | API | AC-30 | IT Priority and category filters | Only tickets matching each filter, and both together | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-06 | API | AC-30 | Owner filter | `me` returns the caller's tickets, `unassigned` returns those with a null owner, `{uuid}` returns that user's tickets. A Requester's UUID → 400. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-07 | API | AC-31 | Default order | Without `sortBy`: URGENT before HIGH, and within a priority the oldest first | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-08 | API | AC-31 | Explicit sorts | `itPriority` asc and desc by severity, `status` in lifecycle order, `updatedAt` desc, `ticketNumber` asc | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-09 | API | AC-32 | Pagination | Default page size 20. Page 2 returns the next set with correct `meta`. | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-10 | API | AC-32 | Invalid parameters | `pageSize=25`, `foo=1`, `owner=someone`, and `status=ASSIGNED` each → 400 | `staff-queue.api.test.ts` | #39 | Pass |
+| QUE-11 | API | AC-32 | Page past the end | Empty `data` with correct `meta` | `staff-queue.api.test.ts` | #39 | Pass |
 
 ### 2.6 API — Ticket operations — `server/tests/lab-03/staff-ticket-detail.api.test.ts`
 
@@ -259,34 +259,34 @@ The schema is dropped afterwards.
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
 | REG-01 | Regression | AC-21, BR-70 | Lab 2 server suite under sessions | Every kept test in `server/tests/lab-02/` passes using `loginAs()` from `server/tests/helpers/session.ts` instead of the header. Superseded tests are handled per Section 4. | `server/tests/lab-02/*` | #37 | Pass |
-| REG-02 | Regression | AC-21, BR-70 | Lab 2 client suite under auth context | Every kept test in `client/tests/lab-02/` passes with the auth provider in place of `RequesterProvider` | `client/tests/lab-02/*` | #38 | Planned |
-| REG-03 | Regression | AC-21, BR-70 | Lab 2 E2E suite under login | `e2e/lab-02/` passes: L2 E2E-01 to E2E-03 are rewritten to sign in, and E2E-04, E2E-05, and the responsive specs use the login helper | `e2e/lab-02/*` | #38 | Planned |
-| REG-04 | Regression | AC-15, A-04 | Lab 1 suites unchanged | `server/tests/lab-01/` and `client/tests/lab-01/` pass with no edits, through the Vite proxy for the client | `server/tests/lab-01/*`, `client/tests/lab-01/*` | #38 | Planned |
+| REG-02 | Regression | AC-21, BR-70 | Lab 2 client suite under auth context | Every kept test in `client/tests/lab-02/` passes with the auth provider in place of `RequesterProvider` | `client/tests/lab-02/*` | #38 | Pass |
+| REG-03 | Regression | AC-21, BR-70 | Lab 2 E2E suite under login | `e2e/lab-02/` passes: L2 E2E-01 to E2E-03 are rewritten to sign in, and E2E-04, E2E-05, and the responsive specs use the login helper | `e2e/lab-02/*` | #38 | Pass |
+| REG-04 | Regression | AC-15, A-04 | Lab 1 suites unchanged | `server/tests/lab-01/` and `client/tests/lab-01/` pass with no edits, through the Vite proxy for the client | `server/tests/lab-01/*`, `client/tests/lab-01/*` | #38 | Pass |
 
 ### 2.10 UI component — `client/tests/lab-03/`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| UI-01 | UI | AC-14 | Login validation | Labelled fields. An empty submit shows a message below each empty field and sends no request. | `Login.test.tsx` | #38 | Planned |
-| UI-02 | UI | AC-14 | Login busy | While in flight, Sign in is busy and disabled and the fields are disabled | `Login.test.tsx` | #38 | Planned |
-| UI-03 | UI | AC-05 | Invalid credentials | Generic callout. The password is cleared, the email kept, focus moves to Password, and no field is marked invalid. | `Login.test.tsx` | #38 | Planned |
-| UI-04 | UI | AC-06 | Inactive account | The inactive callout text is shown | `Login.test.tsx` | #38 | Planned |
-| UI-05 | UI | AC-07 | Throttled | The try-later callout is shown | `Login.test.tsx` | #38 | Planned |
-| UI-06 | UI | AC-14 | Login failure | On a network failure, a safe callout with no status code. Fields kept. | `Login.test.tsx` | #38 | Planned |
-| UI-07 | UI | AC-01, AC-02 | Login outcome | Success navigates to the role's landing route. `mustChangePassword` navigates to Change Password in forced mode. | `Login.test.tsx` | #38 | Planned |
-| UI-08 | UI | AC-10 | Client password rules | 11 code points, a mismatch, and equal to current are each blocked with a message below the field and no request | `ChangePassword.test.tsx` | #38 | Planned |
-| UI-09 | UI | AC-10 | Server field errors | A 422 `details.currentPassword` renders below Current password | `ChangePassword.test.tsx` | #38 | Planned |
-| UI-10 | UI | AC-02 | Change success | The new `csrfToken` is stored, forced mode ends, and the app navigates to landing with the "Password changed." callout | `ChangePassword.test.tsx` | #38 | Planned |
-| UI-11 | UI | AC-02 | Forced mode | No navigation and no Change password link. Visiting `/tickets` renders Change Password. | `ChangePassword.test.tsx` | #38 | Planned |
-| UI-12 | UI | AC-18 | Shell identity | The user's name, role badge, Change password link, and Log out are present | `AppShell.test.tsx` | #38 | Planned |
-| UI-13 | UI | AC-18, FR-08 | Role navigation | Requester: My Tickets and Create Ticket only. IT Staff: Ticket Queue only. Administrator: Ticket Queue and User Management only. | `AppShell.test.tsx` | #38 | Planned |
-| UI-14 | UI | AC-21 | Selector removed | No Development Requester selector, no Change Requester action, and no development notice anywhere in the shell | `AppShell.test.tsx` | #38 | Planned |
-| UI-15 | UI | AC-08 | Logout | Log out calls the API, clears cached ticket data, and shows Login. Signing in as another user shows none of the previous user's data. | `AppShell.test.tsx` | #38 | Planned |
-| UI-16 | UI | AC-08 | Unauthenticated redirect | A protected route redirects to `/login?next=…`. `next=//evil.example` and `next=https://evil.example` are ignored after login. | `routing.test.tsx` | #38 | Planned |
-| UI-17 | UI | AC-19, AC-60 | Forbidden route | A Requester at `/staff/queue` and `/admin/users`, and IT Staff at `/admin/users`, see `state-forbidden`, and no protected API call is made | `routing.test.tsx` | #38 | Planned |
-| UI-18 | UI | AC-18 | Landing redirect | `/` goes to `/tickets` for a Requester and to `/staff/queue` for IT Staff and Administrators. `/lab-01` renders outside the shell without a session. | `routing.test.tsx` | #38 | Planned |
-| UI-19 | UI | AC-21 | Legacy state removed | A pre-existing `toktickit.selectedRequester` sessionStorage key is removed on startup | `routing.test.tsx` | #38 | Planned |
-| UI-20 | UI | AC-12, DEC-04 | API client | Requests use relative `/api/v1/...` URLs. Non-GET requests carry `X-CSRF-Token`; GET requests do not. A 401 response triggers the session-ended redirect. | `api-client.test.ts` | #38 | Planned |
+| UI-01 | UI | AC-14 | Login validation | Labelled fields. An empty submit shows a message below each empty field and sends no request. | `Login.test.tsx` | #38 | Pass |
+| UI-02 | UI | AC-14 | Login busy | While in flight, Sign in is busy and disabled and the fields are disabled | `Login.test.tsx` | #38 | Pass |
+| UI-03 | UI | AC-05 | Invalid credentials | Generic callout. The password is cleared, the email kept, focus moves to Password, and no field is marked invalid. | `Login.test.tsx` | #38 | Pass |
+| UI-04 | UI | AC-06 | Inactive account | The inactive callout text is shown | `Login.test.tsx` | #38 | Pass |
+| UI-05 | UI | AC-07 | Throttled | The try-later callout is shown | `Login.test.tsx` | #38 | Pass |
+| UI-06 | UI | AC-14 | Login failure | On a network failure, a safe callout with no status code. Fields kept. | `Login.test.tsx` | #38 | Pass |
+| UI-07 | UI | AC-01, AC-02 | Login outcome | Success navigates to the role's landing route. `mustChangePassword` navigates to Change Password in forced mode. | `Login.test.tsx` | #38 | Pass |
+| UI-08 | UI | AC-10 | Client password rules | 11 code points, a mismatch, and equal to current are each blocked with a message below the field and no request | `ChangePassword.test.tsx` | #38 | Pass |
+| UI-09 | UI | AC-10 | Server field errors | A 422 `details.currentPassword` renders below Current password | `ChangePassword.test.tsx` | #38 | Pass |
+| UI-10 | UI | AC-02 | Change success | The new `csrfToken` is stored, forced mode ends, and the app navigates to landing with the "Password changed." callout | `ChangePassword.test.tsx` | #38 | Pass |
+| UI-11 | UI | AC-02 | Forced mode | No navigation and no Change password link. Visiting `/tickets` renders Change Password. | `ChangePassword.test.tsx` | #38 | Pass |
+| UI-12 | UI | AC-18 | Shell identity | The user's name, role badge, Change password link, and Log out are present | `AppShell.test.tsx` | #38 | Pass |
+| UI-13 | UI | AC-18, FR-08 | Role navigation | Requester: My Tickets and Create Ticket only. IT Staff: Ticket Queue only. Administrator: Ticket Queue and User Management only. | `AppShell.test.tsx` | #38 | Pass |
+| UI-14 | UI | AC-21 | Selector removed | No Development Requester selector, no Change Requester action, and no development notice anywhere in the shell | `AppShell.test.tsx` | #38 | Pass |
+| UI-15 | UI | AC-08 | Logout | Log out calls the API, clears cached ticket data, and shows Login. Signing in as another user shows none of the previous user's data. | `AppShell.test.tsx` | #38 | Pass |
+| UI-16 | UI | AC-08 | Unauthenticated redirect | A protected route redirects to `/login?next=…`. `next=//evil.example` and `next=https://evil.example` are ignored after login. | `routing.test.tsx` | #38 | Pass |
+| UI-17 | UI | AC-19, AC-60 | Forbidden route | A Requester at `/staff/queue` and `/admin/users`, and IT Staff at `/admin/users`, see `state-forbidden`, and no protected API call is made | `routing.test.tsx` | #38 | Pass |
+| UI-18 | UI | AC-18 | Landing redirect | `/` goes to `/tickets` for a Requester and to `/staff/queue` for IT Staff and Administrators. `/lab-01` renders outside the shell without a session. | `routing.test.tsx` | #38 | Pass |
+| UI-19 | UI | AC-21 | Legacy state removed | A pre-existing `toktickit.selectedRequester` sessionStorage key is removed on startup | `routing.test.tsx` | #38 | Pass |
+| UI-20 | UI | AC-12, DEC-04 | API client | Requests use relative `/api/v1/...` URLs. Non-GET requests carry `X-CSRF-Token`; GET requests do not. A 401 response triggers the session-ended redirect. | `api-client.test.ts` | #38 | Pass |
 | UI-21 | UI | AC-28 | Queue rendering | The seven columns. An unassigned owner shows "Unassigned". Status and IT Priority badges are present. | `StaffTicketQueue.test.tsx` | #43 | Planned |
 | UI-22 | UI | AC-29, AC-30, AC-31 | Queue controls | Search, each filter, and each sort option send the documented parameters and reset to page 1. Clear Filters restores the defaults. | `StaffTicketQueue.test.tsx` | #43 | Planned |
 | UI-23 | UI | AC-33, AC-68 | Queue states | Loading, empty, no-results, failure with Retry, and forbidden are distinct in wording and action | `StaffTicketQueue.test.tsx` | #43 | Planned |
@@ -318,7 +318,7 @@ The schema is dropped afterwards.
 |---|---|---|---|---|---|---|---|
 | STY-01 | UI style | AC-65 | Status badges | All eight statuses render their display text, with the background and text tokens from `ui-spec.md` §7.1 | `theme.style.test.tsx` | #43 | Planned |
 | STY-02 | UI style | AC-65 | IT Priority badge | Text plus glyph for all four values | `theme.style.test.tsx` | #43 | Planned |
-| STY-03 | UI style | AC-65 | Role badge | Text for all three roles. The Administrator badge in the header has its 1px border. | `theme.style.test.tsx` | #38 | Planned |
+| STY-03 | UI style | AC-65 | Role badge | Text for all three roles. The Administrator badge in the header has its 1px border. | `theme.style.test.tsx` | #38 | Pass |
 | STY-04 | UI style | AC-50 | Note vs comment | Note items use `--zg-warning-bg` with a 3px `--zg-warning` left border and the text label. Comment items use `--zg-surface`. The two differ in computed background. | `theme.style.test.tsx` | #44 | Planned |
 | STY-05 | UI style | ui-spec §2 | Primary button count | At most one visible primary button on each Lab 3 screen, and on Staff Detail in each composer tab | `theme.style.test.tsx` | #47 | Planned |
 | STY-06 | UI style | AC-66 | Token conformance | Every computed colour on the six Lab 3 screens appears in the L2 §1.1 token table | `theme.style.test.tsx` | #47 | Planned |
@@ -407,6 +407,51 @@ with their tests and were red first.
 | Lab 2 `attachments`, `my-tickets`, `ticket-detail` | The suite's own Requesters get `signInFields()`, sign in with `loginAs()`, and their sessions are deleted before the users | REG-01. A session row blocks deleting its user (ON DELETE RESTRICT, §7.4). |
 | Lab 2 `create-ticket` | Kept tests post through a `loginAs()` agent. The active-Requester lookup also filters `mustChangePassword: false`. | REG-01. Sorted by name, the first active Requester is now the must-change fixture. |
 | Lab 2 `reference-data` (API-38, API-39) | Sign in with `loginAs()` | The reference data now needs a session (AUZ-03) |
+
+#38 added the assertions below inside its planned tests. All were committed
+with their tests and were red first.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UI-01 | Email has `type="email"` and `autocomplete="username"`; Password has `autocomplete="current-password"`; focus starts on Email | ui-spec §6.1, element table and Initial state |
+| UI-07 | IT Staff land on `/staff/queue` | ui-spec §4 landing routes, at the point of login |
+| UI-11 | The forced shell keeps the user display and Log out; the brand is not a link; no ticket request is made on `/tickets` | ui-spec §3, forced mode |
+| UI-12, UI-13 | Change password and each navigation item link to their routes | ui-spec §3 and specification.md §6 routes |
+| UI-15 | Logout lands on plain `/login`, with no `next` | Keeps the previous user's path from steering the next user |
+| UI-16 | `next` is honoured after login; `next=/\evil.example` is ignored too | ui-spec §4 `next` safety. Browsers treat `/\` as `//`. |
+| UI-17 | A permitted Administrator at `/admin/users` sees no forbidden state; the forbidden state has the `<h1>` "Access denied" and no status code | ui-spec §10 and §5.1, AC-68 |
+| UI-18 | An authenticated user at `/login` goes to their landing route | ui-spec §4 |
+| UI-19 | An unrelated sessionStorage key survives | Only the legacy key is removed |
+| UI-20 | The Lab 2 API functions also use relative URLs; `createTicket` sends the CSRF token and no `X-Dev-Requester-Id`; the session-ended callout has `role="status"` | DEC-04 covers every client call; ui-spec §10 |
+| STY-03 | Each role badge uses the ui-spec §7.3 background and text tokens, and carries `data-role` | ui-spec §7.3 |
+
+**Fixture changes made in #38.** No assertion changed, except the one RSP-06
+row below.
+
+| File | Change | Why |
+|---|---|---|
+| `client/tests/lab-02/session-fixture.ts` (new) | `signInAs()` mocks the startup `GET /auth/me` session | REG-02: the kept Lab 2 screen tests restore their Requester through the auth provider |
+| Lab 2 `CreateTicket`, `MyTickets`, `RequesterTicketDetail`, `theme.style` (client) | `AuthProvider` replaces `RequesterProvider`; each render helper calls `signInAs()` instead of writing `toktickit.selectedRequester` | REG-02. In the render helper rather than `beforeEach`, because UI-24 and STY-08 reset mocks mid-test. |
+| `e2e/lab-02/helpers.ts` | `signInAs()` and `submitLogin()` replace `enterAs()`. The password comes from `SEED_PASSWORD` or `server/.env`. A page already signed in is sent on by `/login`, so the form is filled only when it shows, as `enterAs()` did for the selector. | REG-03 |
+| `e2e/lab-02/requester-ticket-flow.spec.ts` | E2E-01 to E2E-03 rewritten in place (§4.1). E2E-04 downloads through the page's own session, with no header. | REG-03 |
+| `e2e/lab-02/responsive.spec.ts` | Signs in with `signInAs()`. Ticket Detail finds the ticket id with a same-origin fetch. The empty/no-results case logs out and signs in instead of changing Requester. | REG-03 |
+| `e2e/lab-02/responsive.spec.ts` (L2 RSP-06) | The 44px touch-target check measures `btn-logout` instead of `btn-change-requester` | The Change Requester action is removed. Log out is the identity-panel action that replaces it. **This changes the element measured, not the assertion.** |
+
+#39 added the assertions below inside its planned tests. All were committed
+with their tests and were red first, except QUE-02 as noted.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UT-07 | A repeated parameter, a page below 1 or not an integer, an unlisted `sortBy` or `sortOrder`, a bad `itPriority`, and a non-positive `categoryId` are each rejected; a `q` empty after trimming is absent | api-spec §5.1: "any parameter outside these rules … gives `400`" and "empty after trimming is treated as absent" |
+| UT-08 | With `sortBy=createdAt`, the secondary keys do not repeat `createdAt` | api-spec §5.1 secondary keys; a repeated key is redundant |
+| QUE-01 | Every item field equals the stored value; description text appears nowhere in the item | AC-28 lists the values, not only the keys |
+| QUE-02 | The 403 bodies are byte-identical across parameter sets, valid and invalid | BR-23: the role check runs before validation. **Green before implementation:** the `/staff` family guard from #37 already refuses a Requester, so this test could not be red in #39. |
+| QUE-03 | Neither the description, the owner's name, nor the category name is searched | "and nothing else" in QUE-03 |
+| QUE-05 | Two filters that exclude each other return no tickets | Filters combine with AND |
+| QUE-06 | `owner=me` is the caller, not any staff member; a UUID matching no user → 400 | api-spec §5.1: `owner` is "an existing IT Staff or Administrator user" |
+| QUE-08 | `status` descending, and `createdAt` in both directions | AC-31: "each documented sort field orders correctly in both directions" |
+| QUE-09 | Page size 10 gives correct `meta` on page 3 | AC-32 accepts 10 |
+| QUE-10 | A `categoryId` that does not exist → 400 | api-spec §5.1: `categoryId` "must exist" |
 
 #40 added the assertions below inside its planned tests. All were committed
 with their tests and were red first, except where the next table says otherwise.
@@ -503,6 +548,7 @@ without a row in this section.
 | L2 UI-29 | The route guard shows Selection; `/` redirects; `/lab-01` is outside the shell | The guard target changes and `/` now redirects by role | UI-16, UI-18 | #38 |
 | L2 UI-28 | Requester Detail has no comment box or status control | Lab 3 adds Comments and Problem Appears Resolved there | UI-35, UI-37 (still no status control) | #44 |
 | L2 STY-09 | The status badge renders "New" | It covered one status | STY-01 (all eight) | #43 |
+| L2 RSP-07, case "requester selection states" | The Selection screen is captured at desktop | The selection screen is removed. Added to this table in #38, which found the case. | UI-14 (selector absent); the Lab 3 login screenshots in RSP-06 | #38 |
 
 **Removed in #37.** The implementation commit deleted these from
 `server/tests/lab-02/`, after the replacing tests were committed red:
@@ -512,6 +558,22 @@ without a row in this section.
 
 The header-only `post()` helper and the inactive-Requester fixture in
 `create-ticket.api.test.ts` went with them. No other Lab 2 test was removed.
+
+**Removed in #38.** The implementation commit deleted these, after the
+replacing tests were committed red:
+- **L2 UI-01 to UI-05:** all of `client/tests/lab-02/RequesterSelection.test.tsx` (7 cases). Replaced by UI-01 to UI-07.
+- **L2 UI-06 to UI-09:** all of `client/tests/lab-02/AppShell.test.tsx` (7 cases). UI-06 is replaced by UI-12, UI-07 by UI-16, UI-08 by UI-14, and UI-09 by UI-15.
+- **L2 UI-29:** all of `client/tests/lab-02/routing.test.tsx` (5 cases). Replaced by UI-16 and UI-18.
+- **L2 RSP-07:** only the "requester selection states" case of `e2e/lab-02/responsive.spec.ts`. Replaced by UI-14 and RSP-06.
+
+The code those tests covered went with them:
+- `RequesterSelection.tsx`, the Lab 2 `AppShell.tsx`, `AppRoutes.tsx`, and `RequesterContext.tsx`;
+- `fetchDevRequesters`;
+- the development-notice and selection-screen CSS.
+
+No other Lab 2 test was removed. L2 STY-04 kept its assertions. Its final
+`release(...)` now runs inside `act()`, which removed the three act() warnings:
+the screen's post-submit state updates had landed after the test ended.
 
 L2 E2E-01, E2E-02, and E2E-03 are **rewritten in place**, not superseded. They
 keep their ids and files in `e2e/lab-02/requester-ticket-flow.spec.ts`:

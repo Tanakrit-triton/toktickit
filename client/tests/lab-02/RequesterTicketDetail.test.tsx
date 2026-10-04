@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { RequesterProvider } from "../../src/lab-02/RequesterContext.js";
+import { AuthProvider } from "../../src/lab-03/AuthContext.js";
+import { signInAs } from "./session-fixture.js";
 import { RequesterTicketDetail } from "../../src/lab-02/screens/RequesterTicketDetail.js";
 import * as api from "../../src/lab-02/api.js";
 import type { TicketDetail } from "../../src/lab-02/api.js";
@@ -31,21 +32,21 @@ const TICKET: TicketDetail = {
 };
 
 function renderDetail() {
+  signInAs(ALICE);
   return render(
-    <RequesterProvider>
+    <AuthProvider>
       <MemoryRouter initialEntries={[`/tickets/${TICKET.id}`]}>
         <Routes>
           <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
         </Routes>
       </MemoryRouter>
-    </RequesterProvider>,
+    </AuthProvider>,
   );
 }
 
 beforeEach(() => {
   vi.restoreAllMocks();
   window.sessionStorage.clear();
-  window.sessionStorage.setItem("toktickit.selectedRequester", JSON.stringify(ALICE));
 });
 
 afterEach(() => {
