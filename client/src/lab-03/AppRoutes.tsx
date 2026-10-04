@@ -8,6 +8,7 @@ import { ChangePassword } from "./screens/ChangePassword.js";
 import { Login } from "./screens/Login.js";
 import { StaffTicketDetail } from "./screens/StaffTicketDetail.js";
 import { StaffTicketQueue } from "./screens/StaffTicketQueue.js";
+import { UserManagement } from "./screens/UserManagement.js";
 import { MyTickets } from "../lab-02/screens/MyTickets.js";
 import { CreateTicket } from "../lab-02/screens/CreateTicket.js";
 import { RequesterTicketDetail } from "../lab-02/screens/RequesterTicketDetail.js";
@@ -83,16 +84,15 @@ export function AppRoutes() {
           <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
         </Route>
 
-        {/* The Ticket Queue arrived with #43 and Staff Ticket Detail with #44.
-            User Management (#45) arrives later. Until then a permitted role
-            gets the shell with an empty main area, and every other role the
-            forbidden state. */}
+        {/* The Ticket Queue arrived with #43, Staff Ticket Detail with #44,
+            and User Management with #45. Every other role gets the forbidden
+            state. */}
         <Route element={<RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]} />}>
           <Route path="/staff/queue" element={<StaffTicketQueue />} />
           <Route path="/staff/tickets/:ticketId" element={<StaffTicketDetail />} />
         </Route>
         <Route element={<RequireRole roles={["ADMINISTRATOR"]} />}>
-          <Route path="/admin/users" element={null} />
+          <Route path="/admin/users" element={<UserManagement />} />
         </Route>
       </Route>
 

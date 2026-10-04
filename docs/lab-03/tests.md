@@ -305,12 +305,12 @@ The schema is dropped afterwards.
 | UI-36 | UI | AC-26 | Appears resolved | The button appears only in eligible statuses. Confirming shows the indicator and hides the button. Cancelling the dialog sends nothing. | `RequesterTicketDetail.test.tsx` | #44 | Pass |
 | UI-37 | UI | AC-27 | No staff controls for Requester | No status, cancel, reopen, claim, assign, or IT Priority control in any ticket status | `RequesterTicketDetail.test.tsx` | #44 | Pass |
 | UI-38 | UI | AC-24 | Attachment lock in UI | On CLOSED and CANCELLED: no Add Attachment and no Remove, and the helper text is shown. Download remains. | `RequesterTicketDetail.test.tsx` | #44 | Pass |
-| UI-39 | UI | AC-51 | User list | Name, Email, Role badge, Status badge, and Edit per user. Search and role filter send `q` and `role`. The own row is marked "(you)". | `UserManagement.test.tsx` | #45 | Planned |
-| UI-40 | UI | AC-52, AC-53 | Create dialog | Client validation below the fields. A server `EMAIL_ALREADY_EXISTS` renders below Email. Success closes the dialog, refreshes the list, and shows "User saved." | `UserManagement.test.tsx` | #45 | Planned |
-| UI-41 | UI | AC-54, AC-56 | Edit dialog | Fields are prefilled and saving sends only the changed fields. On the own row, Role and Active are disabled with the explanation. | `UserManagement.test.tsx` | #45 | Planned |
-| UI-42 | UI | AC-55 | Set new initial password | Opens a confirmation dialog with a password field validated against BR-11. Success shows "Initial password set." | `UserManagement.test.tsx` | #45 | Planned |
-| UI-43 | UI | AC-57, AC-58, AC-68 | Safety conflicts | `LAST_ADMINISTRATOR` and `USER_HAS_OPEN_TICKETS` responses render as a conflict callout inside the dialog, with input kept | `UserManagement.test.tsx` | #45 | Planned |
-| UI-44 | UI | AC-51, AC-60, AC-68 | User list states | Loading, no-results with Clear, failure with Retry, and forbidden. Cards below 768px. | `UserManagement.test.tsx` | #45 | Planned |
+| UI-39 | UI | AC-51 | User list | Name, Email, Role badge, Status badge, and Edit per user. Search and role filter send `q` and `role`. The own row is marked "(you)". | `UserManagement.test.tsx` | #45 | Pass |
+| UI-40 | UI | AC-52, AC-53 | Create dialog | Client validation below the fields. A server `EMAIL_ALREADY_EXISTS` renders below Email. Success closes the dialog, refreshes the list, and shows "User saved." | `UserManagement.test.tsx` | #45 | Pass |
+| UI-41 | UI | AC-54, AC-56 | Edit dialog | Fields are prefilled and saving sends only the changed fields. On the own row, Role and Active are disabled with the explanation. | `UserManagement.test.tsx` | #45 | Pass |
+| UI-42 | UI | AC-55 | Set new initial password | Opens a confirmation dialog with a password field validated against BR-11. Success shows "Initial password set." | `UserManagement.test.tsx` | #45 | Pass |
+| UI-43 | UI | AC-57, AC-58, AC-68 | Safety conflicts | `LAST_ADMINISTRATOR` and `USER_HAS_OPEN_TICKETS` responses render as a conflict callout inside the dialog, with input kept | `UserManagement.test.tsx` | #45 | Pass |
+| UI-44 | UI | AC-51, AC-60, AC-68 | User list states | Loading, no-results with Clear, failure with Retry, and forbidden. Cards below 768px. | `UserManagement.test.tsx` | #45 | Pass |
 
 ### 2.11 UI style — `client/tests/lab-03/theme.style.test.tsx`
 
@@ -590,6 +590,34 @@ case of STY-01 was red because the status badge was hard-coded to "New".
 | `client/tests/lab-03/ticket-fixtures.ts` | `fakeApi()` falls back from `METHOD /path?query` to `METHOD /path` and accepts async handlers; adds `queueItem()`, `queuePage()`, and `queueRoutes()` | The queue request carries a query string, and the loading case holds a request open. The #44 suites send no query string and are unaffected. Committed with the tests. |
 | `StaffTicketQueue.test.tsx` (UI-25, "moves between pages") | The page-2 reply is set before Next is clicked, and the test waits for Previous to be enabled. Changed in the implementation commit. | As committed, the page-2 reply was set after Next, so the screen received `meta.page: 1` and correctly kept Previous disabled. That was a fault in the test's ordering. The fix adds a check and removes none. |
 | `client/tests/lab-02/theme.style.test.tsx` | L2 STY-09 removed (Section 4.1) | Superseded by STY-01 |
+
+#45 added the assertions below inside its planned tests. All were committed
+with their tests and were red first: `/admin/users` rendered nothing, so every
+case failed waiting for `user-management-screen`.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UI-39 | The title "User Management"; the five column headers in order; Edit is tertiary with `aria-label="Edit {fullName}"`; the server's order is kept; with nothing applied the request carries no parameters; the search placeholder, and the search is sent trimmed; the role filter offers exactly "All roles", Requester, IT Staff, Administrator, and combines with `q`; Create user is primary | ui-spec 6.6 toolbar and table; BR-66 (the server sorts); ui-spec 2 primary buttons |
+| UI-40 | The dialog has `role="dialog"` and `aria-modal`; Active is checked by default and the initial-password helper is shown; an empty submit marks each field `aria-invalid`, links its message through `aria-describedby`, and moves focus to Full name; an 11-code-point password (ten letters and an emoji) is refused; 422 `details` render below their fields; the success body is the api-spec 7.2 shape with the name trimmed and the password untrimmed; Save is primary and shows "Saving…" while in flight | ui-spec 6.6 and 10; BR-11 (code points, never trimmed); api-spec 7.2 |
+| UI-41 | An inactive user's Active is unchecked; Set new initial password is secondary; changing role and Active sends exactly those two fields; on another user's row Role and Active stay enabled with no explanation; Email stays editable on the own row; Cancel and Escape close with no request and return focus to Edit | ui-spec 6.6 field table, 5.2 and 10 focus rules |
+| UI-42 | The dialog's title and text; the field is `type="password"`; the confirm reads "Set password" and is primary; an empty password is refused too; the password is sent untrimmed; a 422 `details.initialPassword` renders below the field; Cancel sends nothing, keeps the user dialog, and returns focus to Set new initial password | ui-spec 5.2 table; api-spec 7.4; BR-11 |
+| UI-43 | Neither conflict shows a status code or error code; no Success callout appears; an unexpected failure inside the dialog shows the safe error callout, never the server message or a path, with input kept | AC-68 |
+| UI-44 | Loading disappears once the list arrives; no-results hides the table, and Clear is secondary, empties the search and the role filter, and returns to the parameterless request; the failure state shows no server text and Retry reloads; the forbidden state has no Retry and no Create user; the own card is marked "(you)"; at desktop there are no cards | ui-spec 6.6 States and 5.1; AC-68 |
+
+**Interpretations recorded for #45.**
+
+- **Test hooks.** ui-spec 11 lists no User Management hooks for search, the list states, or Retry, so the screen reuses the queue's (#43):
+  - `field-search`, `btn-retry`, `btn-clear-filters-no-results` (labelled "Clear");
+  - `state-loading`, `state-no-results`, `state-list-failed`.
+
+  The desktop table is `users-table`. Field errors use `error-{field}` (`error-full-name`, `error-user-email`, `error-role`, `error-initial-password`), as Login and Change Password do. An unexpected failure inside the dialog uses `callout-error`.
+- **Initial-password field in the confirmation dialog.** It reuses `field-initial-password`. The edit dialog never shows the create field, so the hook stays unique on the page.
+- **Conflict text.** ui-spec 6.6 puts the server's `message` in the Conflict callout. The "The ticket has been reloaded." suffix in 5.1 belongs to ticket screens and is not added.
+- **Edit with nothing changed.** api-spec 7.3 requires at least one field, so Save with no change closes the dialog and sends nothing.
+- **Dialog stacking.** Set new initial password opens its confirmation over the user dialog. Success closes both, refreshes the list, and shows "Initial password set."; a failure other than 422 closes the confirmation and shows the safe error in the user dialog.
+- **Busy text.** Save and Set password both read "Saving…" in flight (ui-spec 2 Busy text).
+
+**Components delivered for #45.** `ConfirmDialog` gains an optional password field validated against BR-11, with its own busy label; existing callers are unchanged. `Callout` gains the ui-spec 5.1 Success variant. `AccountStatusBadge` (ui-spec 7.5) is added to `Badges.tsx`. Their CSS is in `zen-green.css`. No fixture file changed: the suite uses `fakeApi()`, `ok()`, `created()`, and `failure()` from `ticket-fixtures.ts`.
 
 ---
 
