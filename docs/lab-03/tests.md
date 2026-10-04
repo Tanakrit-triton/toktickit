@@ -287,12 +287,12 @@ The schema is dropped afterwards.
 | UI-18 | UI | AC-18 | Landing redirect | `/` goes to `/tickets` for a Requester and to `/staff/queue` for IT Staff and Administrators. `/lab-01` renders outside the shell without a session. | `routing.test.tsx` | #38 | Pass |
 | UI-19 | UI | AC-21 | Legacy state removed | A pre-existing `toktickit.selectedRequester` sessionStorage key is removed on startup | `routing.test.tsx` | #38 | Pass |
 | UI-20 | UI | AC-12, DEC-04 | API client | Requests use relative `/api/v1/...` URLs. Non-GET requests carry `X-CSRF-Token`; GET requests do not. A 401 response triggers the session-ended redirect. | `api-client.test.ts` | #38 | Pass |
-| UI-21 | UI | AC-28 | Queue rendering | The seven columns. An unassigned owner shows "Unassigned". Status and IT Priority badges are present. | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-22 | UI | AC-29, AC-30, AC-31 | Queue controls | Search, each filter, and each sort option send the documented parameters and reset to page 1. Clear Filters restores the defaults. | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-23 | UI | AC-33, AC-68 | Queue states | Loading, empty, no-results, failure with Retry, and forbidden are distinct in wording and action | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-24 | UI | AC-33 | Queue mobile cards | Below 768px, cards and no table. At desktop, a table and no cards. | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-25 | UI | AC-32 | Queue pagination | Exactly 10, 20, and 50 are offered, with 20 selected by default. Changing the size requests it and returns to page 1. | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-26 | UI | AC-26 | Indication in queue | A row with `requesterIndicatedResolvedAt` shows the compact indicator | `StaffTicketQueue.test.tsx` | #43 | Planned |
+| UI-21 | UI | AC-28 | Queue rendering | The seven columns. An unassigned owner shows "Unassigned". Status and IT Priority badges are present. | `StaffTicketQueue.test.tsx` | #43 | Pass |
+| UI-22 | UI | AC-29, AC-30, AC-31 | Queue controls | Search, each filter, and each sort option send the documented parameters and reset to page 1. Clear Filters restores the defaults. | `StaffTicketQueue.test.tsx` | #43 | Pass |
+| UI-23 | UI | AC-33, AC-68 | Queue states | Loading, empty, no-results, failure with Retry, and forbidden are distinct in wording and action | `StaffTicketQueue.test.tsx` | #43 | Pass |
+| UI-24 | UI | AC-33 | Queue mobile cards | Below 768px, cards and no table. At desktop, a table and no cards. | `StaffTicketQueue.test.tsx` | #43 | Pass |
+| UI-25 | UI | AC-32 | Queue pagination | Exactly 10, 20, and 50 are offered, with 20 selected by default. Changing the size requests it and returns to page 1. | `StaffTicketQueue.test.tsx` | #43 | Pass |
+| UI-26 | UI | AC-26 | Indication in queue | A row with `requesterIndicatedResolvedAt` shows the compact indicator | `StaffTicketQueue.test.tsx` | #43 | Pass |
 | UI-27 | UI | AC-34 | Staff detail layout | Ticket information has no editable control. Editable fields exist only inside `operations-card`. | `StaffTicketDetail.test.tsx` | #44 | Pass |
 | UI-28 | UI | AC-35, AC-37 | Owner controls | Claim is shown only when unassigned and claimable. The assignee select lists `/staff/assignees`. A successful claim or assign re-fetches the detail. | `StaffTicketDetail.test.tsx` | #44 | Pass |
 | UI-29 | UI | AC-39 | Transition buttons | Exactly one button per `availableTransitions` entry, with the `ui-spec.md` §6.5 labels, and none for unlisted statuses | `StaffTicketDetail.test.tsx` | #44 | Pass |
@@ -316,8 +316,8 @@ The schema is dropped afterwards.
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| STY-01 | UI style | AC-65 | Status badges | All eight statuses render their display text, with the background and text tokens from `ui-spec.md` §7.1 | `theme.style.test.tsx` | #43 | Planned |
-| STY-02 | UI style | AC-65 | IT Priority badge | Text plus glyph for all four values | `theme.style.test.tsx` | #43 | Planned |
+| STY-01 | UI style | AC-65 | Status badges | All eight statuses render their display text, with the background and text tokens from `ui-spec.md` §7.1 | `theme.style.test.tsx` | #43 | Pass |
+| STY-02 | UI style | AC-65 | IT Priority badge | Text plus glyph for all four values | `theme.style.test.tsx` | #43 | Pass |
 | STY-03 | UI style | AC-65 | Role badge | Text for all three roles. The Administrator badge in the header has its 1px border. | `theme.style.test.tsx` | #38 | Pass |
 | STY-04 | UI style | AC-50 | Note vs comment | Note items use `--zg-warning-bg` with a 3px `--zg-warning` left border and the text label. Comment items use `--zg-surface`. The two differ in computed background. | `theme.style.test.tsx` | #44 | Pass |
 | STY-05 | UI style | ui-spec §2 | Primary button count | At most one visible primary button on each Lab 3 screen, and on Staff Detail in each composer tab | `theme.style.test.tsx` | #47 | Planned |
@@ -545,6 +545,52 @@ ui-spec 7.1 status CSS are in `client/src/lab-03/components/Badges.tsx` and
 `zen-green.css`, because Staff Detail and Requester Detail are the first screens
 to need all eight statuses. STY-01 and STY-02, which test them, stay with #43.
 
+#43 added the assertions below inside its planned tests. All were committed
+with their tests and were red first, except the one case the next table names.
+Every queue test was red because `/staff/queue` rendered nothing. The My Tickets
+case of STY-01 was red because the status badge was hard-coded to "New".
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UI-21 | An Administrator sees the same queue; the title "Ticket Queue" and the "{totalItems} tickets" line; the Ticket Number links to `/staff/tickets/{id}` | AC-28 names IT Staff or an Administrator; ui-spec 6.4 title and Ticket Number column |
+| UI-22 | Each filter and the sort offer exactly the ui-spec 6.4 options, in order; the search placeholder; the search is sent trimmed; Clear Filters is secondary and hidden until something is applied; choosing "Priority: Urgent first" again returns to the default request | ui-spec 6.4 control bar |
+| UI-23 | Exactly one state shows at a time; the failure shows "Something went wrong. Try again." and never the server message, a status code, or an error code; the controls stay enabled; Retry reloads the queue; the forbidden state has no Retry; the empty state has no action | ui-spec 6.4 States and 5.1; AC-68 |
+| UI-24 | The card is an `<a>` to `/staff/tickets/{id}` that carries the number, summary, Requester, owner, and both badges | ui-spec 6.4: "the whole card a link" |
+| UI-25 | Next and Previous move between pages, and Previous is disabled on page 1 | L2 ui-spec 5.4 pagination, which 6.4 adopts |
+| UI-26 | The indicator text is exactly "✓ Requester: appears resolved", and it is shown on the mobile card too | ui-spec 7.4 compact form |
+| STY-01 | My Tickets renders each of the eight statuses with its display text (no fixed "New"); each badge carries `data-status` and its status class; a status with no border in 7.1 has none in the stylesheet | ui-spec 7.1 "replaces the single NEW row in L2 §6" |
+| STY-02 | Each badge carries its `zg-badge--priority-*` class; the glyph is one of `○ ◔ ◑ ●`; the four glyphs differ | ui-spec 7.2: the same colours and glyphs as the Lab 2 priority badge |
+
+**Green before the #43 implementation.**
+
+| Test | Why it was already green |
+|---|---|
+| STY-01, "colours each status with the ui-spec 7.1 tokens" | #44 delivered the status CSS (see above). The case reads the stylesheet, so it could not be red in #43. |
+
+**Interpretations recorded for #43.**
+
+- **Sort mapping.** ui-spec 6.4 gives the labels, not the parameters. "Priority: Urgent first" sends no `sortBy` or `sortOrder`, which api-spec 5.1 defines as IT Priority descending and then oldest first. That is the same order as `itPriority desc`. The other labels send these:
+  - "Oldest first": `createdAt asc`;
+  - "Newest first": `createdAt desc`;
+  - "Recently updated": `updatedAt desc`;
+  - "Ticket Number A–Z": `ticketNumber asc`;
+  - "Status": `status asc`, the lifecycle order.
+- **Default request.** With nothing applied, the queue sends only `page=1&pageSize=20`. Clear Filters returns to exactly that request.
+- **Test hooks.** ui-spec 11 lists no queue hooks for search, pagination, Clear Filters, or the list states, so the queue reuses the My Tickets hooks:
+  - `field-search`, `field-page-size`, `btn-prev-page`, `btn-next-page`;
+  - `btn-clear-filters` and `btn-clear-filters-no-results`, `btn-retry`;
+  - `state-loading`, `state-empty`, `state-no-results`, `state-list-failed`.
+
+  The desktop table is `queue-table`.
+
+**Fixture and test changes made in #43.** No planned assertion was weakened.
+
+| File | Change | Why |
+|---|---|---|
+| `client/tests/lab-03/ticket-fixtures.ts` | `fakeApi()` falls back from `METHOD /path?query` to `METHOD /path` and accepts async handlers; adds `queueItem()`, `queuePage()`, and `queueRoutes()` | The queue request carries a query string, and the loading case holds a request open. The #44 suites send no query string and are unaffected. Committed with the tests. |
+| `StaffTicketQueue.test.tsx` (UI-25, "moves between pages") | The page-2 reply is set before Next is clicked, and the test waits for Previous to be enabled. Changed in the implementation commit. | As committed, the page-2 reply was set after Next, so the screen received `meta.page: 1` and correctly kept Previous disabled. That was a fault in the test's ordering. The fix adds a check and removes none. |
+| `client/tests/lab-02/theme.style.test.tsx` | L2 STY-09 removed (Section 4.1) | Superseded by STY-01 |
+
 ---
 
 ## 3. Scope per Issue
@@ -641,6 +687,12 @@ after UI-35 and UI-37 were committed red. UI-35 replaces its comment and note
 exclusions (comments now exist; notes still never appear), and UI-37 its
 status-control and IT Priority exclusions, in all eight statuses. L2 UI-27 in
 the same file is kept unchanged.
+
+**Removed in #43.** The implementation commit deleted the L2 STY-09 case
+("renders the status as the word New", 1 case) from
+`client/tests/lab-02/theme.style.test.tsx`, after STY-01 was committed red.
+STY-01 asserts the display text for all eight statuses, NEW included, in both
+the queue and My Tickets. L2 STY-08 in the same `describe` is kept unchanged.
 
 L2 E2E-01, E2E-02, and E2E-03 are **rewritten in place**, not superseded. They
 keep their ids and files in `e2e/lab-02/requester-ticket-flow.spec.ts`:

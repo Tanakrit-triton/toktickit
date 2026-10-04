@@ -4,6 +4,7 @@ import * as api from "../api.js";
 import type { ReferenceItem, TicketListPage, TicketListParams } from "../api.js";
 import { useAuth } from "../../lab-03/AuthContext.js";
 import { MOBILE_QUERY, useMediaQuery } from "../useMediaQuery.js";
+import { StatusBadge } from "../../lab-03/components/Badges.js";
 
 // My Tickets -- ui-spec.md section 5.4.
 
@@ -39,7 +40,7 @@ const PRIORITY_GLYPH: Record<string, string> = {
 };
 
 /** Relative under seven days, absolute beyond (ui-spec 5.4). */
-function lastUpdated(iso: string): string {
+export function lastUpdated(iso: string): string {
   const days = Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
   if (days <= 0) return "today";
   if (days === 1) return "yesterday";
@@ -376,7 +377,7 @@ export function MyTickets() {
                       {t.category.name} &middot; {t.relatedSystem.name}
                     </p>
                     <div className="zg-card-bottom">
-                      {badge("status", t.currentStatus, "New")}
+                      <StatusBadge status={t.currentStatus} />
                       <span className="zg-helper">{lastUpdated(t.updatedAt)}</span>
                     </div>
                   </article>
@@ -410,7 +411,7 @@ export function MyTickets() {
                     <td>
                       {badge("priority", t.requestedPriority, PRIORITY_LABEL[t.requestedPriority] ?? t.requestedPriority, PRIORITY_GLYPH[t.requestedPriority])}
                     </td>
-                    <td>{badge("status", t.currentStatus, "New")}</td>
+                    <td><StatusBadge status={t.currentStatus} /></td>
                     <td>{lastUpdated(t.updatedAt)}</td>
                   </tr>
                 ))}

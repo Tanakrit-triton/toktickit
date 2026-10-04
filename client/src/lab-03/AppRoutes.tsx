@@ -7,6 +7,7 @@ import { landingFor, safeNext } from "./routes.js";
 import { ChangePassword } from "./screens/ChangePassword.js";
 import { Login } from "./screens/Login.js";
 import { StaffTicketDetail } from "./screens/StaffTicketDetail.js";
+import { StaffTicketQueue } from "./screens/StaffTicketQueue.js";
 import { MyTickets } from "../lab-02/screens/MyTickets.js";
 import { CreateTicket } from "../lab-02/screens/CreateTicket.js";
 import { RequesterTicketDetail } from "../lab-02/screens/RequesterTicketDetail.js";
@@ -82,12 +83,12 @@ export function AppRoutes() {
           <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
         </Route>
 
-        {/* Staff Ticket Detail arrived with #44. The Ticket Queue (#43) and
-            User Management (#45) screens arrive later. Until then a permitted
-            role gets the shell with an empty main area, and every other role
-            the forbidden state. */}
+        {/* The Ticket Queue arrived with #43 and Staff Ticket Detail with #44.
+            User Management (#45) arrives later. Until then a permitted role
+            gets the shell with an empty main area, and every other role the
+            forbidden state. */}
         <Route element={<RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]} />}>
-          <Route path="/staff/queue" element={null} />
+          <Route path="/staff/queue" element={<StaffTicketQueue />} />
           <Route path="/staff/tickets/:ticketId" element={<StaffTicketDetail />} />
         </Route>
         <Route element={<RequireRole roles={["ADMINISTRATOR"]} />}>

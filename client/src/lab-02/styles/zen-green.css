@@ -837,7 +837,7 @@ textarea.zg-field {
    its own background, so it carries a surface border there. */
 .zg-header .zg-badge--role-administrator { border: 1px solid var(--zg-surface); }
 
-/* --- 7.1 Status badges (#44; STY-01 belongs to #43) ----------------------- */
+/* --- 7.1 Status badges (delivered with #44, tested by STY-01 in #43) ------ */
 
 .zg-badge--status-open { background: var(--zg-surface); color: var(--zg-secondary); border: 1px solid var(--zg-secondary); }
 .zg-badge--status-in-progress { background: var(--zg-secondary); color: var(--zg-surface); }
@@ -1015,3 +1015,21 @@ textarea.zg-field {
 }
 
 .zg-counter--over { color: var(--zg-error); }
+
+/* --- 6.4 Ticket Queue (#43) ----------------------------------------------- */
+
+/* An unassigned owner reads "Unassigned" in muted text. */
+.zg-text-muted { color: var(--zg-text-muted); }
+
+/* Tablet drops the Requester column (ui-spec 6.4 and 9). */
+@media (max-width: 991.98px) {
+  .zg-col-requester { display: none; }
+}
+
+/* On mobile the whole card is the link (ui-spec 6.4). */
+.zg-ticket-card--link {
+  color: var(--zg-text);
+  text-decoration: none;
+}
+
+.zg-ticket-card--link .zg-indicator { margin-bottom: var(--zg-space-2); }

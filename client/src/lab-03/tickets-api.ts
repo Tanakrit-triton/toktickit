@@ -140,3 +140,53 @@ export const postNote = (ticketId: string, body: string) =>
 
 export const indicateAppearsResolved = (ticketId: string) =>
   send<{ requesterIndicatedResolvedAt: string }>(`/tickets/${ticketId}/appears-resolved`, withJson("POST"));
+
+/** An item of GET /staff/tickets, api-spec.md 5.1. */
+export interface QueueItem {
+  id: string;
+  ticketNumber: string;
+  summary: string;
+  requester: UserSummary;
+  category: { id: number; name: string };
+  requestedPriority: Priority;
+  itPriority: Priority;
+  currentStatus: TicketStatus;
+  owner: UserSummary | null;
+  requesterIndicatedResolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QueuePage {
+  data: QueueItem[];
+  meta: { page: number; pageSize: number; totalItems: number; totalPages: number };
+}
+
+/** Only the parameters a caller sets are sent; absent ones take the api-spec defaults. */
+export interface QueueParams {
+  q?: string;
+  status?: string;
+  itPriority?: string;
+  categoryId?: number;
+  owner?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** GET /staff/tickets. Unlike the other calls it returns `meta` as well as `data`. */
+export async function fetchQueue(params: QueueParams): Promise<QueuePage> {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) query.set(key, String(value));
+  }
+  let response: Response;
+  try {
+    response = await apiFetch(`/staff/tickets?${query}`);
+  } catch {
+    throw new TicketRequestError("FAILED");
+  }
+  if (response.ok) return (await response.json()) as QueuePage;
+  throw new TicketRequestError(response.status === 403 ? "FORBIDDEN" : "FAILED");
+}

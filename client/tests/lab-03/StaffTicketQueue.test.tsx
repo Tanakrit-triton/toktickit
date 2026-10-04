@@ -375,9 +375,11 @@ describe("UI-25 (AC-32) - queue pagination", () => {
   it("moves between pages with Next and Previous", async () => {
     const api = await openQueue(fakeApi(queueRoutes(TWO_PAGES())));
     expect(await screen.findByTestId("btn-prev-page")).toBeDisabled();
-    await goToPage2(api);
 
+    // The server's meta says page 2, which is what enables Previous.
     api.routes["GET /staff/tickets"] = queuePage([queueItem(TICKET_NUMBER)], { page: 2, totalItems: 30 });
+    await goToPage2(api);
+    await waitFor(() => expect(screen.getByTestId("btn-prev-page")).toBeEnabled());
     await userEvent.click(screen.getByTestId("btn-prev-page"));
     await expectLastRequest(api, DEFAULT_PARAMS);
   });
