@@ -1033,3 +1033,20 @@ textarea.zg-field {
 }
 
 .zg-ticket-card--link .zg-indicator { margin-bottom: var(--zg-space-2); }
+
+/* --- 6.6 User Management (#45) -------------------------------------------- */
+
+/* 5.1 Success callout: "User saved." and "Initial password set." */
+.zg-callout--success { background: var(--zg-pale); color: var(--zg-success); border-left-color: var(--zg-primary); }
+
+/* 7.5 Account status */
+.zg-badge--account-active { background: var(--zg-pale); color: var(--zg-success); }
+.zg-badge--account-inactive { background: var(--zg-disabled-bg); color: var(--zg-text-muted); }
+
+.zg-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-2);
+}
+
+.zg-dialog .zg-label { display: block; margin-bottom: var(--zg-space-3); }

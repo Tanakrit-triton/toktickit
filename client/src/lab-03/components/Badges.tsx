@@ -69,3 +69,15 @@ export function AppearsResolvedIndicator({ at, compact = false }: { at: string; 
     </span>
   );
 }
+
+/** ui-spec.md 7.5, delivered with User Management (#45). */
+export function AccountStatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <span
+      className={`zg-badge zg-badge--account-${isActive ? "active" : "inactive"}`}
+      data-testid="badge-account-status"
+    >
+      {isActive ? "Active" : "Inactive"}
+    </span>
+  );
+}
