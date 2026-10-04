@@ -4,6 +4,7 @@ import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 import { ticketsRouter } from "./lab-02/tickets.routes.js";
 import { attachmentsRouter } from "./lab-02/attachments.routes.js";
 import { buildError } from "./lab-02/errors.js";
+import { adminUsersRouter } from "./lab-03/admin-users.routes.js";
 import { authRouter } from "./lab-03/auth.routes.js";
 import { requireRole } from "./lab-03/require-role.js";
 import { requireSession } from "./lab-03/require-session.js";
@@ -64,7 +65,7 @@ app.use("/api/v1", authRouter);
 // They cover every path under the prefix, including paths that do not exist,
 // so they must stay ahead of the not-found fallback below.
 app.use("/api/v1/staff", requireSession, requireRole("IT_STAFF", "ADMINISTRATOR"));
-app.use("/api/v1/admin", requireSession, requireRole("ADMINISTRATOR"));
+app.use("/api/v1/admin", requireSession, requireRole("ADMINISTRATOR"), adminUsersRouter);
 
 app.use("/api/v1/staff", staffQueueRouter);
 app.use("/api/v1/staff", staffTicketOpsRouter); // #40, api-spec.md sections 5.2 to 5.7
