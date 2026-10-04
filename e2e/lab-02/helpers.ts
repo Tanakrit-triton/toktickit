@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { execSync, spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { parseEnv } from "node:util";
 
 // Shared helpers for the Lab 2 end-to-end and responsive suites.
@@ -141,12 +142,19 @@ export async function expectApiClosed(timeoutMs = 15000): Promise<void> {
 }
 
 
+/** Where startApi records the PID of the API it started, for e2e/global-teardown.ts. */
+export const RESTARTED_API_PID_FILE = "test-results/.restarted-api.pid";
+
 /**
  * Restarts the API, detached so it outlives the test process.
  *
  * E2E-05 has to stop the real server to prove the failure state, which leaves
  * the environment broken for every later suite and for the screenshots. The
  * test that breaks it is the test that repairs it.
+ *
+ * The PID is recorded so the global teardown can stop the process tree once
+ * the run ends; otherwise the restarted API outlives the run as a detached
+ * process that nothing owns.
  */
 export function startApi(): void {
   const child = spawn("npm", ["run", "dev"], {
@@ -155,6 +163,8 @@ export function startApi(): void {
     stdio: "ignore",
     shell: true,
   });
+  mkdirSync(dirname(RESTARTED_API_PID_FILE), { recursive: true });
+  writeFileSync(RESTARTED_API_PID_FILE, String(child.pid));
   child.unref();
 }
 
