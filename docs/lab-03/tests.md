@@ -506,8 +506,8 @@ with their tests and were red first. No existing test needed a fixture change.
 
 **CMN-09: where IT Staff see the indication.** CMN-09 checks it through
 `GET /staff/tickets/{id}` (#40, api-spec §5.2), not the queue. The queue is #39
-(`GET /staff/tickets`), and #41 depends only on #40 (Section 3), so the queue
-endpoint is not on #41's branch. The queue part of AC-26 is covered by:
+(`GET /staff/tickets`). The indication on the queue row, the queue part of
+AC-26, is covered by QUE-01, UI-26, and E2E-03:
 - **QUE-01** (#39): the queue item carries `requesterIndicatedResolvedAt`. **QUE-01's own fixtures all have it null**, so QUE-01 checks the key and the null value only. It never checks a non-null value in the queue.
 - **UI-26** (#43): the queue row renders the indicator, with the API mocked.
 - **E2E-03** (#46): staff see the indicator after the Requester indicates "appears resolved", with real data. **E2E-03 is the only test of a non-null value in the queue**, so #46 must assert the indicator on the queue row, not only on Staff Detail.
