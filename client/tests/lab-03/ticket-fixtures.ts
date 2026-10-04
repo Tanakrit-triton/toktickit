@@ -105,7 +105,7 @@ export function entry(id: string, body: string, author: Author = authorOf(IT_STA
 export const asAuthor = authorOf;
 
 type Reply = { status: number; body?: unknown };
-type Handler = Reply | ((body: unknown) => Reply);
+type Handler = Reply | ((body: unknown) => Reply | Promise<Reply>);
 
 export type ApiCall = { method: string; path: string; body: unknown };
 
@@ -129,11 +129,13 @@ export function fakeApi(routes: Record<string, Handler>) {
     if (typeof init?.body === "string" && init.body.length > 0) body = JSON.parse(init.body);
     calls.push({ method, path, body });
 
-    const handler = routes[`${method} ${path}`];
+    // A list route with a query string falls back to its bare path, so a test
+    // can key "GET /staff/tickets" and read the parameters from `calls`.
+    const handler = routes[`${method} ${path}`] ?? routes[`${method} ${path.split("?")[0]}`];
     if (handler === undefined) {
       return json(500, { error: { code: "INTERNAL_ERROR", message: "Unexpected request in test." } });
     }
-    const reply = typeof handler === "function" ? handler(body) : handler;
+    const reply = typeof handler === "function" ? await handler(body) : handler;
     return json(reply.status, reply.body);
   });
 
@@ -202,3 +204,50 @@ export const STATUS_TEXT: Record<string, string> = {
   REOPENED: "Reopened",
   CANCELLED: "Cancelled",
 };
+
+/** A Ticket Queue item, api-spec.md 5.1. Defaults to an owned IN_PROGRESS ticket. */
+export function queueItem(ticketNumber: string, overrides: Record<string, unknown> = {}) {
+  return {
+    id: `q-${ticketNumber}`,
+    ticketNumber,
+    summary: "Laptop battery drains within one hour",
+    requester: { id: REQUESTER.id, fullName: REQUESTER.fullName },
+    category: { id: 2, name: "Hardware" },
+    requestedPriority: "HIGH",
+    itPriority: "URGENT",
+    currentStatus: "IN_PROGRESS",
+    owner: { id: IT_STAFF.id, fullName: IT_STAFF.fullName },
+    requesterIndicatedResolvedAt: null,
+    createdAt: T0,
+    updatedAt: T0,
+    ...overrides,
+  };
+}
+
+/** A GET /staff/tickets page: `{ data, meta }`. */
+export function queuePage(items: unknown[], meta: Partial<{ page: number; pageSize: number; totalItems: number; totalPages: number }> = {}): Reply {
+  const pageSize = meta.pageSize ?? 20;
+  const totalItems = meta.totalItems ?? items.length;
+  return {
+    status: 200,
+    body: {
+      data: items,
+      meta: { page: 1, pageSize, totalItems, totalPages: Math.ceil(totalItems / pageSize), ...meta },
+    },
+  };
+}
+
+/** api-spec.md section 3: active categories. */
+export const QUEUE_CATEGORIES = [
+  { id: 1, name: "Account and Access" },
+  { id: 2, name: "Hardware" },
+];
+
+/** The routes the Ticket Queue reads on load. */
+export function queueRoutes(page: Handler = queuePage([queueItem(TICKET_NUMBER)])): Record<string, Handler> {
+  return {
+    "GET /staff/tickets": page,
+    "GET /categories": ok(QUEUE_CATEGORIES),
+    "GET /staff/assignees": ok(ASSIGNEES),
+  };
+}
