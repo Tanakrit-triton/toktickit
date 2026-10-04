@@ -1,0 +1,73 @@
+
+Running 65 tests using 1 worker
+
+  ✓   1 [desktop] › e2e\lab-02\requester-ticket-flow.spec.ts:43:1 › E2E-01: sign in as a Requester, create a Ticket, and find it in My Tickets (9.0s)
+  ✓   2 [desktop] › e2e\lab-02\requester-ticket-flow.spec.ts:71:1 › E2E-02: logging out as A and signing in as B replaces the visible list (4.7s)
+  ✓   3 [desktop] › e2e\lab-02\requester-ticket-flow.spec.ts:87:1 › E2E-03: another Requester's ticket URL is refused (3.6s)
+  ✓   4 [desktop] › e2e\lab-02\requester-ticket-flow.spec.ts:102:1 › E2E-04: attachment lifecycle from Ticket Detail (4.3s)
+(node:36068) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  ✓   5 [desktop] › e2e\lab-02\requester-ticket-flow.spec.ts:141:1 › E2E-05: submission with the backend stopped keeps every entered value (13.1s)
+  ✓   6 [desktop] › e2e\lab-02\responsive.spec.ts:32:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Create Ticket renders without clipping or horizontal scroll (4.0s)
+  ✓   7 [desktop] › e2e\lab-02\responsive.spec.ts:51:3 › RSP-01..RSP-03 (AC-39) - layout at every width › My Tickets renders without clipping or horizontal scroll (3.6s)
+  ✓   8 [desktop] › e2e\lab-02\responsive.spec.ts:59:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Ticket Detail renders without clipping or horizontal scroll (3.9s)
+  ✓   9 [desktop] › e2e\lab-02\responsive.spec.ts:81:3 › RSP-04, RSP-05 (AC-40) - the mobile list › renders cards rather than a table below 768px (3.4s)
+  ✓  10 [desktop] › e2e\lab-02\responsive.spec.ts:96:3 › RSP-04, RSP-05 (AC-40) - the mobile list › search, filters, sort and pagination stay usable (5.6s)
+  -  11 [desktop] › e2e\lab-02\responsive.spec.ts:117:3 › RSP-06 (ui-spec 7) - touch targets › interactive elements are at least 44px tall on mobile
+  ✓  12 [desktop] › e2e\lab-02\responsive.spec.ts:152:3 › RSP-07 - the remaining screenshot paths › create ticket validation, success and invalid attachment (4.8s)
+  ✓  13 [desktop] › e2e\lab-02\responsive.spec.ts:182:3 › RSP-07 - the remaining screenshot paths › my tickets empty and no-results states (6.1s)
+  ✓  14 [desktop] › e2e\lab-03\authentication.spec.ts:20:1 › E2E-01: invalid, inactive, and valid sign-in, then logout guards /tickets (3.0s)
+  ✓  15 [desktop] › e2e\lab-03\authentication.spec.ts:48:1 › E2E-02: the must-change account is held on Change Password, then lands on My Tickets (2.8s)
+  ✓  16 [desktop] › e2e\lab-03\evidence.spec.ts:34:1 › evidence: login and session (4.2s)
+  ✓  17 [desktop] › e2e\lab-03\evidence.spec.ts:67:1 › evidence: Ticket Queue search, filters, sorting, pagination (21.0s)
+  ✓  18 [desktop] › e2e\lab-03\evidence.spec.ts:161:1 › evidence: Staff Ticket Detail operations (5.7s)
+  ✓  19 [desktop] › e2e\lab-03\evidence.spec.ts:220:1 › evidence: attachment download, appears resolved, failure, and Requester refusal (10.5s)
+  ✓  20 [desktop] › e2e\lab-03\evidence.spec.ts:273:1 › evidence: User Management list, create, edit, initial password, failure (19.4s)
+  ✓  21 [desktop] › e2e\lab-03\evidence.spec.ts:384:1 › evidence: direct API authorization refusals (841ms)
+  ✓  22 [desktop] › e2e\lab-03\responsive.spec.ts:78:3 › RSP-01 (AC-64): desktop 1440x900 - six screens without scroll, clipping, or overlap (18.2s)
+  ✓  23 [desktop] › e2e\lab-03\responsive.spec.ts:78:3 › RSP-02 (AC-64): tablet 834x1112 - six screens without scroll, clipping, or overlap (17.3s)
+  ✓  24 [desktop] › e2e\lab-03\responsive.spec.ts:78:3 › RSP-03 (AC-64): mobile 390x844 - six screens without scroll, clipping, or overlap (17.5s)
+  ✓  25 [desktop] › e2e\lab-03\responsive.spec.ts:140:1 › RSP-04 (AC-64): the Queue and User Management render cards below 768px and tables above (9.0s)
+  ✓  26 [desktop] › e2e\lab-03\responsive.spec.ts:157:1 › RSP-03 (AC-64): at mobile the attachment filename does not overlap the file size (2.6s)
+  ✓  27 [desktop] › e2e\lab-03\responsive.spec.ts:228:1 › RSP-05 (AC-64): dialogs fit the viewport with stacked actions, and touch targets are 44x44 on mobile (25.9s)
+  ✓  28 [desktop] › e2e\lab-03\responsive.spec.ts:309:1 › ui-spec 12 authentication states (23.4s)
+  ✓  29 [desktop] › e2e\lab-03\responsive.spec.ts:400:1 › ui-spec 12 queue states (11.6s)
+  ✓  30 [desktop] › e2e\lab-03\responsive.spec.ts:454:1 › ui-spec 12 staff and requester detail states (20.3s)
+  ✓  31 [desktop] › e2e\lab-03\responsive.spec.ts:545:1 › ui-spec 12 user management states (8.6s)
+  ✓  32 [desktop] › e2e\lab-03\responsive.spec.ts:666:1 › RSP-06 (ui-spec 12): every specified screenshot path is produced (205ms)
+  ✓  33 [desktop] › e2e\lab-03\staff-ticket-flow.spec.ts:25:1 › E2E-03: claim, IT Priority, start, comment and note, appears resolved, resolve, close (8.4s)
+  ✓  34 [desktop] › e2e\lab-03\staff-ticket-flow.spec.ts:108:1 › E2E-04: a Requester is refused the staff queue and the notes, with no note text (3.0s)
+  ✓  35 [desktop] › e2e\lab-03\staff-ticket-flow.spec.ts:136:1 › E2E-05: the real Download control on Requester Detail and Staff Detail (6.5s)
+  ✓  36 [desktop] › e2e\lab-03\staff-ticket-flow.spec.ts:179:1 › E2E-09: Staff cancel a ticket with a reason, then reopen it with a reason (3.2s)
+  ✓  37 [desktop] › e2e\lab-03\user-administration.spec.ts:45:1 › E2E-06: the Administrator creates an IT Staff user who must change the password, then sees the queue (6.2s)
+  ✓  38 [desktop] › e2e\lab-03\user-administration.spec.ts:80:1 › E2E-07: edit, deactivate, reactivate, and a new initial password (8.4s)
+  ✓  39 [desktop] › e2e\lab-03\user-administration.spec.ts:160:1 › E2E-08: last Administrator, self-deactivation, and IT Staff refused User Management (6.7s)
+  -  40 [tablet] › e2e\lab-02\requester-ticket-flow.spec.ts:43:1 › E2E-01: sign in as a Requester, create a Ticket, and find it in My Tickets
+  -  41 [tablet] › e2e\lab-02\requester-ticket-flow.spec.ts:71:1 › E2E-02: logging out as A and signing in as B replaces the visible list
+  -  42 [tablet] › e2e\lab-02\requester-ticket-flow.spec.ts:87:1 › E2E-03: another Requester's ticket URL is refused
+  -  43 [tablet] › e2e\lab-02\requester-ticket-flow.spec.ts:102:1 › E2E-04: attachment lifecycle from Ticket Detail
+  -  44 [tablet] › e2e\lab-02\requester-ticket-flow.spec.ts:141:1 › E2E-05: submission with the backend stopped keeps every entered value
+  ✓  45 [tablet] › e2e\lab-02\responsive.spec.ts:32:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Create Ticket renders without clipping or horizontal scroll (7.4s)
+  ✓  46 [tablet] › e2e\lab-02\responsive.spec.ts:51:3 › RSP-01..RSP-03 (AC-39) - layout at every width › My Tickets renders without clipping or horizontal scroll (3.6s)
+  ✓  47 [tablet] › e2e\lab-02\responsive.spec.ts:59:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Ticket Detail renders without clipping or horizontal scroll (3.8s)
+  ✓  48 [tablet] › e2e\lab-02\responsive.spec.ts:81:3 › RSP-04, RSP-05 (AC-40) - the mobile list › renders cards rather than a table below 768px (3.4s)
+  ✓  49 [tablet] › e2e\lab-02\responsive.spec.ts:96:3 › RSP-04, RSP-05 (AC-40) - the mobile list › search, filters, sort and pagination stay usable (5.1s)
+  -  50 [tablet] › e2e\lab-02\responsive.spec.ts:117:3 › RSP-06 (ui-spec 7) - touch targets › interactive elements are at least 44px tall on mobile
+  -  51 [tablet] › e2e\lab-02\responsive.spec.ts:152:3 › RSP-07 - the remaining screenshot paths › create ticket validation, success and invalid attachment
+  -  52 [tablet] › e2e\lab-02\responsive.spec.ts:182:3 › RSP-07 - the remaining screenshot paths › my tickets empty and no-results states
+  -  53 [mobile] › e2e\lab-02\requester-ticket-flow.spec.ts:43:1 › E2E-01: sign in as a Requester, create a Ticket, and find it in My Tickets
+  -  54 [mobile] › e2e\lab-02\requester-ticket-flow.spec.ts:71:1 › E2E-02: logging out as A and signing in as B replaces the visible list
+  -  55 [mobile] › e2e\lab-02\requester-ticket-flow.spec.ts:87:1 › E2E-03: another Requester's ticket URL is refused
+  -  56 [mobile] › e2e\lab-02\requester-ticket-flow.spec.ts:102:1 › E2E-04: attachment lifecycle from Ticket Detail
+  -  57 [mobile] › e2e\lab-02\requester-ticket-flow.spec.ts:141:1 › E2E-05: submission with the backend stopped keeps every entered value
+  ✓  58 [mobile] › e2e\lab-02\responsive.spec.ts:32:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Create Ticket renders without clipping or horizontal scroll (6.8s)
+  ✓  59 [mobile] › e2e\lab-02\responsive.spec.ts:51:3 › RSP-01..RSP-03 (AC-39) - layout at every width › My Tickets renders without clipping or horizontal scroll (2.8s)
+  ✓  60 [mobile] › e2e\lab-02\responsive.spec.ts:59:3 › RSP-01..RSP-03 (AC-39) - layout at every width › Ticket Detail renders without clipping or horizontal scroll (3.0s)
+  ✓  61 [mobile] › e2e\lab-02\responsive.spec.ts:81:3 › RSP-04, RSP-05 (AC-40) - the mobile list › renders cards rather than a table below 768px (3.0s)
+  ✓  62 [mobile] › e2e\lab-02\responsive.spec.ts:96:3 › RSP-04, RSP-05 (AC-40) - the mobile list › search, filters, sort and pagination stay usable (4.8s)
+  ✓  63 [mobile] › e2e\lab-02\responsive.spec.ts:117:3 › RSP-06 (ui-spec 7) - touch targets › interactive elements are at least 44px tall on mobile (3.1s)
+  -  64 [mobile] › e2e\lab-02\responsive.spec.ts:152:3 › RSP-07 - the remaining screenshot paths › create ticket validation, success and invalid attachment
+  -  65 [mobile] › e2e\lab-02\responsive.spec.ts:182:3 › RSP-07 - the remaining screenshot paths › my tickets empty and no-results states
+
+  16 skipped
+  49 passed (6.7m)
