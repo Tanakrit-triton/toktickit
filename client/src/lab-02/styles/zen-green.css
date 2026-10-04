@@ -836,3 +836,182 @@ textarea.zg-field {
 /* On the --zg-primary header bar the Administrator badge would vanish into
    its own background, so it carries a surface border there. */
 .zg-header .zg-badge--role-administrator { border: 1px solid var(--zg-surface); }
+
+/* --- 7.1 Status badges (#44; STY-01 belongs to #43) ----------------------- */
+
+.zg-badge--status-open { background: var(--zg-surface); color: var(--zg-secondary); border: 1px solid var(--zg-secondary); }
+.zg-badge--status-in-progress { background: var(--zg-secondary); color: var(--zg-surface); }
+.zg-badge--status-waiting-for-requester { background: var(--zg-warning-bg); color: var(--zg-warning); }
+.zg-badge--status-resolved { background: var(--zg-primary); color: var(--zg-surface); }
+.zg-badge--status-closed { background: var(--zg-disabled-bg); color: var(--zg-text-muted); }
+.zg-badge--status-reopened { background: var(--zg-pale); color: var(--zg-primary); border: 1px solid var(--zg-primary); }
+.zg-badge--status-cancelled { background: var(--zg-disabled-bg); color: var(--zg-text-muted); border: 1px solid var(--zg-border); }
+
+/* --- 7.4 Appears-resolved indicator --------------------------------------- */
+
+.zg-indicator {
+  display: inline-block;
+  background: var(--zg-pale);
+  color: var(--zg-primary);
+  border-radius: var(--zg-radius-sm);
+  font: var(--zg-font-small);
+  padding: var(--zg-space-1) var(--zg-space-3);
+}
+
+/* --- 5.1 Conflict callout ------------------------------------------------- */
+
+.zg-callout--conflict { background: var(--zg-warning-bg); border-left-color: var(--zg-warning); }
+
+/* --- 5.2 Confirmation dialog ---------------------------------------------- */
+
+.zg-dialog { max-width: 560px; }
+
+@media (max-width: 767.98px) {
+  .zg-dialog .zg-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* --- 6.5 Staff Ticket Detail ---------------------------------------------- */
+
+.zg-muted { color: var(--zg-text-muted); }
+
+.zg-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--zg-space-3);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-detail-header .zg-title { margin: 0; }
+
+/* Content 8 of 12 columns, operations 4. The operations card comes first in
+   the DOM so that on one column it sits directly after the header. */
+.zg-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: "content operations";
+  gap: var(--zg-space-5);
+  align-items: start;
+}
+
+.zg-detail-content { grid-area: content; min-width: 0; }
+.zg-operations { grid-area: operations; }
+
+.zg-ops-group {
+  margin-bottom: var(--zg-space-5);
+}
+
+.zg-ops-group .zg-field,
+.zg-ops-group .zg-btn { margin-top: var(--zg-space-2); }
+
+.zg-ops-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zg-space-2);
+}
+
+@media (max-width: 991.98px) {
+  .zg-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "operations" "content";
+  }
+}
+
+@media (max-width: 767.98px) {
+  .zg-ops-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* Tabs: WAI-ARIA pattern, active tab marked by border and aria-selected. */
+.zg-tabs {
+  display: flex;
+  gap: var(--zg-space-2);
+  border-bottom: var(--zg-border-width) solid var(--zg-border);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--zg-text-muted);
+  font: var(--zg-font-label);
+  padding: var(--zg-space-2) var(--zg-space-3);
+  min-height: 44px;
+}
+
+.zg-tab[aria-selected="true"] {
+  border-bottom-color: var(--zg-primary);
+  color: var(--zg-primary);
+}
+
+.zg-tab:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+/* --- 8. Public Comments and Internal Notes -------------------------------- */
+
+.zg-entry-list {
+  list-style: none;
+  margin: 0 0 var(--zg-space-4);
+  padding: 0;
+}
+
+.zg-comment-item {
+  background: var(--zg-surface);
+  border: 1px solid var(--zg-border);
+  border-radius: var(--zg-radius-lg);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-3);
+}
+
+.zg-note-item {
+  background: var(--zg-warning-bg);
+  border-left: 3px solid var(--zg-warning);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-3);
+}
+
+/* The label carries the distinction in text, not colour alone (AC-50). */
+.zg-note-label {
+  display: block;
+  color: var(--zg-warning);
+  font: var(--zg-font-small);
+  font-weight: 600;
+  margin-bottom: var(--zg-space-1);
+}
+
+/* The note composer sits inside the note treatment (ui-spec 6.5). */
+.zg-note-composer {
+  background: var(--zg-warning-bg);
+  border-left: 3px solid var(--zg-warning);
+  padding: var(--zg-space-3) var(--zg-space-4);
+}
+
+.zg-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--zg-space-2);
+}
+
+.zg-entry-author { font: var(--zg-font-label); }
+
+.zg-entry-time {
+  color: var(--zg-text-muted);
+  font: var(--zg-font-small);
+}
+
+.zg-entry-body {
+  font: var(--zg-font-body);
+  margin: var(--zg-space-2) 0 0;
+}
+
+.zg-counter {
+  display: block;
+  color: var(--zg-text-muted);
+  font: var(--zg-font-small);
+  text-align: right;
+}
+
+.zg-counter--over { color: var(--zg-error); }

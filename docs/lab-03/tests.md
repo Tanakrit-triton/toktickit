@@ -293,18 +293,18 @@ The schema is dropped afterwards.
 | UI-24 | UI | AC-33 | Queue mobile cards | Below 768px, cards and no table. At desktop, a table and no cards. | `StaffTicketQueue.test.tsx` | #43 | Planned |
 | UI-25 | UI | AC-32 | Queue pagination | Exactly 10, 20, and 50 are offered, with 20 selected by default. Changing the size requests it and returns to page 1. | `StaffTicketQueue.test.tsx` | #43 | Planned |
 | UI-26 | UI | AC-26 | Indication in queue | A row with `requesterIndicatedResolvedAt` shows the compact indicator | `StaffTicketQueue.test.tsx` | #43 | Planned |
-| UI-27 | UI | AC-34 | Staff detail layout | Ticket information has no editable control. Editable fields exist only inside `operations-card`. | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-28 | UI | AC-35, AC-37 | Owner controls | Claim is shown only when unassigned and claimable. The assignee select lists `/staff/assignees`. A successful claim or assign re-fetches the detail. | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-29 | UI | AC-39 | Transition buttons | Exactly one button per `availableTransitions` entry, with the `ui-spec.md` §6.5 labels, and none for unlisted statuses | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-30 | UI | AC-41 | Confirmation dialogs | Resolve and Close open a dialog. Cancel and Reopen require a reason, blocked under 5 characters. No request is sent before confirm, and focus returns to the trigger. | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-31 | UI | AC-36, AC-68 | Conflict handling | A 409 shows `callout-conflict` with the server message and re-fetches the detail | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-32 | UI | AC-50 | Comment and note regions | Separate tabs. Only the active tab's composer is rendered. The note composer and note items carry the "Internal note — not visible to Requester" label. | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-33 | UI | AC-49 | Safe body rendering | A body containing `<script>` renders as literal text with no script element in the DOM, and its line breaks are preserved | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-34 | UI | AC-34 | Staff attachments read-only | Download links are present. No Add Attachment control, drop zone, or Remove button. | `StaffTicketDetail.test.tsx` | #44 | Planned |
-| UI-35 | UI | AC-25 | Requester comments | The Comments card lists comments, posting appends one, and no notes or note tab appear | `RequesterTicketDetail.test.tsx` | #44 | Planned |
-| UI-36 | UI | AC-26 | Appears resolved | The button appears only in eligible statuses. Confirming shows the indicator and hides the button. Cancelling the dialog sends nothing. | `RequesterTicketDetail.test.tsx` | #44 | Planned |
-| UI-37 | UI | AC-27 | No staff controls for Requester | No status, cancel, reopen, claim, assign, or IT Priority control in any ticket status | `RequesterTicketDetail.test.tsx` | #44 | Planned |
-| UI-38 | UI | AC-24 | Attachment lock in UI | On CLOSED and CANCELLED: no Add Attachment and no Remove, and the helper text is shown. Download remains. | `RequesterTicketDetail.test.tsx` | #44 | Planned |
+| UI-27 | UI | AC-34 | Staff detail layout | Ticket information has no editable control. Editable fields exist only inside `operations-card`. | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-28 | UI | AC-35, AC-37 | Owner controls | Claim is shown only when unassigned and claimable. The assignee select lists `/staff/assignees`. A successful claim or assign re-fetches the detail. | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-29 | UI | AC-39 | Transition buttons | Exactly one button per `availableTransitions` entry, with the `ui-spec.md` §6.5 labels, and none for unlisted statuses | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-30 | UI | AC-41 | Confirmation dialogs | Resolve and Close open a dialog. Cancel and Reopen require a reason, blocked under 5 characters. No request is sent before confirm, and focus returns to the trigger. | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-31 | UI | AC-36, AC-68 | Conflict handling | A 409 shows `callout-conflict` with the server message and re-fetches the detail | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-32 | UI | AC-50 | Comment and note regions | Separate tabs. Only the active tab's composer is rendered. The note composer and note items carry the "Internal note — not visible to Requester" label. | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-33 | UI | AC-49 | Safe body rendering | A body containing `<script>` renders as literal text with no script element in the DOM, and its line breaks are preserved | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-34 | UI | AC-34 | Staff attachments read-only | Download links are present. No Add Attachment control, drop zone, or Remove button. | `StaffTicketDetail.test.tsx` | #44 | Pass |
+| UI-35 | UI | AC-25 | Requester comments | The Comments card lists comments, posting appends one, and no notes or note tab appear | `RequesterTicketDetail.test.tsx` | #44 | Pass |
+| UI-36 | UI | AC-26 | Appears resolved | The button appears only in eligible statuses. Confirming shows the indicator and hides the button. Cancelling the dialog sends nothing. | `RequesterTicketDetail.test.tsx` | #44 | Pass |
+| UI-37 | UI | AC-27 | No staff controls for Requester | No status, cancel, reopen, claim, assign, or IT Priority control in any ticket status | `RequesterTicketDetail.test.tsx` | #44 | Pass |
+| UI-38 | UI | AC-24 | Attachment lock in UI | On CLOSED and CANCELLED: no Add Attachment and no Remove, and the helper text is shown. Download remains. | `RequesterTicketDetail.test.tsx` | #44 | Pass |
 | UI-39 | UI | AC-51 | User list | Name, Email, Role badge, Status badge, and Edit per user. Search and role filter send `q` and `role`. The own row is marked "(you)". | `UserManagement.test.tsx` | #45 | Planned |
 | UI-40 | UI | AC-52, AC-53 | Create dialog | Client validation below the fields. A server `EMAIL_ALREADY_EXISTS` renders below Email. Success closes the dialog, refreshes the list, and shows "User saved." | `UserManagement.test.tsx` | #45 | Planned |
 | UI-41 | UI | AC-54, AC-56 | Edit dialog | Fields are prefilled and saving sends only the changed fields. On the own row, Role and Active are disabled with the explanation. | `UserManagement.test.tsx` | #45 | Planned |
@@ -319,7 +319,7 @@ The schema is dropped afterwards.
 | STY-01 | UI style | AC-65 | Status badges | All eight statuses render their display text, with the background and text tokens from `ui-spec.md` §7.1 | `theme.style.test.tsx` | #43 | Planned |
 | STY-02 | UI style | AC-65 | IT Priority badge | Text plus glyph for all four values | `theme.style.test.tsx` | #43 | Planned |
 | STY-03 | UI style | AC-65 | Role badge | Text for all three roles. The Administrator badge in the header has its 1px border. | `theme.style.test.tsx` | #38 | Pass |
-| STY-04 | UI style | AC-50 | Note vs comment | Note items use `--zg-warning-bg` with a 3px `--zg-warning` left border and the text label. Comment items use `--zg-surface`. The two differ in computed background. | `theme.style.test.tsx` | #44 | Planned |
+| STY-04 | UI style | AC-50 | Note vs comment | Note items use `--zg-warning-bg` with a 3px `--zg-warning` left border and the text label. Comment items use `--zg-surface`. The two differ in computed background. | `theme.style.test.tsx` | #44 | Pass |
 | STY-05 | UI style | ui-spec §2 | Primary button count | At most one visible primary button on each Lab 3 screen, and on Staff Detail in each composer tab | `theme.style.test.tsx` | #47 | Planned |
 | STY-06 | UI style | AC-66 | Token conformance | Every computed colour on the six Lab 3 screens appears in the L2 §1.1 token table | `theme.style.test.tsx` | #47 | Planned |
 | STY-07 | UI style | AC-67 | Focus and dialogs | Focused controls show the focus ring. Every dialog traps Tab and restores focus on close. | `theme.style.test.tsx` | #47 | Planned |
@@ -505,6 +505,46 @@ noted. #42 changed no existing test or fixture.
 | ADM-13 | No user is created or changed by the refused calls. **Green before implementation:** the `/admin` family guard from #37 already refuses Requesters and IT Staff, so this test could not be red in #42. | AC-60 |
 | ADM-14 | — **Green before implementation (unknown-UUID case only):** the `/api/v1` not-found fallback from #37 already answered 404 `NOT_FOUND`. The malformed-id case was red. | — |
 
+#44 added the assertions below inside its planned tests. All were committed
+with their tests and were red first: the Staff Detail route and the Lab 3
+Requester Detail regions did not exist. UI-37's own absence checks would have
+held against the Lab 2 screen; it was red on its status-text check and on the
+missing Comments card it waits for.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| UI-27 | The IT Priority select shows the current value; Save is disabled until it changes and sends `{ itPriority }`; CLOSED and CANCELLED show the IT Priority badge read-only | ui-spec 6.5 operations card, IT Priority group |
+| UI-28 | The owner's name or "Unassigned" is shown; Assign is hidden in RESOLVED, CLOSED, and CANCELLED; assign sends `{ ownerId }` | ui-spec 6.5 Ticket Owner group; specification.md 5.6 assignable statuses |
+| UI-29 | IN_PROGRESS is "Start work" from OPEN and REOPENED and "Resume work" from WAITING_FOR_REQUESTER; Cancel ticket is destructive and the rest secondary; a transition without a dialog is sent directly and re-fetches | ui-spec 6.5 label table; BR-37 (no other transition is confirmed) |
+| UI-30 | The dialog has `role="dialog"` and `aria-modal`; the Cancel ticket dialog's cancel button reads "Keep ticket" and its confirm is destructive; a padded 4-character reason is refused; the reason is sent trimmed; Escape also closes and restores focus | ui-spec 5.2 and 10; BR-37 counts after trimming |
+| UI-31 | A 409 from a confirmed transition is handled the same way and closes the dialog; a 404 shows `state-not-found`; an unexpected response shows the error callout with Retry; none shows a status code, error code, or server path | AC-68 covers not-found and unexpected responses as well as conflicts; ui-spec 6.5 States |
+| UI-32 | Tab labels carry the counts; posting a note or a comment goes to its own endpoint and appends the server's copy; an empty body is blocked with "Write something before posting." and no request; both composers are replaced on CLOSED; empty lists read "No comments yet." / "No internal notes yet." | ui-spec 6.5 and 8; BR-50, BR-52 |
+| UI-35 | Items are oldest first with the author's name and `title` holding the ISO time; the card sits between ticket information and attachments; the counter reads `{n}/2000`; Post comment is secondary; an empty comment is blocked; no request is made to `/notes`; CLOSED replaces the composer with "Comments are closed for this ticket." | ui-spec 6.3 and 8; BR-53 (not even a request) |
+| UI-36 | The dialog's text and confirm label; focus returns to the button after cancel; an already-indicated ticket shows the indicator and no button | ui-spec 5.2 and 7.4 |
+| UI-37 | Each status renders its ui-spec 7.1 display text in the badge; "Assigned to" shows the owner or "Not yet assigned" | ui-spec 6.3 additions; it also proves each case rendered the status it names |
+| UI-38 | On an open ticket Add Attachment and Remove remain | The lock applies only to CLOSED and CANCELLED |
+| STY-04 | The label is `--zg-warning` at weight 600 and sits above the author line; comment items carry 1px `--zg-border` and `--zg-radius-lg` | ui-spec 8 treatment table |
+
+**UI-27 interpretation.** "Editable fields exist only inside `operations-card`"
+is read as ui-spec 6.5 words it: the operations card is "the only region with
+editable *operational* fields". Every `input` and `select` on Staff Detail must
+be inside it. A `textarea` outside it is allowed only when it is the active
+composer (`field-comment-body` or `field-note-body`), which writes a new
+message rather than editing the ticket.
+
+**Fixture and test changes made in #44.** No planned assertion was weakened.
+
+| File | Change | Why |
+|---|---|---|
+| `client/tests/lab-03/ticket-fixtures.ts` (new) | `fakeApi()` fakes `fetch()` for `/api/v1`, keyed by method and path, from api-spec sections 4 to 6 | The comments and notes API (#41) was not on the branch. Faking at `fetch()` holds the screens to the api-spec URLs, bodies, and shapes rather than to a client function name. |
+| `StaffTicketDetail.test.tsx` (UI-28, UI-31) | The owner-name checks read the new `ticket-owner` hook instead of the whole operations card. Changed in the implementation commit. | The Assign to `<option>` text contains every assignee's name, so the card-wide check could pass without the owner being shown. Tightened, not loosened. |
+| `client/tests/lab-02/RequesterTicketDetail.test.tsx` | L2 UI-28 removed (Section 4.1) | Superseded by UI-35 and UI-37 |
+
+**Components delivered for #43.** `StatusBadge`, `ItPriorityBadge`, and the
+ui-spec 7.1 status CSS are in `client/src/lab-03/components/Badges.tsx` and
+`zen-green.css`, because Staff Detail and Requester Detail are the first screens
+to need all eight statuses. STY-01 and STY-02, which test them, stay with #43.
+
 ---
 
 ## 3. Scope per Issue
@@ -594,6 +634,13 @@ The code those tests covered went with them:
 No other Lab 2 test was removed. L2 STY-04 kept its assertions. Its final
 `release(...)` now runs inside `act()`, which removed the three act() warnings:
 the screen's post-submit state updates had landed after the test ended.
+
+**Removed in #44.** The implementation commit deleted the L2 UI-28
+`describe` block (1 case) from `client/tests/lab-02/RequesterTicketDetail.test.tsx`,
+after UI-35 and UI-37 were committed red. UI-35 replaces its comment and note
+exclusions (comments now exist; notes still never appear), and UI-37 its
+status-control and IT Priority exclusions, in all eight statuses. L2 UI-27 in
+the same file is kept unchanged.
 
 L2 E2E-01, E2E-02, and E2E-03 are **rewritten in place**, not superseded. They
 keep their ids and files in `e2e/lab-02/requester-ticket-flow.spec.ts`:

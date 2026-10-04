@@ -132,12 +132,12 @@ describe("UI-28 (AC-35, AC-37) - owner controls", () => {
 
   it("shows the owner's name, or Unassigned", async () => {
     await openDetail(fakeApi(staffRoutes()));
-    expect(screen.getByTestId("operations-card")).toHaveTextContent(IT_STAFF.fullName);
+    expect(screen.getByTestId("ticket-owner")).toHaveTextContent(IT_STAFF.fullName);
 
     cleanup();
     vi.restoreAllMocks();
     await openDetail(fakeApi(staffRoutes(staffTicket({ owner: null, currentStatus: "NEW", availableTransitions: ["CANCELLED"] }))));
-    expect(screen.getByTestId("operations-card")).toHaveTextContent("Unassigned");
+    expect(screen.getByTestId("ticket-owner")).toHaveTextContent("Unassigned");
   });
 
   it("lists GET /staff/assignees in the Assign to select", async () => {
@@ -173,7 +173,7 @@ describe("UI-28 (AC-35, AC-37) - owner controls", () => {
     await waitFor(() => expect(detailGets(api)).toBe(2));
     expect(api.callsTo("POST", `/staff/tickets/${TICKET_ID}/claim`)).toHaveLength(1);
     await waitFor(() => expect(screen.queryByTestId("btn-claim")).not.toBeInTheDocument());
-    expect(screen.getByTestId("operations-card")).toHaveTextContent(IT_STAFF.fullName);
+    expect(screen.getByTestId("ticket-owner")).toHaveTextContent(IT_STAFF.fullName);
   });
 
   it("re-fetches the detail after a successful assign, sending the chosen ownerId", async () => {
@@ -188,7 +188,7 @@ describe("UI-28 (AC-35, AC-37) - owner controls", () => {
 
     await waitFor(() => expect(detailGets(api)).toBe(2));
     expect(api.callsTo("PUT", `/staff/tickets/${TICKET_ID}/owner`)[0].body).toEqual({ ownerId: target.id });
-    await waitFor(() => expect(screen.getByTestId("operations-card")).toHaveTextContent(target.fullName));
+    await waitFor(() => expect(screen.getByTestId("ticket-owner")).toHaveTextContent(target.fullName));
   });
 });
 
@@ -363,7 +363,7 @@ describe("UI-31 (AC-36, AC-68) - conflict handling", () => {
     expect(callout).toHaveTextContent("The ticket has been reloaded.");
     expect(callout).not.toHaveTextContent(/409|TICKET_ALREADY_CLAIMED/);
     await waitFor(() => expect(detailGets(api)).toBe(2));
-    await waitFor(() => expect(screen.getByTestId("operations-card")).toHaveTextContent(ASSIGNEES[0].fullName));
+    await waitFor(() => expect(screen.getByTestId("ticket-owner")).toHaveTextContent(ASSIGNEES[0].fullName));
   });
 
   it("handles a 409 from a confirmed transition the same way and closes the dialog", async () => {

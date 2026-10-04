@@ -177,6 +177,9 @@ export interface Attachment {
 
 export interface TicketDetail extends Ticket {
   attachments: Attachment[];
+  /** Lab 3 additions (api-spec.md section 4); never itPriority or notes. */
+  owner?: { id: string; fullName: string } | null;
+  requesterIndicatedResolvedAt?: string | null;
 }
 
 /** GET /api/v1/tickets/{id} -- Scoped. A foreign ticket is refused as a miss. */
