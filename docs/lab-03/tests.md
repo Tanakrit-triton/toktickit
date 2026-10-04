@@ -320,22 +320,22 @@ The schema is dropped afterwards.
 | STY-02 | UI style | AC-65 | IT Priority badge | Text plus glyph for all four values | `theme.style.test.tsx` | #43 | Pass |
 | STY-03 | UI style | AC-65 | Role badge | Text for all three roles. The Administrator badge in the header has its 1px border. | `theme.style.test.tsx` | #38 | Pass |
 | STY-04 | UI style | AC-50 | Note vs comment | Note items use `--zg-warning-bg` with a 3px `--zg-warning` left border and the text label. Comment items use `--zg-surface`. The two differ in computed background. | `theme.style.test.tsx` | #44 | Pass |
-| STY-05 | UI style | ui-spec §2 | Primary button count | At most one visible primary button on each Lab 3 screen, and on Staff Detail in each composer tab | `theme.style.test.tsx` | #47 | Planned |
-| STY-06 | UI style | AC-66 | Token conformance | Every computed colour on the six Lab 3 screens appears in the L2 §1.1 token table | `theme.style.test.tsx` | #47 | Planned |
-| STY-07 | UI style | AC-67 | Focus and dialogs | Focused controls show the focus ring. Every dialog traps Tab and restores focus on close. | `theme.style.test.tsx` | #47 | Planned |
-| STY-08 | UI style | AC-67 | Keyboard reach | Tab order reaches every control in visual order on each Lab 3 screen. Staff Detail tabs respond to arrow keys. | `theme.style.test.tsx` | #47 | Planned |
-| STY-09 | UI style | AC-68 | Callout variants | Forbidden, not-found, conflict, and error callouts differ in computed background and border, each has text and an icon, and none renders a digit-only status code | `theme.style.test.tsx` | #47 | Planned |
+| STY-05 | UI style | ui-spec §2 | Primary button count | At most one visible primary button on each Lab 3 screen, and on Staff Detail in each composer tab | `theme.style.test.tsx` | #47 | Pass |
+| STY-06 | UI style | AC-66 | Token conformance | Every computed colour on the six Lab 3 screens appears in the L2 §1.1 token table | `theme.style.test.tsx` | #47 | Pass |
+| STY-07 | UI style | AC-67 | Focus and dialogs | Focused controls show the focus ring. Every dialog traps Tab and restores focus on close. | `theme.style.test.tsx` | #47 | Pass |
+| STY-08 | UI style | AC-67 | Keyboard reach | Tab order reaches every control in visual order on each Lab 3 screen. Staff Detail tabs respond to arrow keys. | `theme.style.test.tsx` | #47 | Pass |
+| STY-09 | UI style | AC-68 | Callout variants | Forbidden, not-found, conflict, and error callouts differ in computed background and border, each has text and an icon, and none renders a digit-only status code | `theme.style.test.tsx` | #47 | Pass |
 
 ### 2.12 Responsive — `e2e/lab-03/responsive.spec.ts`
 
 | Test ID | Type | Req / AC | What it tests | Expected result | Test file | Issue | Final |
 |---|---|---|---|---|---|---|---|
-| RSP-01 | Responsive | AC-64 | Desktop 1440×900 | Login, Change Password, Queue, Staff Detail, Requester Detail with comments, and User Management: no horizontal scroll, no clipped or overlapping element | `responsive.spec.ts` | #47 | Planned |
-| RSP-02 | Responsive | AC-64 | Tablet 834×1112 | The same assertions. The Queue hides the Requester column. | `responsive.spec.ts` | #47 | Planned |
-| RSP-03 | Responsive | AC-64 | Mobile 390×844 | The same assertions | `responsive.spec.ts` | #47 | Planned |
-| RSP-04 | Responsive | AC-64 | Mobile list forms | The Queue and User Management render cards, not tables, below 768px | `responsive.spec.ts` | #47 | Planned |
-| RSP-05 | Responsive | AC-64 | Mobile dialogs and touch targets | Dialogs fit the viewport with stacked actions. Interactive elements are at least 44×44px. | `responsive.spec.ts` | #47 | Planned |
-| RSP-06 | Responsive | ui-spec §12 | Screenshot capture | Every path in `ui-spec.md` §12 is produced | `responsive.spec.ts` | #47 | Planned |
+| RSP-01 | Responsive | AC-64 | Desktop 1440×900 | Login, Change Password, Queue, Staff Detail, Requester Detail with comments, and User Management: no horizontal scroll, no clipped or overlapping element | `responsive.spec.ts` | #47 | Pass |
+| RSP-02 | Responsive | AC-64 | Tablet 834×1112 | The same assertions. The Queue hides the Requester column. | `responsive.spec.ts` | #47 | Pass |
+| RSP-03 | Responsive | AC-64 | Mobile 390×844 | The same assertions | `responsive.spec.ts` | #47 | Pass |
+| RSP-04 | Responsive | AC-64 | Mobile list forms | The Queue and User Management render cards, not tables, below 768px | `responsive.spec.ts` | #47 | Pass |
+| RSP-05 | Responsive | AC-64 | Mobile dialogs and touch targets | Dialogs fit the viewport with stacked actions. Interactive elements are at least 44×44px. | `responsive.spec.ts` | #47 | Pass |
+| RSP-06 | Responsive | ui-spec §12 | Screenshot capture | Every path in `ui-spec.md` §12 is produced | `responsive.spec.ts` | #47 | Pass |
 
 ### 2.13 End-to-end — `e2e/lab-03/`
 
@@ -676,6 +676,76 @@ It found no disagreement between the UI and the API, so #46 has no fix commit. T
 
 *Repeatability.* After one reseed, the whole `e2e/` folder passed. The Lab 3 specs then passed twice more back to back, with no reseed between runs.
 
+**#47 — Visual inspection and responsive screenshots.** STY-05 to STY-09 are in `client/tests/lab-03/theme.style.test.tsx`. RSP-01 to RSP-06 are in `e2e/lab-03/responsive.spec.ts`, which writes every `ui-spec.md` §12 path. `e2e/lab-03/evidence.spec.ts` writes the extra desktop evidence and `artifacts/lab-03/api-authorization.txt`. `e2e/lab-03/capture.ts` holds the shared viewports, the layout check, and the API setup. No new test IDs.
+
+*Red first.*
+- STY-05 to STY-09 passed on arrival: the behaviour shipped with #38 and #43 to #45, and no test covered it. As a check that they are not vacuous, an `outline: none` rule and a named colour added to the stylesheet turned STY-06 and STY-07 red.
+- RSP-05 was red. These mobile touch targets were under 44×44px: the brand (93×29.7), the navigation links (358×43), Download (82.8×29.6), Edit (42.4×29.6), the file chooser (239×24.8), and the Active checkbox label (310×19.6). The same test then found the Active checkbox touching its text at every width (gap 0px): `.zg-dialog .zg-label { display: block }` outranked `.zg-checkbox`.
+- RSP-03 was red: at 390px the attachment filename's text (x 54–148) painted over the file size (x 66–86).
+- The fix commit changes only `zen-green.css`. It reuses the existing 44px value and the existing tokens. RSP-01, RSP-02, RSP-04, and RSP-06 passed on arrival.
+
+| Test | Added assertion | Reason |
+|---|---|---|
+| RSP-01 | The desktop queue table has 7 column headers | ui-spec 6.4 |
+| RSP-02 | The tablet queue table has no Requester header, and Owner is shown | ui-spec 6.4 |
+| RSP-03 | At 390px the attachment filename and the file size do not intersect | Overlap seen in the mobile capture, which the generic check did not catch |
+| RSP-01–03 | Clipping and overlap are checked in the browser (`layoutProblems` in `capture.ts`): elements past the viewport edge, text or controls cut off by their own box (except the documented ellipsis with `title`), and controls or badges sharing area | AC-64 |
+| RSP-05 | At desktop and tablet each dialog is at most 560px wide; at every width the Active checkbox keeps an 8px gap from its text | ui-spec 9; `.zg-checkbox` |
+| RSP-06 | The path list is read from ui-spec §12 itself (46 files), so a path added to the specification and not captured fails | ui-spec 12 |
+
+**Interpretations recorded for #47.**
+- **Desktop project only.** `responsive.spec.ts` and `evidence.spec.ts` are listed in `playwright.config.ts` beside the journeys. Each opens its own browser context at 1440×900, 834×1112, and 390×844, so all three widths are covered in one ordered pass and nothing is reported as skipped.
+- **Data.** The published captures were taken against a separately seeded schema, `lab3_screenshots`, in the same local PostgreSQL. They show the seed plus tickets that the specs file, claim, and work through the API as the seeded users, not leftovers from earlier E2E runs. `ensureRealisticQueue()` tops the queue up to 25 tickets so a second page exists, and does nothing on a database that already has 25.
+- **Intercepted states.** A healthy server cannot produce these, so the browser's request is intercepted:
+  - login busy (the real response is held until the frame is taken);
+  - login network failure;
+  - queue empty and queue failure;
+  - Staff Detail load failure;
+  - User Management load failure.
+
+  Every other state, including the claim 409 and `USER_HAS_OPEN_TICKETS`, comes from the real server.
+- **`LAST_ADMINISTRATOR`.** The UI disables Role and Active on one's own row (the E2E-08 deviation). For `desktop-last-administrator.png`, the PATCH that the own-row dialog sends is therefore rewritten in flight to `{ "isActive": false }`, and it reaches the real server. The 409 and its message are the server's.
+- **STY-08.** jsdom has no layout, so "visual order" is checked as document order with no positive `tabindex`. Two places where layout and document order differ are **known deviations, not changed** (decided during #47; Section 9):
+  - **Staff Detail at desktop.** The operations card is first in the DOM, because ui-spec 6.5 puts it directly after the header on tablet and mobile. At desktop, grid areas place it in the right column, so Tab reaches Operations before Ticket information.
+  - **Dialog actions below 768px.** `.zg-actions` uses `column-reverse` (Lab 2), so the confirm button sits above Cancel while Tab reaches Cancel first.
+- **STY-09.** ui-spec 5.1 gives the forbidden and not-found states the same tokens. The test asserts that both, and the conflict callout, differ from the error callout in background and border.
+- **Known deviation: tablet queue width.** At 834px the queue table, without its Requester column, is wider than its 800px container. It scrolls inside that container, which L2 ui-spec 7 allows, so the page does not scroll. As a result, Owner and Last Updated sit to the right of the visible area in `tablet-populated.png`. ui-spec 6.4 drops the Requester column at tablet so that the table fits, and ui-spec 9 forbids clipping.
+
+  One time-boxed fix was tried. A test asserting that the table fits its container was red (867px in 800px). Tightening the tablet cell padding to `--zg-space-2` turned it green on that data, but on a freshly seeded queue the table was still 847px in 800px. The fit depends on the data, so the change and its test were reverted, and this is recorded in Section 9.
+
+*Evidence map (desktop unless stated).* The ui-spec §12 files are not repeated.
+- **Login.**
+  - `authentication/`: `desktop-login-valid`, `-login-invalid`, `-login-inactive`, `-login-busy`, `-login-failure`, `-change-password-forced` (all widths), `-change-password-success`, `-shell-{requester,it-staff,administrator}`, `-logout`, `-logout-direct-access`.
+  - `user-management/`: `desktop-created-user-first-login`.
+- **Queue** (`staff-queue/`):
+  - `{desktop,tablet,mobile}-populated`;
+  - `-search`, `-filter-status`, `-filter-it-priority`, `-filter-category`, `-filter-owner-{me,unassigned,person}`;
+  - `-sort-{oldest,newest,recently-updated,ticket-number,status}`, `-pagination-page-2`, `-pagination-page-size-10`;
+  - `-filtered`, `-empty`, `-no-results`, `-failure`.
+
+  Owners and badges are visible in `-populated` and `-sort-status`.
+- **Staff Ticket Detail** (`staff-ticket-detail/`):
+  - `-claim-before`, `-claimed`, `-reassigned`, `-it-priority-changed`;
+  - `-status-dialog-resolve`, `-status-resolved`, `-cancel-dialog`, `-cancel-reason-validation`;
+  - `-comment-posted`, `-note-posted`, `-notes-tab`, `-comment-validation`;
+  - `-attachment-download`, `-appears-resolved-indicator`, `-conflict`, `-failure`, `-requester-refused`, `-closed`.
+- **Requester Ticket Detail** (`staff-ticket-detail/`): `{desktop,tablet,mobile}-requester-detail-comments`, `-requester-no-internal-notes`, `-requester-appears-resolved-dialog`, `-requester-appears-resolved`.
+- **User Management** (`user-management/`):
+  - `{desktop,tablet,mobile}-list`, `-search`, `-role-filter`;
+  - `-create-dialog`, `-create-invalid`, `-duplicate-email`, `-user-created`;
+  - `-edit-dialog`, `-user-saved`, `-edit-dialog-self`;
+  - `-initial-password-dialog`, `-initial-password-set`, `-forced-change-next-login`;
+  - `-last-administrator`, `-open-tickets-conflict`, `-it-staff-forbidden`, `-failure`.
+- **API.** `artifacts/lab-03/api-authorization.txt` records the status and JSON body for: a Requester calling `GET /staff/tickets`, IT Staff calling `GET /admin/users`, and a Requester calling `GET /tickets/{id}/notes` on their own ticket, which has a real note. All three return 403, and the note text appears in none of them.
+
+*Not captured.*
+- **Download.** The browser download is asserted by its suggested filename and the absence of a failure. A PNG can only show the control.
+- **Widths.** The extra evidence states are desktop only, as requested.
+- **Throttled login (429).** Not requested, and not captured.
+- **Ticket numbers.** `mobile-view.png` and `mobile-requester-detail-comments.png` were recaptured after the attachment fix, so they show a different ticket number from the other widths' captures of the same screen.
+
+*Suite runs for #47.* Client: 16 files, 287 tests, all passing. The `e2e/` folder ran against the screenshots schema with 0 failures. The 16 skips are the existing Lab 2 run-time skips; no Lab 3 test is skipped.
+
 ---
 
 ## 3. Scope per Issue
@@ -928,6 +998,50 @@ The format follows L2 §4:
 - **auto** names the test that enforces the row;
 - n/a gives a reason.
 
+Completed 4 October 2026 by #47, against the captures in `artifacts/lab-03/screenshots/`.
+
+| # | Check | Desktop | Tablet | Mobile | Enforced by |
+|---|---|---|---|---|---|
+| 1 | Every colour used appears in the `ui-spec.md` token table | auto | auto | auto | STY-06 |
+| 2 | Header, primary buttons and strong emphasis use the primary green | yes | yes | yes | — |
+| 3 | Editable and read-only fields are distinguishable at a glance | auto | yes | yes | UI-27 |
+| 4 | Read-only fields remain readable, not greyed into illegibility | yes | yes | yes | — |
+| 5 | Disabled controls are distinct from read-only fields | yes | yes | yes | — |
+| 6 | Every required field shows a red asterisk | yes | yes | yes | — |
+| 7 | Every validation message sits directly below its own field | yes | n/a — desktop capture | n/a — desktop capture | UI-01, UI-08, UI-40 |
+| 8 | At most one primary button per screen (ui-spec 2) | auto | auto | auto | STY-05 |
+| 9 | Submit shows a busy state and is disabled while submitting | auto | n/a — desktop capture | n/a — desktop capture | UI-02 |
+| 10 | Every button has visible text | yes | yes | yes | — |
+| 11 | Keyboard focus is visible on every interactive element | auto | auto | n/a — touch | STY-07 |
+| 12 | No label, message or button is clipped | auto | auto, except the queue table (known deviation, note 2) | auto | RSP-01, RSP-02, RSP-03 |
+| 13 | No overlapping text or controls | auto | auto | auto, fixed in #47 | RSP-01 to RSP-03 |
+| 14 | No horizontal page scrolling | auto | auto | auto | RSP-01 to RSP-03 |
+| 15 | Attachment filenames are readable and not clipped at the edge | yes | yes | auto, fixed in #47 | RSP-03 |
+| 16 | Priority and status badges convey value by text, not colour alone | auto | auto | auto | STY-01, STY-02 |
+| 17 | Removed attachments show no download control | auto | n/a — none captured | n/a — none captured | UI-34 |
+| 18 | Empty and no-results states differ in wording and action | auto | n/a — desktop capture | n/a — desktop capture | UI-23 |
+| 19 | Mobile lists render as cards, not a squeezed table | n/a — table is correct | n/a — table is correct | auto | RSP-04 |
+| 20 | Search, filters, sort and pagination usable at 390px | n/a | n/a | yes | — |
+| 21 | Touch targets at least 44x44px on mobile | n/a | n/a | auto, fixed in #47 | RSP-05 |
+| 22 | Retired: the development notice is removed (UI-14) | n/a | n/a | n/a | UI-14 |
+| 23 | The shell shows the user's name and role badge on every authenticated screen | auto | yes | yes, in the open menu (note 3) | UI-12 |
+| 24 | The navigation shows only the destinations permitted for the role | auto | yes | yes | UI-13 |
+| 25 | Status, IT Priority, role, and account badges show text, not colour alone | auto | auto | auto | STY-01 to STY-03, UI-39 |
+| 26 | Internal Notes are distinguishable from Public Comments by label as well as colour | auto | yes | yes | STY-04, UI-32 |
+| 27 | Only the operations card on Staff Detail contains editable ticket fields | auto | yes | yes | UI-27 |
+| 28 | Every confirmation dialog is fully visible, with stacked actions at mobile width | auto | auto | auto | RSP-05 |
+| 29 | The forbidden state, not-found state, and conflict callout are visually distinct from the error callout | auto | n/a — desktop capture | n/a — desktop capture | STY-09 |
+| 30 | Forced Change Password mode shows no navigation | auto | auto | auto | UI-11, RSP-01 to RSP-03 |
+| 31 | No horizontal page scrolling on the Queue or User Management at 390px | n/a | n/a | auto | RSP-03 |
+
+**Notes.**
+1. **Design consistency.** Every Lab 3 screen uses the Lab 2 card, field, button, and badge components. The captures show no new colour, radius, or type size.
+2. **Tablet queue (row 12).** The page does not scroll. The queue table scrolls inside its own container (L2 ui-spec 7), so Owner and Last Updated are to the right of the visible area in `tablet-populated.png`. **Known deviation**, recorded in Section 9: one padding fix was tried in #47 and reverted, because it held only for some data.
+3. **Mobile shell (row 23).** Below 768px the name and role badge sit in the collapsed panel (ui-spec 3), as `mobile-shell-menu-open.png` shows. In forced mode they stay visible beside Log out.
+4. **Focus order: known deviations, not changed.** Both are recorded in Section 9.
+   - On Staff Detail at desktop, Tab reaches the operations card (right column) before Ticket information (left column). The card is first in the DOM because ui-spec 6.5 places it directly after the header on tablet and mobile.
+   - Below 768px, dialog actions stack with `column-reverse` (Lab 2 `.zg-actions`), so the confirm button sits above Cancel while Tab reaches Cancel first.
+
 ---
 
 ## 7. Test commands
@@ -990,3 +1104,6 @@ passed, failed, and skipped, with every skip declared and justified.
 | The migration upgrade test uses synthetic Lab 2 rows | MIG-02 seeds Lab 2–shaped data in an isolated schema rather than restoring a real Lab 2 dump | Acceptable. The rows cover every column and every attachment state. |
 | Content-type sniffing still deferred | DEV-15. A forged MIME type on a permitted extension would pass. Stored files are never executed or served inline. | Later sprint |
 | No full WCAG audit | STY-07, STY-08, and RSP-05 are targeted checks, as in Lab 2 | Later hardening sprint |
+| Known deviation: the tablet queue table scrolls inside its container | At 834px the six-column table is wider than its container (847px in 800px on the seeded queue). It scrolls inside the container (L2 ui-spec 7), so Owner and Last Updated can be off to the right. This conflicts with ui-spec 6.4 and 9. A padding fix tried in #47 held only for some data and was reverted. | Revisit with a column-width or table-layout decision |
+| Known deviation: Staff Detail Tab order at desktop | The operations card is first in the DOM (ui-spec 6.5, tablet and mobile), so at desktop Tab reaches the right-hand operations column before Ticket information | Revisit if the layout is redesigned |
+| Known deviation: dialog action order below 768px | `.zg-actions` stacks with `column-reverse` (Lab 2), so confirm is shown above Cancel while Tab reaches Cancel first | Revisit with the Lab 2 action layout |
