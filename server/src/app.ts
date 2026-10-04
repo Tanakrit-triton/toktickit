@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express";
-import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { referenceDataRouter } from "./lab-02/reference-data.routes.js";
 import { ticketsRouter } from "./lab-02/tickets.routes.js";
@@ -13,7 +12,9 @@ import { requireSession } from "./lab-03/require-session.js";
 // Supertest can import `app` without opening a port. Do not merge these files.
 export const app = express();
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+// No cors(): the browser reaches the API same-origin through the Vite proxy
+// in development, so the API sends no CORS headers (docs/lab-03/api-spec.md
+// section 1.3, DEC-04).
 app.use(express.json());
 
 // ---------------------------------------------------------------------------

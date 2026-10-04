@@ -214,30 +214,8 @@ body {
   padding: var(--zg-space-4);
 }
 
-/* The development-mode notice required on every screen by BR-03. Warning
-   colours are reserved for warnings; this is one, not decoration. */
-.zg-dev-notice {
-  background: var(--zg-warning-bg);
-  color: var(--zg-warning);
-  font: var(--zg-font-small);
-  padding: var(--zg-space-2) var(--zg-space-4);
-  text-align: center;
-}
-
-/* --- 5.1 Development Requester Selection ---------------------------------
- * Centred card, maximum width 480px, on the page background.
- */
-
-.zg-selection-screen {
-  display: flex;
-  justify-content: center;
-  padding: var(--zg-space-7) var(--zg-space-4);
-}
-
-.zg-selection-card {
-  width: 100%;
-  max-width: 480px;
-}
+/* The Lab 2 development notice and Requester Selection screen were removed in
+   Lab 3 #38 (docs/lab-03/ui-spec.md section 3). */
 
 .zg-title {
   font: var(--zg-font-h1);
@@ -245,13 +223,8 @@ body {
   margin: 0 0 var(--zg-space-4);
 }
 
-.zg-selection-continue {
-  margin-top: var(--zg-space-5);
-  width: 100%;
-}
-
-/* Occupies the space the dropdown will take, so the card does not jump when
-   the request settles. */
+/* Occupies the space loading content will take, so the layout does not jump
+   when the request settles. */
 .zg-skeleton {
   display: block;
   height: 46px;
@@ -738,3 +711,128 @@ textarea.zg-field {
   box-shadow: var(--zg-shadow-card);
   padding: var(--zg-space-5);
 }
+
+/* =========================================================================
+ * Lab 3 -- docs/lab-03/ui-spec.md. No new tokens (section 1): every value
+ * below is a Lab 2 token.
+ * ========================================================================= */
+
+/* --- 4. App start: full-screen loading until GET /auth/me resolves -------- */
+
+.zg-loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font: var(--zg-font-body);
+  color: var(--zg-text-muted);
+  background: var(--zg-bg);
+}
+
+/* --- 6.1 Login and 6.2 Change Password: a centred 480px card -------------- */
+
+.zg-auth-screen {
+  display: flex;
+  justify-content: center;
+  padding: var(--zg-space-7) var(--zg-space-4);
+}
+
+.zg-auth-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.zg-auth-card .zg-label {
+  display: block;
+  margin-top: var(--zg-space-4);
+}
+
+.zg-auth-card .zg-field {
+  width: 100%;
+}
+
+.zg-auth-card .zg-callout {
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-auth-explanation {
+  font: var(--zg-font-body);
+  color: var(--zg-text-muted);
+  margin: 0 0 var(--zg-space-4);
+}
+
+.zg-auth-field .zg-helper,
+.zg-auth-field .zg-message-error {
+  display: block;
+}
+
+.zg-auth-submit {
+  width: 100%;
+  margin-top: var(--zg-space-5);
+}
+
+.zg-auth-helper {
+  margin: var(--zg-space-4) 0 0;
+}
+
+@media (max-width: 767.98px) {
+  .zg-auth-screen {
+    padding: var(--zg-space-5) var(--zg-space-4);
+  }
+}
+
+/* --- 3. Shell additions ---------------------------------------------------- */
+
+.zg-brand:hover,
+.zg-brand:focus-visible {
+  color: var(--zg-surface);
+}
+
+.zg-identity-name {
+  font: var(--zg-font-label);
+}
+
+/* --- 5.1 Callouts: icon plus text, never colour alone --------------------- */
+
+.zg-callout {
+  display: flex;
+  gap: var(--zg-space-3);
+  align-items: flex-start;
+  border-left: 3px solid transparent;
+  border-radius: var(--zg-radius-md);
+  color: var(--zg-text);
+  font: var(--zg-font-body);
+  padding: var(--zg-space-3) var(--zg-space-4);
+  margin-bottom: var(--zg-space-4);
+}
+
+.zg-callout-icon {
+  font: var(--zg-font-label);
+  flex: none;
+}
+
+.zg-callout--error { background: var(--zg-error-bg); border-left-color: var(--zg-error); }
+.zg-callout--info { background: var(--zg-pale); border-left-color: var(--zg-secondary); }
+.zg-callout--forbidden { background: var(--zg-readonly-bg); border-left-color: var(--zg-text-muted); }
+
+.zg-callout-title {
+  font: var(--zg-font-h2);
+  margin: 0 0 var(--zg-space-2);
+}
+
+.zg-callout-text {
+  margin: 0 0 var(--zg-space-2);
+}
+
+/* Links use --zg-secondary (L2 ui-spec 1.1), not the Bootstrap default. */
+.zg-callout a { color: var(--zg-secondary); }
+
+/* --- 7.3 Role badge ------------------------------------------------------- */
+
+.zg-badge--role-requester { background: var(--zg-readonly-bg); color: var(--zg-text-muted); }
+.zg-badge--role-it-staff { background: var(--zg-pale); color: var(--zg-primary); }
+.zg-badge--role-administrator { background: var(--zg-primary); color: var(--zg-surface); }
+
+/* On the --zg-primary header bar the Administrator badge would vanish into
+   its own background, so it carries a surface border there. */
+.zg-header .zg-badge--role-administrator { border: 1px solid var(--zg-surface); }

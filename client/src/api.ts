@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+// Relative by default since Lab 3 #38: the Vite proxy forwards /api to the
+// server, and the server no longer sends CORS headers (api-spec 1.3, REG-04).
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export interface Category {
   id: number;
