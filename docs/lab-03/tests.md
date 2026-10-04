@@ -1084,47 +1084,8 @@ Screenshots are written to `artifacts/lab-03/screenshots/` by `e2e/lab-03/respon
 
 ## 8. Final results
 
-Run on 4 October 2026 at commit `5d0b1ec`, the tip of
-`feature/lab3-14-screenshots` and the base of `feature/lab3-15-release-docs`.
-That commit contains every Lab 3 Issue (#33 to #47). It is not yet on `main`,
-because PRs #59 to #63 were still open. The database was migrated and seeded
-from the Section 7 commands, with the API on :3000 and the client on :5173.
-
-| Suite | Command | Tests | Passed | Failed | Skipped |
-|---|---|---|---|---|---|
-| Unit, migration, seed, API (Labs 1 to 3) | `cd server && npm test` | 445 | 445 | 0 | 0 |
-| UI component and style (Labs 1 to 3) | `cd client && npm test` | 287 | 287 | 0 | 0 |
-| Responsive and E2E (Labs 2 and 3) | `npm run test:e2e` | 65 | 49 | 0 | 16 |
-| **Total** | | **797** | **781** | **0** | **16** |
-
-By lab:
-
-| Suite | Lab 1 | Lab 2 | Lab 3 |
-|---|---|---|---|
-| Server | 2 | 83 | 360 |
-| Client | 3 | 52 | 232 |
-| E2E | — | 23 passed, 16 skipped | 26 |
-
-The complete output of each run is saved in `artifacts/lab-03/test-output/`
-as `server.txt`, `client.txt`, and `e2e.txt`.
-
-**All 16 skips are the Lab 2 viewport guards (L2 §6), not failures and not
-disabled tests.** No Lab 3 test is skipped. The Lab 3 specs that run at one
-width are excluded from the other projects in `playwright.config.ts`, so they
-are not reported as skipped.
-
-| Skipped | Why |
-|---|---|
-| L2 E2E-01 to E2E-05 at tablet and mobile (10) | The journeys run at one viewport (L2 §6). |
-| L2 RSP-06 at desktop and tablet (2) | The 44px touch minimum is a mobile requirement. |
-| L2 RSP-07, two specs, at tablet and mobile (4) | `ui-spec.md` §10 lists these screenshot paths at desktop only. |
-
-Lab 2 recorded 18 skips. The difference is the RSP-07 "requester selection
-states" case, superseded in Section 4.1 (#38), which was skipped at tablet and
-mobile.
-
-Verifiable: `grep -rn "test.skip\|\.only\|xit(\|xdescribe(" server/tests client/tests e2e`
-returns only the four conditional viewport guards behind the skips above.
+To be completed by #48 from `main`, in the L2 §6 format: suite, command, tests,
+passed, failed, and skipped, with every skip declared and justified.
 
 **Definition of Done gate:**
 - every planned test above is implemented and passing;
