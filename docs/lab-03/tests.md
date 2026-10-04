@@ -1084,11 +1084,12 @@ Screenshots are written to `artifacts/lab-03/screenshots/` by `e2e/lab-03/respon
 
 ## 8. Final results
 
-Run on 4 October 2026 at commit `5d0b1ec`, the tip of
-`feature/lab3-14-screenshots` and the base of `feature/lab3-15-release-docs`.
-That commit contains every Lab 3 Issue (#33 to #47). It is not yet on `main`,
-because PRs #59 to #63 were still open. The database was migrated and seeded
-from the Section 7 commands, with the API on :3000 and the client on :5173.
+Run on 4 October 2026 on `feature/lab3-16-release-docs-restore`: `lab3-staging`
+at `82b9293`, with every Lab 3 Issue (#33 to #47) merged, plus the restored #48
+documentation. This is the release candidate. It was run before the release
+merge to `main`. The application code is the same as at `5d0b1ec`, where the
+first #48 run gave the same totals. The database was migrated and seeded from
+the Section 7 commands, with the API on :3000 and the client on :5173.
 
 | Suite | Command | Tests | Passed | Failed | Skipped |
 |---|---|---|---|---|---|
@@ -1125,6 +1126,30 @@ mobile.
 
 Verifiable: `grep -rn "test.skip\|\.only\|xit(\|xdescribe(" server/tests client/tests e2e`
 returns only the four conditional viewport guards behind the skips above.
+
+**An earlier E2E run failed.** Of three E2E runs on the same application code,
+one failed and two passed:
+
+| Run | Result |
+|---|---|
+| First #48 run, at `5d0b1ec` | 49 passed, 16 skipped, 0 failed |
+| First run on this branch | **1 failed** (L3 RSP-02), 39 passed, 16 skipped, 9 did not run |
+| Rerun on this branch, on a freshly seeded database | 49 passed, 16 skipped, 0 failed. These are the figures above, and `artifacts/lab-03/test-output/e2e.txt` is this run's output. |
+
+**The failure was a transient queue request failure in L3 RSP-02 (tablet).**
+`openQueue` timed out after 20 s waiting for a queue row. The page showed the
+queue's "Something went wrong" state, which `StaffTicketQueue.tsx` sets when its
+one queue request fails with anything other than a 403. A 401 would have
+redirected to sign-in instead. Sign-in had succeeded, RSP-01 had just loaded the
+same queue at desktop width, and the staff-flow tests after the failure passed.
+The other 9 tests in the serial file did not run.
+
+**The cause is not established.** *Hypothesis:* the API was briefly unavailable
+or restarting. At that point it was the copy that L2 E2E-05 restarts with
+`npm run dev` (`tsx watch`) and its output discarded, so no server log exists.
+An intermittent 500 from the queue endpoint is not ruled out. Until the cause is
+found, RSP-02 is a possible flaky test, not a closed one. The investigation is
+post-Lab-3 work, tracked as Issue #66.
 
 **Definition of Done gate:**
 - every planned test above is implemented and passing;

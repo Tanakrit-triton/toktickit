@@ -4,34 +4,34 @@
  ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > lists every user with Name, Email, Role badge, Status badge, and Edit
  ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > marks only the signed-in Administrator's own row with (you)
  ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > requests the list with no parameters by default
- ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > sends the trimmed search as q after the debounce 494ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > offers All roles and the three roles, sends role, and combines it with q 580ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > sends the trimmed search as q after the debounce 476ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > offers All roles and the three roles, sends role, and combines it with q 598ms
  ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > offers Create user as the screen's primary button
  ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > opens an empty dialog with Active checked and the initial-password helper
  ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > blocks an empty submit with a message below each required field and sends nothing
- ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > blocks a 1-character name, an invalid email, and an 11-code-point password 771ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows a server EMAIL_ALREADY_EXISTS below Email and keeps the dialog and input 1381ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows 422 details below their fields 1295ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > on success sends the documented body, closes, refreshes the list, and shows User saved. 1397ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows Saving… on Save while the request is in flight 1342ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > blocks a 1-character name, an invalid email, and an 11-code-point password 745ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows a server EMAIL_ALREADY_EXISTS below Email and keeps the dialog and input 1074ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows 422 details below their fields 1166ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > on success sends the documented body, closes, refreshes the list, and shows User saved. 1269ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows Saving… on Save while the request is in flight 1160ms
  ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > prefills the fields and shows no initial-password field
  ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > prefills an inactive user's Active as unchecked
- ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only the changed name, then closes, refreshes, and shows User saved. 515ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only role and isActive when only they change 365ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only the changed name, then closes, refreshes, and shows User saved. 461ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only role and isActive when only they change
  ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > on the own row disables Role and Active with the explanation, and keeps Name editable
  ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > leaves Role and Active enabled on another user's row, with no explanation
- ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > closes on Cancel and on Escape without a request 329ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > closes on Cancel and on Escape without a request
  ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > opens a confirmation dialog with a password field and sends nothing before confirm
  ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > blocks an empty password below the field with no request
- ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > blocks an 11 code points password below the field with no request 466ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > on success sends the password untrimmed, closes both dialogs, and shows Initial password set. 583ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > shows a 422 details.initialPassword below the field 597ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > blocks an 11 code points password below the field with no request 412ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > on success sends the password untrimmed, closes both dialogs, and shows Initial password set. 572ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > shows a 422 details.initialPassword below the field 584ms
  ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > Cancel sends nothing and returns focus to Set new initial password
- ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders LAST_ADMINISTRATOR as a conflict callout inside the dialog with input kept 327ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders USER_HAS_OPEN_TICKETS as a conflict callout inside the dialog with input kept 306ms
- ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > shows a safe error inside the dialog for an unexpected failure, with input kept 392ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders LAST_ADMINISTRATOR as a conflict callout inside the dialog with input kept
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders USER_HAS_OPEN_TICKETS as a conflict callout inside the dialog with input kept
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > shows a safe error inside the dialog for an unexpected failure, with input kept 335ms
  ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows the loading state until the list arrives
- ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows no-results with a Clear that resets search and role 359ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows no-results with a Clear that resets search and role 309ms
  ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows a safe failure with Retry, which reloads the list
  ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows the forbidden state when the API refuses, with no Retry and no Create user
  ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > renders cards and no table below 768px
@@ -58,8 +58,8 @@
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > sends a transition without a dialog when none is required, then re-fetches
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Resolve opens a dialog, sends nothing until confirmed, then sends RESOLVED
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Close opens a dialog naming the lock
- ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Cancel ticket requires a reason of at least 5 characters before anything is sent 834ms
- ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Reopen requires a reason of at least 5 characters before anything is sent 411ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Cancel ticket requires a reason of at least 5 characters before anything is sent 887ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Reopen requires a reason of at least 5 characters before anything is sent 384ms
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > dismissing the dialog sends nothing and returns focus to the trigger
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > shows the server's 409 message in callout-conflict and re-fetches the detail
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > handles a 409 from a confirmed transition the same way and closes the dialog
@@ -67,8 +67,8 @@
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > shows a safe failure with Retry for an unexpected response
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > separates comments and notes into tabs, with only the active tab's composer rendered
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > labels every note item as not visible to the Requester
- ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a note to the notes endpoint and appends it 527ms
- ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a comment to the comments endpoint and appends it 465ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a note to the notes endpoint and appends it 449ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a comment to the comments endpoint and appends it 410ms
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > blocks an empty body without a request
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > replaces both composers on a CLOSED ticket
  ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-33 (AC-49) - safe body rendering > renders markup in comments and notes as literal text, keeping line breaks
@@ -107,10 +107,10 @@
  ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Ticket Queue: every control takes focus
  ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Staff Ticket Detail: every control takes focus
  ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > User Management: every control takes focus
- ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Staff Detail confirmation dialog 495ms
- ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Requester appears-resolved dialog 441ms
- ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the user dialog 475ms
- ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the set-new-initial-password dialog over the user dialog 657ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Staff Detail confirmation dialog 474ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Requester appears-resolved dialog 459ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the user dialog 435ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the set-new-initial-password dialog over the user dialog 558ms
  ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Login: Tab reaches every control in document order
  ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Change Password: Tab reaches every control in document order
  ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Requester Ticket Detail: Tab reaches every control in document order
@@ -128,7 +128,7 @@
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > shows Unassigned for a ticket with no owner
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > shows the title and the count line
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > requests page 1 at size 20 with no filter and no sort by default
- ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sends the trimmed search as q after the debounce, and returns to page 1 487ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sends the trimmed search as q after the debounce, and returns to page 1 523ms
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > offers the ui-spec 6.4 options in each filter
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-status = In Progress sends { status: 'IN_PROGRESS' } and returns to page 1
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-it-priority = Urgent sends { itPriority: 'URGENT' } and returns to page 1
@@ -142,7 +142,7 @@
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Ticket Number A–Z sends { sortBy: 'ticketNumber', sortOrder: 'asc' } and returns to page 1
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Status sends { sortBy: 'status', sortOrder: 'asc' } and returns to page 1
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > returns to the default order when Priority: Urgent first is chosen again
- ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > shows Clear Filters only once something is applied, and it restores the defaults 800ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > shows Clear Filters only once something is applied, and it restores the defaults 520ms
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows loading while the request is in flight
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows the empty state, with no action, when there are no tickets and nothing is applied
  ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows no-results with Clear Filters when a filter matches nothing
@@ -185,7 +185,7 @@
  ✓ tests/lab-02/theme.style.test.tsx > STY-11 (AC-44) - token conformance > uses no KMUTT palette value, so DEV-01 holds in fact
  ✓ tests/lab-02/theme.style.test.tsx > STY-12 (AC-42) - keyboard reach > reaches every Create Ticket control by tabbing, in visual order
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-22 - AC-24) > shows the empty state with a Create Ticket action when nothing is owned
- ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-23 - AC-25) > shows the no-results state with Clear Filters when a search matches nothing 384ms
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-23 - AC-25) > shows the no-results state with Clear Filters when a search matches nothing 395ms
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-24 - AC-25) > distinguishes the two states by wording and by offered action
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-25 - FR-21) > resets search, filters and sort to their defaults and refetches
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-25 - FR-21) > hides Clear Filters until something is applied
@@ -196,7 +196,7 @@
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-33 - FR-20) > requests the chosen page size and returns to page 1
  ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-33 - FR-20) > offers exactly the three permitted page sizes
  ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > lists the comments oldest first with author and time, between ticket information and attachments
- ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > posts a comment and appends the server's copy 395ms
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > posts a comment and appends the server's copy 415ms
  ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > blocks an empty comment without a request
  ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > shows no notes, no note tab, and never asks for notes
  ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > replaces the composer on a CLOSED ticket, keeping the list
@@ -291,6 +291,6 @@
 
  Test Files  16 passed (16)
       Tests  287 passed (287)
-   Start at  18:37:02
-   Duration  62.01s (transform 1.26s, setup 898ms, collect 3.96s, tests 33.70s, environment 5.92s, prepare 909ms)
+   Start at  19:21:05
+   Duration  56.60s (transform 342ms, setup 925ms, collect 2.63s, tests 30.13s, environment 6.14s, prepare 909ms)
 

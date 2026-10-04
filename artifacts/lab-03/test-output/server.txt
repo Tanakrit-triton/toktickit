@@ -71,7 +71,7 @@
  ✓ tests/lab-03/staff-ticket-detail.api.test.ts > assignee list (OPS-18 - AC-37, BR-28) > returns exactly the active IT Staff and Administrators, sorted by name, to wichai.pra@kmutt.ac.th
  ✓ tests/lab-03/staff-ticket-detail.api.test.ts > assignee list (OPS-18 - AC-37, BR-28) > returns exactly the active IT Staff and Administrators, sorted by name, to sasithorn.pho@kmutt.ac.th
  ✓ tests/lab-03/staff-ticket-detail.api.test.ts > assignee list (OPS-18 - AC-37, BR-28) > refuses a Requester with 403
- ✓ tests/lab-03/staff-ticket-detail.api.test.ts > event payload safety (OPS-17 - AC-45, BR-56) > writes no secret into any event payload, and every event has ticketId, eventType, and createdAt 5548ms
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > event payload safety (OPS-17 - AC-45, BR-56) > writes no secret into any event payload, and every event has ticketId, eventType, and createdAt 1024ms
  ✓ tests/lab-03/comments-notes.api.test.ts > staff comment visible to the Requester (CMN-01 - AC-46, BR-48) > returns 201 with the staff author and a server time, ignoring a body authorId and createdAt
  ✓ tests/lab-03/comments-notes.api.test.ts > Requester comment (CMN-02 - AC-25) > lets the Requester post on their own ticket, and IT Staff and the Administrator read it
  ✓ tests/lab-03/comments-notes.api.test.ts > Requester comment (CMN-02 - AC-25) > lists comments oldest first
@@ -270,15 +270,15 @@
  ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/v1/tickets (API-42 - FR-18) > returns only Tickets on the filtered Related System
  ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/v1/tickets (API-42 - FR-18) > returns nothing for a Related System no Ticket uses
  ✓ tests/lab-03/migration.api.test.ts > Lab 3 migration SQL (MIG-01 - AC-61) > never drops or recreates RequesterUser, Ticket, or Attachment, nor drops TicketStatus
- ✓ tests/lab-03/migration.api.test.ts > upgrade from a populated Lab 2 database (MIG-02 - AC-61, FR-29) > keeps every Requester with the same id 2762ms
+ ✓ tests/lab-03/migration.api.test.ts > upgrade from a populated Lab 2 database (MIG-02 - AC-61, FR-29) > keeps every Requester with the same id 2739ms
  ✓ tests/lab-03/migration.api.test.ts > upgrade from a populated Lab 2 database (MIG-02 - AC-61, FR-29) > keeps every Ticket with the same id, Requester, and Ticket Number
  ✓ tests/lab-03/migration.api.test.ts > upgrade from a populated Lab 2 database (MIG-02 - AC-61, FR-29) > keeps every Attachment, active and removed, with identical metadata
  ✓ tests/lab-03/migration.api.test.ts > upgrade backfills and renames (MIG-03 - AC-61, AC-13) > makes every former Development Requester a REQUESTER with no password who must change it
  ✓ tests/lab-03/migration.api.test.ts > upgrade backfills and renames (MIG-03 - AC-61, AC-13) > normalises existing emails to trimmed lowercase (specification.md 7.3 step 3)
  ✓ tests/lab-03/migration.api.test.ts > upgrade backfills and renames (MIG-03 - AC-61, AC-13) > renames CLAIMED to OPEN and PENDING_CONFIRMATION to WAITING_FOR_REQUESTER
  ✓ tests/lab-03/migration.api.test.ts > upgrade backfills and renames (MIG-03 - AC-61, AC-13) > backfills IT Priority from Requested Priority on every ticket
- ✓ tests/lab-03/migration.api.test.ts > schema drift (MIG-04 - AC-61, DoD) > reports no difference between the migrations folder and schema.prisma 2613ms
- ✓ tests/lab-03/seed.api.test.ts > seed idempotency (SEED-01 - AC-62) > leaves every table's row count unchanged when run twice 550ms
+ ✓ tests/lab-03/migration.api.test.ts > schema drift (MIG-04 - AC-61, DoD) > reports no difference between the migrations folder and schema.prisma 2546ms
+ ✓ tests/lab-03/seed.api.test.ts > seed idempotency (SEED-01 - AC-62) > leaves every table's row count unchanged when run twice 561ms
  ✓ tests/lab-03/seed.api.test.ts > seed fixture reset (SEED-02 - AC-62) > restores an altered account's password, flag, role, and activation and revokes its session
  ✓ tests/lab-03/seed.api.test.ts > seed fixture reset (SEED-02 - AC-62) > puts the must-change fixture back into the must-change state
  ✓ tests/lab-03/seed.api.test.ts > seeded accounts (SEED-03 - AC-63) > contains exactly the specified accounts, by role, activation, and password-change state
@@ -449,6 +449,6 @@
 
  Test Files  31 passed (31)
       Tests  445 passed (445)
-   Start at  18:35:39
-   Duration  74.67s (transform 1.64s, setup 0ms, collect 5.04s, tests 27.35s, environment 4ms, prepare 1.69s)
+   Start at  19:19:55
+   Duration  63.18s (transform 326ms, setup 0ms, collect 2.99s, tests 19.73s, environment 3ms, prepare 1.62s)
 
