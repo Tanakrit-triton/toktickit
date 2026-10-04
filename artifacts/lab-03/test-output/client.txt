@@ -1,0 +1,296 @@
+
+ RUN  v2.1.9 C:/Users/Tanakrit/dev/toktickit/client
+
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > lists every user with Name, Email, Role badge, Status badge, and Edit
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > marks only the signed-in Administrator's own row with (you)
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > requests the list with no parameters by default
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > sends the trimmed search as q after the debounce 494ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > offers All roles and the three roles, sends role, and combines it with q 580ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-39 (AC-51) - user list > offers Create user as the screen's primary button
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > opens an empty dialog with Active checked and the initial-password helper
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > blocks an empty submit with a message below each required field and sends nothing
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > blocks a 1-character name, an invalid email, and an 11-code-point password 771ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows a server EMAIL_ALREADY_EXISTS below Email and keeps the dialog and input 1381ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows 422 details below their fields 1295ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > on success sends the documented body, closes, refreshes the list, and shows User saved. 1397ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-40 (AC-52, AC-53) - create dialog > shows Saving… on Save while the request is in flight 1342ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > prefills the fields and shows no initial-password field
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > prefills an inactive user's Active as unchecked
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only the changed name, then closes, refreshes, and shows User saved. 515ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > sends only role and isActive when only they change 365ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > on the own row disables Role and Active with the explanation, and keeps Name editable
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > leaves Role and Active enabled on another user's row, with no explanation
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-41 (AC-54, AC-56) - edit dialog > closes on Cancel and on Escape without a request 329ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > opens a confirmation dialog with a password field and sends nothing before confirm
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > blocks an empty password below the field with no request
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > blocks an 11 code points password below the field with no request 466ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > on success sends the password untrimmed, closes both dialogs, and shows Initial password set. 583ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > shows a 422 details.initialPassword below the field 597ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-42 (AC-55) - set new initial password > Cancel sends nothing and returns focus to Set new initial password
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders LAST_ADMINISTRATOR as a conflict callout inside the dialog with input kept 327ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > renders USER_HAS_OPEN_TICKETS as a conflict callout inside the dialog with input kept 306ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-43 (AC-57, AC-58, AC-68) - safety conflicts > shows a safe error inside the dialog for an unexpected failure, with input kept 392ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows the loading state until the list arrives
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows no-results with a Clear that resets search and role 359ms
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows a safe failure with Retry, which reloads the list
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > shows the forbidden state when the API refuses, with no Retry and no Create user
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > renders cards and no table below 768px
+ ✓ tests/lab-03/UserManagement.test.tsx > UI-44 (AC-51, AC-60, AC-68) - user list states > renders a table and no cards at desktop
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-27 (AC-34) - staff detail layout > shows the ticket information read-only, with no control in it
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-27 (AC-34) - staff detail layout > keeps every editable operational field inside operations-card
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-27 (AC-34) - staff detail layout > shows the IT Priority select with the current value, and Save only once it changes
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-27 (AC-34) - staff detail layout > shows IT Priority read-only on CLOSED and CANCELLED tickets
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > offers Claim only on an unassigned ticket in a claimable status
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > shows the owner's name, or Unassigned
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > lists GET /staff/assignees in the Assign to select
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > hides Assign outside the assignable statuses
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > re-fetches the detail after a successful claim and shows the server's owner
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-28 (AC-35, AC-37) - owner controls > re-fetches the detail after a successful assign, sending the chosen ownerId
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in OPEN
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in REOPENED
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in IN_PROGRESS
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in WAITING_FOR_REQUESTER
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in RESOLVED
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in CLOSED
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders exactly one labelled button per availableTransitions entry in NEW
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > renders no button for a status the server did not list
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > styles Cancel ticket as destructive and the others as secondary
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-29 (AC-39) - transition buttons > sends a transition without a dialog when none is required, then re-fetches
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Resolve opens a dialog, sends nothing until confirmed, then sends RESOLVED
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Close opens a dialog naming the lock
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Cancel ticket requires a reason of at least 5 characters before anything is sent 834ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > Reopen requires a reason of at least 5 characters before anything is sent 411ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-30 (AC-41) - confirmation dialogs > dismissing the dialog sends nothing and returns focus to the trigger
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > shows the server's 409 message in callout-conflict and re-fetches the detail
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > handles a 409 from a confirmed transition the same way and closes the dialog
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > shows the not-found state for a 404, with no status code
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-31 (AC-36, AC-68) - conflict handling > shows a safe failure with Retry for an unexpected response
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > separates comments and notes into tabs, with only the active tab's composer rendered
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > labels every note item as not visible to the Requester
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a note to the notes endpoint and appends it 527ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > posts a comment to the comments endpoint and appends it 465ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > blocks an empty body without a request
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-32 (AC-50) - comment and note regions > replaces both composers on a CLOSED ticket
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-33 (AC-49) - safe body rendering > renders markup in comments and notes as literal text, keeping line breaks
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > UI-34 (AC-34) - staff attachments read-only > offers Download and nothing that changes attachments
+ ✓ tests/lab-03/theme.style.test.tsx > STY-01 (AC-65) - status badges > renders all eight statuses in the queue with their display text and class
+ ✓ tests/lab-03/theme.style.test.tsx > STY-01 (AC-65) - status badges > renders each status's display text in My Tickets, not a fixed New
+ ✓ tests/lab-03/theme.style.test.tsx > STY-01 (AC-65) - status badges > colours each status with the ui-spec 7.1 tokens
+ ✓ tests/lab-03/theme.style.test.tsx > STY-02 (AC-65) - IT Priority badge > renders each IT Priority in the queue as text plus a distinct glyph
+ ✓ tests/lab-03/theme.style.test.tsx > STY-03 (AC-65) - role badge > renders the { id: 'aaaaaaaa-0000-0000-0000-000000000001', fullName: 'Napat Chaiwong', email: 'napat.cha@kmutt.ac.th', role: 'REQUESTER', mustChangePassword: false } role as text
+ ✓ tests/lab-03/theme.style.test.tsx > STY-03 (AC-65) - role badge > renders the { id: 'cccccccc-0000-0000-0000-000000000003', fullName: 'Wichai Prasert', email: 'wichai.pra@kmutt.ac.th', role: 'IT_STAFF', mustChangePassword: false } role as text
+ ✓ tests/lab-03/theme.style.test.tsx > STY-03 (AC-65) - role badge > renders the { id: 'dddddddd-0000-0000-0000-000000000004', fullName: 'Sasithorn Pholchai', email: 'sasithorn.pho@kmutt.ac.th', role: 'ADMINISTRATOR', mustChangePassword: false } role as text
+ ✓ tests/lab-03/theme.style.test.tsx > STY-03 (AC-65) - role badge > colours each role with the ui-spec 7.3 tokens
+ ✓ tests/lab-03/theme.style.test.tsx > STY-03 (AC-65) - role badge > gives the Administrator badge in the header a 1px surface border
+ ✓ tests/lab-03/theme.style.test.tsx > STY-04 (AC-50) - note vs comment > styles note items with the warning background, a 3px warning left border, and the text label
+ ✓ tests/lab-03/theme.style.test.tsx > STY-04 (AC-50) - note vs comment > styles comment items on the surface, so the two backgrounds differ
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Login
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Change Password
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Requester Ticket Detail
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Ticket Queue
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Staff Ticket Detail
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > User Management
+ ✓ tests/lab-03/theme.style.test.tsx > STY-05 (ui-spec 2) - at most one visible primary button > Staff Ticket Detail has exactly one primary in each composer tab
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > defines every colour token in the L2 1.1 table with the table's value
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > uses no rgb() or rgba() colour whose base is outside the table, and no named colour
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > references only --zg- custom properties the stylesheet defines
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > Login sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > Change Password sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > Requester Ticket Detail sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > Ticket Queue sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > Staff Ticket Detail sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-06 (AC-66) - token conformance > User Management sets no colour inline
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > never removes the outline, and rings buttons, fields, tabs, and navigation links
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Login: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Change Password: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Requester Ticket Detail: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Ticket Queue: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > Staff Ticket Detail: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > User Management: every control takes focus
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Staff Detail confirmation dialog 495ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the Requester appears-resolved dialog 441ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the user dialog 475ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-07 (AC-67) - focus ring and dialogs > traps focus in the set-new-initial-password dialog over the user dialog 657ms
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Login: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Change Password: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Requester Ticket Detail: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Ticket Queue: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > Staff Ticket Detail: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > User Management: Tab reaches every control in document order
+ ✓ tests/lab-03/theme.style.test.tsx > STY-08 (AC-67) - keyboard reach > moves between the Staff Detail tabs with the arrow keys
+ ✓ tests/lab-03/theme.style.test.tsx > STY-09 (AC-68) - callout variants > renders the forbidden state with text, an icon, and no code
+ ✓ tests/lab-03/theme.style.test.tsx > STY-09 (AC-68) - callout variants > renders the not-found state with text, an icon, and no code
+ ✓ tests/lab-03/theme.style.test.tsx > STY-09 (AC-68) - callout variants > renders the conflict callout with text, an icon, and no code
+ ✓ tests/lab-03/theme.style.test.tsx > STY-09 (AC-68) - callout variants > renders the error callout with text, an icon, and no code
+ ✓ tests/lab-03/theme.style.test.tsx > STY-09 (AC-68) - callout variants > gives forbidden (also not found) and conflict a background and border different from error
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > lists tickets in the seven columns for IT Staff
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > lists tickets in the seven columns for an Administrator
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > shows Unassigned for a ticket with no owner
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-21 (AC-28) - queue rendering > shows the title and the count line
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > requests page 1 at size 20 with no filter and no sort by default
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sends the trimmed search as q after the debounce, and returns to page 1 487ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > offers the ui-spec 6.4 options in each filter
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-status = In Progress sends { status: 'IN_PROGRESS' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-it-priority = Urgent sends { itPriority: 'URGENT' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-category = Hardware sends { categoryId: '2' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-owner = Assigned to me sends { owner: 'me' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-owner = Unassigned sends { owner: 'unassigned' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > filter-owner = Kittipong Saelim sends { owner: 'ffffffff-0000-0000-0000-000000000006' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Oldest first sends { sortBy: 'createdAt', sortOrder: 'asc' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Newest first sends { sortBy: 'createdAt', sortOrder: 'desc' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Recently updated sends { sortBy: 'updatedAt', sortOrder: 'desc' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Ticket Number A–Z sends { sortBy: 'ticketNumber', sortOrder: 'asc' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > sort Status sends { sortBy: 'status', sortOrder: 'asc' } and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > returns to the default order when Priority: Urgent first is chosen again
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-22 (AC-29, AC-30, AC-31) - queue controls > shows Clear Filters only once something is applied, and it restores the defaults 800ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows loading while the request is in flight
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows the empty state, with no action, when there are no tickets and nothing is applied
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows no-results with Clear Filters when a filter matches nothing
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows the error callout with Retry on failure, keeps the controls usable, and Retry reloads
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-23 (AC-33, AC-68) - queue states > shows the forbidden state on a 403 from the queue
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-24 (AC-33) - queue mobile cards > renders cards and no table below 768px
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-24 (AC-33) - queue mobile cards > renders a table and no cards at desktop width
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-25 (AC-32) - queue pagination > offers exactly 10, 20, and 50, with 20 selected
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-25 (AC-32) - queue pagination > requests a changed page size and returns to page 1
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-25 (AC-32) - queue pagination > moves between pages with Next and Previous
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-26 (AC-26) - indication in queue > shows the compact indicator only on a row the Requester marked
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > UI-26 (AC-26) - indication in queue > shows it on the mobile card too
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-10 - AC-11) > populates Category and Related System from the API, with nothing extra
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-10 - AC-11) > shows the read-only system fields populated from context
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-11 - AC-12) > blocks submission with an empty Summary and sends no create request
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-11 - AC-12) > renders the Summary message adjacent to the Summary field
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-12 - AC-14) > renders a message beside every failing field, not one summary at the top
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-12 - AC-14) > moves focus to the first failing field
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-13 - AC-15) > disables Submit while a creation is in flight and issues no second request
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-14 - AC-16) > keeps every entered value and re-enables Submit after a failed creation
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-15 - AC-07) > replaces the form with a success panel showing the Ticket Number and next actions
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-15 - AC-07) > returns to an empty form on Create Another
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-30 - AC-17) > accepts a permitted file and rejects an impermissible one with a reason
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-30 - AC-17) > rejects a file over 5 MB with a reason naming the size
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-30 - AC-17) > keeps a rejected file visible rather than discarding it
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-16 - AC-38) > keeps the Ticket, names each failed attachment, and directs the retry
+ ✓ tests/lab-02/CreateTicket.test.tsx > CreateTicket (UI-16 - AC-38) > shows no partial-success warning when every attachment succeeds
+ ✓ tests/lab-02/theme.style.test.tsx > STY-01 (AC-41) - required marker > gives every required field a red asterisk hidden from assistive technology
+ ✓ tests/lab-02/theme.style.test.tsx > STY-02 (AC-41) - message position > renders each message as the next sibling of its own field, not a summary block
+ ✓ tests/lab-02/theme.style.test.tsx > STY-02 (AC-41) - message position > clears the message when the field is corrected
+ ✓ tests/lab-02/theme.style.test.tsx > STY-05 (AC-15) - busy state > marks Submit disabled and aria-busy for the whole in-flight window
+ ✓ tests/lab-02/theme.style.test.tsx > STY-03 (ui-spec 2) - editable versus read-only > marks read-only controls differently from editable ones
+ ✓ tests/lab-02/theme.style.test.tsx > STY-04 (ui-spec 2) - disabled versus read-only > keeps disabled distinct from read-only, and unfocusable
+ ✓ tests/lab-02/theme.style.test.tsx > STY-06 (ui-spec 3) - one primary button per screen > Create Ticket offers exactly one primary action
+ ✓ tests/lab-02/theme.style.test.tsx > STY-07 (ui-spec 3) - every control carries visible text > has no icon-only button anywhere on Create Ticket
+ ✓ tests/lab-02/theme.style.test.tsx > STY-08 (AC-43) - badges convey value by text > renders each priority as text plus a glyph, never colour alone
+ ✓ tests/lab-02/theme.style.test.tsx > STY-10 (AC-42) - focus is visible > never removes the outline without replacing it, and rings focused controls
+ ✓ tests/lab-02/theme.style.test.tsx > STY-10 (AC-42) - focus is visible > gives every interactive control a focusable element
+ ✓ tests/lab-02/theme.style.test.tsx > STY-11 (AC-44) - token conformance > uses no colour that is absent from the ui-spec token table
+ ✓ tests/lab-02/theme.style.test.tsx > STY-11 (AC-44) - token conformance > uses no KMUTT palette value, so DEV-01 holds in fact
+ ✓ tests/lab-02/theme.style.test.tsx > STY-12 (AC-42) - keyboard reach > reaches every Create Ticket control by tabbing, in visual order
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-22 - AC-24) > shows the empty state with a Create Ticket action when nothing is owned
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-23 - AC-25) > shows the no-results state with Clear Filters when a search matches nothing 384ms
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-24 - AC-25) > distinguishes the two states by wording and by offered action
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-25 - FR-21) > resets search, filters and sort to their defaults and refetches
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-25 - FR-21) > hides Clear Filters until something is applied
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-26 - FR-33) > shows a loading state while the request is in flight, then the rows
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-26 - FR-33) > shows a safe failure state with Retry and leaks nothing
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-32 - AC-40) > renders cards and no table below 768px
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-32 - AC-40) > renders the table and no cards at desktop width
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-33 - FR-20) > requests the chosen page size and returns to page 1
+ ✓ tests/lab-02/MyTickets.test.tsx > MyTickets (UI-33 - FR-20) > offers exactly the three permitted page sizes
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > lists the comments oldest first with author and time, between ticket information and attachments
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > posts a comment and appends the server's copy 395ms
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > blocks an empty comment without a request
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > shows no notes, no note tab, and never asks for notes
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > replaces the composer on a CLOSED ticket, keeping the list
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-35 (AC-25) - Requester comments > shows No comments yet. for an empty list
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > offers Problem appears resolved in OPEN
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > offers Problem appears resolved in IN_PROGRESS
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > offers Problem appears resolved in WAITING_FOR_REQUESTER
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > offers Problem appears resolved in REOPENED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > hides the resolution panel in NEW
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > hides the resolution panel in RESOLVED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > hides the resolution panel in CLOSED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > hides the resolution panel in CANCELLED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > confirming records the indication, shows the indicator, and hides the button
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > cancelling the dialog sends nothing and returns focus to the button
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-36 (AC-26) - appears resolved > shows the indicator instead of the button once indicated
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in NEW
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in OPEN
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in IN_PROGRESS
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in WAITING_FOR_REQUESTER
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in RESOLVED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in CLOSED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in REOPENED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > offers no status, cancel, reopen, claim, assign, or IT Priority control in CANCELLED
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-37 (AC-27) - no staff controls for the Requester > shows the owner's name, or Not yet assigned
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-38 (AC-24) - attachment lock in the UI > offers no Add Attachment and no Remove in CLOSED, but keeps Download
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-38 (AC-24) - attachment lock in the UI > offers no Add Attachment and no Remove in CANCELLED, but keeps Download
+ ✓ tests/lab-03/RequesterTicketDetail.test.tsx > UI-38 (AC-24) - attachment lock in the UI > keeps Add Attachment and Remove on an open ticket
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-17 - AC-28) > uploads a permitted file and reports the new attachment
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-17 - AC-28) > rejects an impermissible file without calling the API
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-18 - AC-29) > disables selection at five active attachments and states the limit
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-18 - AC-29) > counts only active attachments toward the limit
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-19 - AC-35) > shows a removed attachment with its metadata and no download control
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-20 - BR-37) > opens a modal and sends nothing until removal is confirmed
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-20 - BR-37) > removes only after a reason is given and confirmed
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-21 - AC-34) > blocks confirmation with an empty reason and says why
+ ✓ tests/lab-02/AttachmentSection.test.tsx > AttachmentSection (UI-21 - AC-34) > blocks a reason shorter than five characters
+ ✓ tests/lab-03/Login.test.tsx > Login validation (UI-01 - AC-14) > labels both fields and starts with focus on Email
+ ✓ tests/lab-03/Login.test.tsx > Login validation (UI-01 - AC-14) > shows a message below each empty field and sends no request
+ ✓ tests/lab-03/Login.test.tsx > Login busy (UI-02 - AC-14) > makes Sign in busy and disabled, and disables the fields, while in flight
+ ✓ tests/lab-03/Login.test.tsx > Invalid credentials (UI-03 - AC-05) > shows the generic callout, clears the password, keeps the email, and focuses Password
+ ✓ tests/lab-03/Login.test.tsx > Inactive account (UI-04 - AC-06) > shows the inactive callout text
+ ✓ tests/lab-03/Login.test.tsx > Throttled (UI-05 - AC-07) > shows the try-later callout
+ ✓ tests/lab-03/Login.test.tsx > Login failure (UI-06 - AC-14) > shows a safe callout with no status code on a network failure, and keeps both fields
+ ✓ tests/lab-03/Login.test.tsx > Login outcome (UI-07 - AC-01, AC-02) > sends a Requester to My Tickets
+ ✓ tests/lab-03/Login.test.tsx > Login outcome (UI-07 - AC-01, AC-02) > sends IT Staff to the Ticket Queue route
+ ✓ tests/lab-03/Login.test.tsx > Login outcome (UI-07 - AC-01, AC-02) > sends a must-change user to Change Password in forced mode
+ ✓ tests/lab-03/ChangePassword.test.tsx > client password rules (UI-08 - AC-10) > blocks 11 code points with a message below New password, and sends nothing
+ ✓ tests/lab-03/ChangePassword.test.tsx > client password rules (UI-08 - AC-10) > blocks a mismatched confirmation with a message below Confirm new password
+ ✓ tests/lab-03/ChangePassword.test.tsx > client password rules (UI-08 - AC-10) > blocks a new password equal to the current one
+ ✓ tests/lab-03/ChangePassword.test.tsx > server field errors (UI-09 - AC-10) > renders a 422 details.currentPassword below Current password
+ ✓ tests/lab-03/ChangePassword.test.tsx > change success (UI-10 - AC-02) > stores the new CSRF token, ends forced mode, and lands with the Password changed callout
+ ✓ tests/lab-03/ChangePassword.test.tsx > forced mode (UI-11 - AC-02) > shows no navigation and no Change password link
+ ✓ tests/lab-03/ChangePassword.test.tsx > forced mode (UI-11 - AC-02) > renders Change Password when /tickets is visited
+ ✓ tests/lab-03/routing.test.tsx > unauthenticated redirect (UI-16 - AC-08) > sends a protected route to /login with next
+ ✓ tests/lab-03/routing.test.tsx > unauthenticated redirect (UI-16 - AC-08) > returns to next after login
+ ✓ tests/lab-03/routing.test.tsx > unauthenticated redirect (UI-16 - AC-08) > ignores next=//evil.example and goes to the landing route
+ ✓ tests/lab-03/routing.test.tsx > unauthenticated redirect (UI-16 - AC-08) > ignores next=https://evil.example and goes to the landing route
+ ✓ tests/lab-03/routing.test.tsx > unauthenticated redirect (UI-16 - AC-08) > ignores next=/\evil.example and goes to the landing route
+ ✓ tests/lab-03/routing.test.tsx > forbidden route (UI-17 - AC-19, AC-60) > shows a Requester the forbidden state at { id: 'aaaaaaaa-0000-0000-0000-000000000001', fullName: 'Napat Chaiwong', email: 'napat.cha@kmutt.ac.th', role: 'REQUESTER', mustChangePassword: false }, with no protected API call
+ ✓ tests/lab-03/routing.test.tsx > forbidden route (UI-17 - AC-19, AC-60) > shows a Requester the forbidden state at { id: 'aaaaaaaa-0000-0000-0000-000000000001', fullName: 'Napat Chaiwong', email: 'napat.cha@kmutt.ac.th', role: 'REQUESTER', mustChangePassword: false }, with no protected API call
+ ✓ tests/lab-03/routing.test.tsx > forbidden route (UI-17 - AC-19, AC-60) > shows IT Staff the forbidden state at { id: 'cccccccc-0000-0000-0000-000000000003', fullName: 'Wichai Prasert', email: 'wichai.pra@kmutt.ac.th', role: 'IT_STAFF', mustChangePassword: false }, with no protected API call
+ ✓ tests/lab-03/routing.test.tsx > forbidden route (UI-17 - AC-19, AC-60) > does not show the forbidden state to a permitted role
+ ✓ tests/lab-03/routing.test.tsx > landing redirect (UI-18 - AC-18) > sends a Requester from / to /tickets
+ ✓ tests/lab-03/routing.test.tsx > landing redirect (UI-18 - AC-18) > sends IT Staff from / to /staff/queue
+ ✓ tests/lab-03/routing.test.tsx > landing redirect (UI-18 - AC-18) > sends Administrator from / to /staff/queue
+ ✓ tests/lab-03/routing.test.tsx > landing redirect (UI-18 - AC-18) > sends an authenticated user away from /login to their landing route
+ ✓ tests/lab-03/routing.test.tsx > landing redirect (UI-18 - AC-18) > renders /lab-01 outside the shell without a session
+ ✓ tests/lab-03/routing.test.tsx > legacy state removed (UI-19 - AC-21) > removes a pre-existing toktickit.selectedRequester key on startup
+ ✓ tests/lab-03/AppShell.test.tsx > shell identity (UI-12 - AC-18) > shows the user's name, role badge, Change password link, and Log out
+ ✓ tests/lab-03/AppShell.test.tsx > role navigation (UI-13 - AC-18, FR-08) > offers the Requester only their destinations
+ ✓ tests/lab-03/AppShell.test.tsx > role navigation (UI-13 - AC-18, FR-08) > offers the IT Staff only their destinations
+ ✓ tests/lab-03/AppShell.test.tsx > role navigation (UI-13 - AC-18, FR-08) > offers the Administrator only their destinations
+ ✓ tests/lab-03/AppShell.test.tsx > role navigation (UI-13 - AC-18, FR-08) > links each destination to its route
+ ✓ tests/lab-03/AppShell.test.tsx > selector removed (UI-14 - AC-21) > shows no selector, Change Requester action, or development notice to the Requester
+ ✓ tests/lab-03/AppShell.test.tsx > selector removed (UI-14 - AC-21) > shows no selector, Change Requester action, or development notice to the IT Staff
+ ✓ tests/lab-03/AppShell.test.tsx > logout (UI-15 - AC-08) > calls the API, clears cached ticket data, and shows Login
+ ✓ tests/lab-03/AppShell.test.tsx > logout (UI-15 - AC-08) > shows none of the previous user's data after another user signs in
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > uses relative /api/v1 URLs
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > sends X-CSRF-Token on POST
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > sends X-CSRF-Token on PUT
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > sends X-CSRF-Token on PATCH
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > sends X-CSRF-Token on DELETE
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > does not send X-CSRF-Token on GET
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > sends the token from the Lab 2 state-changing calls too
+ ✓ tests/lab-03/api-client.test.ts > API client (UI-20 - AC-12, DEC-04) > ends the session on a 401: Login with the session-ended callout and next
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > RequesterTicketDetail (UI-27 - AC-26) > renders every ticket value read-only, with no editable control
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > RequesterTicketDetail (UI-27 - AC-26) > preserves line breaks in the description and never truncates it
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > RequesterTicketDetail (UI-27 - AC-26) > shows a safe refusal when the ticket is not the Requester's
+ ✓ tests/lab-01/App.test.tsx > App > renders the TokTickIT heading
+ ✓ tests/lab-01/App.test.tsx > App > shows Online and the seeded categories on success
+ ✓ tests/lab-01/App.test.tsx > App > shows an Offline error message when the API is unavailable
+
+ Test Files  16 passed (16)
+      Tests  287 passed (287)
+   Start at  18:37:02
+   Duration  62.01s (transform 1.26s, setup 898ms, collect 3.96s, tests 33.70s, environment 5.92s, prepare 909ms)
+
