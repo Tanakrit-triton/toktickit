@@ -267,8 +267,8 @@ superseded. Their assertions about behaviour stay the same.
 | Lab 3 test location | Change in #70 or #72 | Behaviour asserted |
 |---|---|---|
 | `server/tests/lab-03/staff-ticket-detail.api.test.ts` (OPS tests calling `/owner`, `/it-priority`, `/status`) | Each call first reads `version` from the detail, or uses a helper `withVersion(agent, ticketId, body)` | Unchanged |
-| `client/tests/lab-03/StaffTicketDetail.test.tsx` (assertions on request bodies) | Expected bodies include `version` | Unchanged |
-| `e2e/lab-03/capture.ts`, `e2e/lab-03/responsive.spec.ts` (direct API setup calls) | Setup calls send `version` | Unchanged |
+| `client/tests/lab-03/StaffTicketDetail.test.tsx` (assertions on request bodies) | #70 (Amendment 4): expected bodies include `version` | Unchanged |
+| `e2e/lab-03/capture.ts`, `e2e/lab-03/responsive.spec.ts` (direct API setup calls) | #70 (Amendment 4): setup calls send `version` | Unchanged |
 | `server/tests/lab-03/seed.api.test.ts` | Checked in #70. Lab 3 fixtures are unchanged, so no edit is expected. Any edit is recorded here. | Unchanged |
 | `server/tests/lab-03/migration.api.test.ts` | `lab3Migration()` filter bounded by `LAB3_LAST`, so the Lab 4 migration is not counted as a Lab 3 one. Edited: MIG-01 to MIG-04 (via the helper). Its drift check now runs against the Lab 4 schema. | Unchanged |
 
