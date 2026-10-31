@@ -73,7 +73,7 @@ The Final column reads Planned until #75 records results from `main`.
 |---|---|---|---|---|---|
 | UT-01 | AC-07 | Every (from, to) pair of the 4 action statuses against the BR-15 table, including same-status pairs | Exactly the 5 listed pairs are allowed | `action-transitions.unit.test.ts` | Planned |
 | UT-02 | AC-05, AC-06 | Field validation boundaries: description 4/5/2000/2001; result required on COMPLETED and CANCELLED; follow-up note 4/5/1000/1001 when flagged and ignored when not; attachment notes 500/501; `actionAt` before ticket creation, now + 30 days ± 1 minute, completed now + 5 minutes ± 1 second | Each boundary accepted or refused as BR-05 to BR-10 state | `action-validation.unit.test.ts` | Planned |
-| UT-03 | AC-08 | Edit policy for each action status and field | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none | `action-edit-policy.unit.test.ts` | Planned |
+| UT-03 | AC-08 | Edit policy for each action status and field, with and without a status change | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none; a status change from a terminal status is `INVALID_ACTION_TRANSITION`, checked before fields | `action-edit-policy.unit.test.ts` | Planned |
 | UT-04 | AC-14, AC-15 | Gate counting over action lists: none, all done, one open, one follow-up on a cancelled action, one follow-up on a completed action | Blockers `{open, followUps}` correct; cancelled follow-ups not counted | `resolution-gate.unit.test.ts` | Planned |
 | UT-05 | AC-16 | All 64 (from, to) ticket-status pairs against the spec §5.4 matrix, with the gate flag | Exactly the 18 listed pairs are allowed; the 4 into RESOLVED carry the gate | `ticket-transitions.unit.test.ts` | Planned |
 | UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, and 23:59:59 UTC on a fixed date, and across a month boundary | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
@@ -101,8 +101,8 @@ The Final column reads Planned until #75 records results from `main`.
 | ACT-04 | AC-04 | Body supplies `createdById`, `createdAt`, `id`, `version` | Ignored; server values stored | Planned |
 | ACT-05 | AC-05 | Table-driven field boundaries through the API | 422 with the right `details` key; boundary values 201 | Planned |
 | ACT-06 | AC-06 | Create COMPLETED without result; PATCH to CANCELLED without result; COMPLETED with `actionAt` now + 10 minutes | 422 `details.result` / `details.actionAt` | Planned |
-| ACT-07 | AC-07 | Each of the 5 permitted transitions; COMPLETED → IN_PROGRESS; PLANNED → PLANNED; create as CANCELLED | 200; 409 `INVALID_ACTION_TRANSITION`; 409; 422 `details.status` | Planned |
-| ACT-08 | AC-08 | On COMPLETED: change performer, change status, edit result; on CANCELLED: edit description | 409 `ACTION_STATE_CONFLICT`; 409; 200; 409 | Planned |
+| ACT-07 | AC-07 | Each of the 5 permitted transitions; COMPLETED → IN_PROGRESS; CANCELLED → PLANNED; create as CANCELLED | 200; 409 `INVALID_ACTION_TRANSITION`; 409 `INVALID_ACTION_TRANSITION`; 422 `details.status` | Planned |
+| ACT-08 | AC-08 | On COMPLETED: change performer, edit result; on CANCELLED: edit description | 409 `ACTION_STATE_CONFLICT`; 200; 409 `ACTION_STATE_CONFLICT` | Planned |
 | ACT-09 | AC-09 | Create and PATCH while the ticket is NEW, RESOLVED, CLOSED, CANCELLED | 409 `TICKET_STATE_CONFLICT`; nothing saved | Planned |
 | ACT-10 | AC-10 | Three actions, two sharing `actionAt`, listed twice | Same order both times, per BR-19 | Planned |
 | ACT-11 | AC-11 | Ticket's Requester lists; another Requester lists; Requester POST and PATCH | 200 full list; 404; 403; 403 | Planned |
@@ -110,7 +110,7 @@ The Final column reads Planned until #75 records results from `main`.
 | ACT-13 | AC-13 | Create, then edit status and result | One `ACTION_CREATED`, one `ACTION_UPDATED` whose `changes` has status from/to and `result: {changed: true}`; ticket version +1 each time; `updatedAt` advanced | Planned |
 | ACT-14 | AC-20 | Same `clientRequestId` sent twice in sequence, twice concurrently, and once on another ticket | 201 then 200 with the same id; one row; one event; 422 | Planned |
 | ACT-15 | AC-18 | Two PATCHes with the same action `version` | First 200; second 409 `STALE_UPDATE`; action holds the first change | Planned |
-| ACT-16 | AC-13 | PATCH with values equal to stored ones | 200; no event; versions unchanged | Planned |
+| ACT-16 | AC-13 | PATCH with values equal to stored ones, including `status` | 200; no event; versions unchanged | Planned |
 | ACT-17 | AC-01 | Administrator creates and edits | Same results as IT Staff | Planned |
 
 ### 2.4 API — Ticket workflow — `server/tests/lab-04/ticket-workflow.api.test.ts`

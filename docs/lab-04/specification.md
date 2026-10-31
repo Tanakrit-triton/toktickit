@@ -159,8 +159,8 @@ Anything here appearing in the implementation is a defect.
 |---|---|
 | BR-13 | The action statuses are Planned, In Progress, Completed, and Cancelled, stored as `PLANNED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. |
 | BR-14 | An action may be created as `PLANNED`, `IN_PROGRESS`, or `COMPLETED`. It cannot be created as `CANCELLED`. |
-| BR-15 | Only the action transitions in the table below are permitted. Any other change of `status`, including setting the current status again, is refused with `INVALID_ACTION_TRANSITION`. |
-| BR-16 | `PLANNED` and `IN_PROGRESS` actions are fully editable. On a `COMPLETED` action, only `description`, `result`, `followUpRequired`, `followUpNote`, `attachmentNotes`, and `actionAt` may change; changing `performedById` or `status` is refused with `ACTION_STATE_CONFLICT`. A `CANCELLED` action is read-only, and any edit is refused with `ACTION_STATE_CONFLICT`. |
+| BR-15 | Only the action transitions in the table below are permitted. Any other change of `status`, including any change from a terminal status, is refused with `INVALID_ACTION_TRANSITION`. An edit that repeats the stored status is not a status change, and is treated like any other unchanged value (Amendment 1). |
+| BR-16 | `PLANNED` and `IN_PROGRESS` actions are fully editable. On a `COMPLETED` action, only `description`, `result`, `followUpRequired`, `followUpNote`, `attachmentNotes`, and `actionAt` may change; changing `performedById` is refused with `ACTION_STATE_CONFLICT`. A `CANCELLED` action is read-only, and any field edit is refused with `ACTION_STATE_CONFLICT`. A status change on either is refused by BR-15 with `INVALID_ACTION_TRANSITION`, which is checked first (Amendment 1). |
 | BR-17 | Actions may be created or edited only while the ticket is `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, or `REOPENED`. In `NEW` (claim the ticket first), `RESOLVED`, `CLOSED`, or `CANCELLED`, the request is refused with `TICKET_STATE_CONFLICT`. |
 | BR-18 | Creating or editing an action does not change the ticket's status, owner, or IT Priority. No hidden side effect (as L3-DEC-09). |
 | BR-19 | Actions are listed by `actionAt` ascending, then `createdAt` ascending, then `id` ascending, so the order is stable even when two actions share a time. |
@@ -455,7 +455,7 @@ is unchanged (L3 api-spec §9).
 | AC-05 | Given a description of 4 or 2001 characters, `followUpRequired` true with no note, a note of 1001 characters, attachment notes of 501 characters, or `actionAt` before the ticket's creation or more than 30 days ahead, when an action is saved, then it is refused with 422 and field details. The boundary values 5, 2000, 1000, and 500 are accepted. |
 | AC-06 | Given an action moving to COMPLETED or CANCELLED without a result, or to COMPLETED with `actionAt` in the future, when it is saved, then it is refused with 422. |
 | AC-07 | Given each permitted action transition, when it is applied, then it succeeds. Given any other transition, including from a terminal status, then it is refused with `INVALID_ACTION_TRANSITION` and nothing changes. |
-| AC-08 | Given a COMPLETED action, when its performer or status is changed, then the request is refused with `ACTION_STATE_CONFLICT`. Its description, result, follow-up fields, attachment notes, and date can still be edited. Given a CANCELLED action, every edit is refused. |
+| AC-08 | Given a COMPLETED action, when its performer is changed, then the request is refused with `ACTION_STATE_CONFLICT`. Its description, result, follow-up fields, attachment notes, and date can still be edited. Given a CANCELLED action, every field edit is refused with `ACTION_STATE_CONFLICT`. A status change on either is refused with `INVALID_ACTION_TRANSITION`. |
 | AC-09 | Given a ticket in NEW, RESOLVED, CLOSED, or CANCELLED, when an action is created or edited, then it is refused with `TICKET_STATE_CONFLICT`. |
 | AC-10 | Given a ticket with several actions, including two with the same `actionAt`, when the list is requested twice, then both responses list the actions in the same BR-19 order. |
 | AC-11 | Given the ticket's Requester, when the action list is requested, then every action is returned read-only. Given another Requester, then the response is 404. Given a Requester calling create or edit, then the response is 403. |
@@ -570,6 +570,12 @@ on the final `main`.
 | DEC-11 | `/` keeps the Lab 3 landing screens. Dashboard is the first navigation item. | Changing the landing would break Lab 3 routing and E2E tests late in the final sprint. The dashboard is still one click from every screen. |
 | DEC-12 | Dashboard drill-down uses new `status` and `statusGroup` filters on existing lists. | The handout requires drill-down into the detailed screens. Adding filters reuses those screens instead of building new ones. |
 | DEC-13 | Ticket History is a read-only staff tab over existing Ticket Events. | Part 7 asks for evidence of append-only behaviour and stable ordering. L3-DEV-12 named this as Lab 4 scope. |
+
+### Amendments after approval
+
+| ID | Found in | Change | Why |
+|---|---|---|---|
+| Amendment 1 | #70, writing UT-03 | BR-15, BR-16, and AC-08: a status change on a terminal action is always `INVALID_ACTION_TRANSITION`; `ACTION_STATE_CONFLICT` is only for field edits. Repeating the stored status is a no-op. | The approved text gave two different codes for the same request (COMPLETED → IN_PROGRESS was `ACTION_STATE_CONFLICT` under BR-16 and `INVALID_ACTION_TRANSITION` under AC-07 and ACT-07), and both refused and accepted a repeated status (ACT-07 against ACT-16). One request must have one outcome. |
 
 ### Carried deviations
 
