@@ -191,6 +191,7 @@ The Final column reads Planned until #75 records results from `main`.
 | UI-19 | AC-23 | History tab | Sentences oldest first; "System" for a null actor; arrow keys move between the three tabs | `TicketWorkflow.test.tsx` | Planned |
 | UI-20 | AC-29 | Shell for each role | Dashboard nav first, with the right route; `aria-current` on the active item | `navigation.test.tsx` | Planned |
 | UI-21 | AC-28 | My Tickets and Queue opened with `?statusGroup=ACTIVE` | Chip "Showing: Open tickets"; Clear removes the parameter and refetches | `DrilldownFilter.test.tsx` | Planned |
+| UI-31 | AC-18 | Claim, assign, IT Priority, or status succeeds while the detail re-fetch is still pending, then a second operation is sent (Amendment 5) | The second request carries the `version` from the first write's response, not the version loaded before it | `staff-detail-version.test.tsx` | Planned |
 
 ### 2.8 UI style — `client/tests/lab-04/theme.style.test.tsx`
 
@@ -244,7 +245,7 @@ retargeted and no conflict is resolved repeatedly.
 | Issue | Title | Depends on | ACs | Tests |
 |---|---|---|---|---|
 | #69 | Sprint 4 engineering contract | — | — | — (this document) |
-| #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03 (46) |
+| #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03, UI-31 (47) |
 | #71 | Dashboard API | #70 | AC-24–AC-29, AC-31 | UT-06, DSR-01–06, DSS-01–07, PERF-01 (15) |
 | #72 | Actions Taken and workflow UI | #70 | AC-01, AC-02, AC-05, AC-07–AC-12, AC-14, AC-18, AC-20–AC-23, AC-38 | UI-08–19, STY-01 (13) |
 | #73 | Dashboards UI, navigation, and drill-down filters | #71 | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
@@ -299,7 +300,7 @@ Every AC maps to at least one test. Status is filled in #75.
 | AC-15 | UT-04, WF-03, E2E-03 | Planned |
 | AC-16 | UT-05, WF-04 | Planned |
 | AC-17 | WF-05 | Planned |
-| AC-18 | ACT-15, WF-06, WF-07, UI-18, E2E-04 | Planned |
+| AC-18 | ACT-15, WF-06, WF-07, UI-18, UI-31, E2E-04 | Planned |
 | AC-19 | WF-08 | Planned |
 | AC-20 | ACT-14, UI-09 | Planned |
 | AC-21 | UI-12, UI-18, E2E-04 | Planned |
