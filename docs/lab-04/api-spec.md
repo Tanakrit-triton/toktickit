@@ -34,6 +34,11 @@ The first failure wins.
 A version mismatch is reported before domain rules. A user who was working on
 an old view must reload before any domain message can be trusted.
 
+For `PATCH /staff/actions/{actionId}`, Section 2.3 refines step 8 (Amendment 3):
+step 8 checks only the body's shape (`version` present and an integer, `status`
+a known value, `performedById` a UUID), and every field rule runs at step e,
+on the resulting action, after the version and domain checks.
+
 ### 1.2 Shared DTOs (additions)
 
 ```ts
@@ -158,6 +163,7 @@ Messages for the most common details:
 - If an action with this `clientRequestId` already exists on this ticket, respond `200` with that action. No change, no event, no version increment.
 - If it exists on a different ticket, respond `422` with `details.clientRequestId`: "This request id was already used."
 - The unique index on `clientRequestId` settles a race between two identical requests. The loser re-reads and returns `200`.
+- The lookup runs once the ticket is found (step 7) and `clientRequestId` is a valid UUID, before the other field rules and the ticket-state rule. A retry therefore returns the original action even if the ticket's status has changed since (Amendment 3).
 
 **Side effects, in one transaction:**
 1. `UPDATE "Ticket" SET version = version + 1, "updatedAt" = now() WHERE id = $id AND "currentStatus" IN (active-for-actions) RETURNING version`. If no row is returned, the ticket left those statuses concurrently, so respond `409 TICKET_STATE_CONFLICT` (BR-30).

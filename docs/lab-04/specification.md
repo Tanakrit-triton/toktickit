@@ -264,7 +264,7 @@ check runs before any lookup (L3-BR-23).
 
 | ID | Rule |
 |---|---|
-| BR-34 | Ticket Events stay append-only (L3-BR-54). Lab 4 adds `ACTION_CREATED { actionId, status, performedById }` and `ACTION_UPDATED { actionId, changes }`, where `changes` lists each changed field. For `status`, `performedById`, and `followUpRequired`, it holds `{ from, to }`. For text fields, it holds `{ changed: true }` only. History is listed oldest first, then by `id`, and is visible only to IT Staff and Administrators. |
+| BR-34 | Ticket Events stay append-only (L3-BR-54). Lab 4 adds `ACTION_CREATED { actionId, status, performedById }` and `ACTION_UPDATED { actionId, changes }`, where `changes` lists each changed field. For `status`, `performedById`, and `followUpRequired`, it holds `{ from, to }`. For `actionAt`, it holds `{ from, to }` as ISO 8601 UTC strings (Amendment 3). For text fields, it holds `{ changed: true }` only. History is listed oldest first, then by `id`, and is visible only to IT Staff and Administrators. |
 
 ### 5.8 Dashboards
 
@@ -592,6 +592,7 @@ on the final `main`.
 |---|---|---|---|
 | Amendment 1 | #70, writing UT-03 | BR-15, BR-16, and AC-08: a status change on a terminal action is always `INVALID_ACTION_TRANSITION`; `ACTION_STATE_CONFLICT` is only for field edits. Repeating the stored status is a no-op. | The approved text gave two different codes for the same request (COMPLETED → IN_PROGRESS was `ACTION_STATE_CONFLICT` under BR-16 and `INVALID_ACTION_TRANSITION` under AC-07 and ACT-07), and both refused and accepted a repeated status (ACT-07 against ACT-16). One request must have one outcome. |
 | Amendment 2 | #70, planning MIG-05 and the seed | AC-33, §7.4, and MIG-05: the rollback is proved by comparing the rolled-back database with the Lab 3 schema (`prisma migrate diff`), and only the two `TicketEventType` values may differ. §7.5: seed tickets #10 and #11 added; #11 is deliberately blocked by the resolution gate (its open PLANNED action), so no test may resolve it; seeded `resolvedAt` may differ from event times. §7.1: `actionAt` is `TIMESTAMP(3)`. | Running the Lab 3 suite needs the Lab 3 Prisma client, so a second dependency install inside the test: slow, network-dependent, and flaky. The nine Lab 3 tickets had no room for an old `resolvedAt`, Napat's WAITING_FOR_REQUESTER ticket, or Arisa's action on another owner's ticket. Every other timestamp column is `TIMESTAMP(3)`, and §7.1 alone said `timestamptz`. |
+| Amendment 3 | #70, planning ACT-01 to ACT-17 | BR-34: `changes.actionAt` is `{ from, to }` in ISO 8601 UTC. api-spec §1.1 and §2.3: for an action PATCH, step 8 checks only the body shape, and every field rule runs at step e on the resulting action. api-spec §2.2: the idempotency lookup runs after the ticket is found and `clientRequestId` is a UUID, before other rules. | BR-34 gave no format for `actionAt`, which is neither a status-like field nor free text. §1.1 put all body validation before the 409 checks, but §2.3 put field rules after them, so a request such as a short description on a CANCELLED action had two possible answers (422 or 409). §2.2 did not place the idempotency lookup; placing it early keeps a retry returning its original action. |
 
 ### Carried deviations
 
