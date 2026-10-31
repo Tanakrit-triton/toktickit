@@ -344,7 +344,7 @@ Navigation by role (Dashboard comes first):
 
 | Model | Change |
 |---|---|
-| `ActionTaken` | New. `id` UUID; `ticketId` (FK → `Ticket`, restrict); `createdById` (FK → `User`, restrict); `performedById` (FK → `User`, restrict); `actionAt` timestamptz; `description` text; `result` text nullable; `status ActionStatus`; `followUpRequired` boolean default false; `followUpNote` text nullable; `attachmentNotes` text nullable; `clientRequestId` UUID unique; `version` int default 0; `createdAt`; `updatedAt`. |
+| `ActionTaken` | New. `id` UUID; `ticketId` (FK → `Ticket`, restrict); `createdById` (FK → `User`, restrict); `performedById` (FK → `User`, restrict); `actionAt` `TIMESTAMP(3)` (UTC, no time zone, like every other timestamp column; Amendment 2); `description` text; `result` text nullable; `status ActionStatus`; `followUpRequired` boolean default false; `followUpNote` text nullable; `attachmentNotes` text nullable; `clientRequestId` UUID unique; `version` int default 0; `createdAt`; `updatedAt`. |
 | `Ticket` | New fields: `version Int @default(0)`, `resolvedAt DateTime?`. |
 | `User` | New back-relations only (`createdActions`, `performedActions`). No column change. |
 | Every other model | Unchanged. |
@@ -392,7 +392,7 @@ Events are not rewritten.
 **Rollback and recovery (DEC-08).**
 - Before migrating a database that holds real data, take `pg_dump -Fc`. The README gives the command. Restoring that dump is the recovery path.
 - `server/prisma/rollback/lab_04_down.sql` drops `ActionTaken`, the two `Ticket` columns, the new indexes, and `ActionStatus`, then deletes the matching row from `_prisma_migrations`.
-- PostgreSQL cannot remove enum values, so the two new `TicketEventType` values stay after rollback. That is harmless, because no Lab 3 code writes them. MIG-05 confirms that Lab 3 tests pass on a rolled-back database.
+- PostgreSQL cannot remove enum values, so the two new `TicketEventType` values stay after rollback. That is harmless, because no Lab 3 code writes them. MIG-05 confirms that a rolled-back database differs from the Lab 3 schema only in those two values (Amendment 2).
 
 ### 7.5 Seed
 
@@ -411,8 +411,23 @@ repeated runs agree.
 | Zero-metric fixtures | Pimchanok Sonthi has no tickets: every Requester metric is 0. Teerapat Boonsri performs no open action: "My open actions" is 0. |
 | Non-zero fixtures | Napat Chaiwong has a WAITING_FOR_REQUESTER ticket; Arisa Kongkaew has open actions; at least one ticket is URGENT and Active. |
 
+**Added tickets (Amendment 2).** The nine Lab 3 tickets cannot hold every
+fixture above, so the seed adds two. Both are requested by a Lab 3 ticket
+Requester (never Pimchanok Sonthi), and no account is added or changed.
+
+| Ticket | Content | Satisfies |
+|---|---|---|
+| #10 | CLOSED, requested by Thanawat Rattana, owned by Wichai Prasert, `resolvedAt` outside the recent window | Resolved and Closed: outside the window |
+| #11 | WAITING_FOR_REQUESTER, requested by Napat Chaiwong, owned by Wichai Prasert, one PLANNED action performed by Arisa Kongkaew. Resolution is deliberately blocked by the gate (the open PLANNED action), so no test may resolve it. | Napat's WAITING_FOR_REQUESTER ticket; Arisa's open action on another owner's ticket (tests.md §1) |
+
 Seeded "recent" timestamps are relative to the time the seed runs, so the
 recent window is never empty on demonstration day. All text is fictional.
+
+**`resolvedAt` and history (Amendment 2).** The seeded `resolvedAt` values are
+fixtures, not derived from events. A recent `resolvedAt` is therefore later than
+the ticket's September STATUS_CHANGED → RESOLVED event, and later than its
+`updatedAt`. The §7.4 backfill rule applies to migrated rows only. Existing Ticket
+Events are never modified to match.
 
 ---
 
@@ -495,7 +510,7 @@ is unchanged (L3 api-spec §9).
 | ID | Criterion |
 |---|---|
 | AC-32 | Given a database populated under the Lab 3 schema, when the Lab 4 migration is applied, then every existing row survives unchanged, every ticket has version 0, and every RESOLVED or CLOSED ticket has `resolvedAt` per Section 7.4. |
-| AC-33 | Given the rollback script applied after the migration, when the Lab 3 API suite runs, then it passes. |
+| AC-33 | Given the rollback script applied after the migration, when the database is compared with the Lab 3 schema, then they differ only in the two TicketEventType values. |
 | AC-34 | Given the seed has run, when it runs again, then no row is duplicated and fixture values are restored. The database contains the Section 7.5 fixtures. |
 | AC-35 | Given the final `main`, when every Lab 1, Lab 2, and Lab 3 suite runs, then all pass, or each superseded test is mapped in `tests.md` Section 4. |
 | AC-36 | Given each role, when it signs in and uses the representative Lab 2 and Lab 3 flows (create ticket, attachments, comments, notes, claim, assign, transitions, user management), then each still works end to end. |
@@ -576,6 +591,7 @@ on the final `main`.
 | ID | Found in | Change | Why |
 |---|---|---|---|
 | Amendment 1 | #70, writing UT-03 | BR-15, BR-16, and AC-08: a status change on a terminal action is always `INVALID_ACTION_TRANSITION`; `ACTION_STATE_CONFLICT` is only for field edits. Repeating the stored status is a no-op. | The approved text gave two different codes for the same request (COMPLETED → IN_PROGRESS was `ACTION_STATE_CONFLICT` under BR-16 and `INVALID_ACTION_TRANSITION` under AC-07 and ACT-07), and both refused and accepted a repeated status (ACT-07 against ACT-16). One request must have one outcome. |
+| Amendment 2 | #70, planning MIG-05 and the seed | AC-33, §7.4, and MIG-05: the rollback is proved by comparing the rolled-back database with the Lab 3 schema (`prisma migrate diff`), and only the two `TicketEventType` values may differ. §7.5: seed tickets #10 and #11 added; #11 is deliberately blocked by the resolution gate (its open PLANNED action), so no test may resolve it; seeded `resolvedAt` may differ from event times. §7.1: `actionAt` is `TIMESTAMP(3)`. | Running the Lab 3 suite needs the Lab 3 Prisma client, so a second dependency install inside the test: slow, network-dependent, and flaky. The nine Lab 3 tickets had no room for an old `resolvedAt`, Napat's WAITING_FOR_REQUESTER ticket, or Arisa's action on another owner's ticket. Every other timestamp column is `TIMESTAMP(3)`, and §7.1 alone said `timestamptz`. |
 
 ### Carried deviations
 

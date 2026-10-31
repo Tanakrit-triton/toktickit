@@ -87,7 +87,7 @@ The Final column reads Planned until #75 records results from `main`.
 | MIG-02 | AC-32 | A Lab 3-populated database upgraded to Lab 4 | Row counts and ids of User, Ticket, Attachment, PublicComment, InternalNote, TicketEvent, and Session unchanged; every ticket has version 0 | `migration.api.test.ts` | Planned |
 | MIG-03 | AC-32 | `resolvedAt` backfill: a RESOLVED ticket with a STATUS_CHANGED → RESOLVED event; a CLOSED ticket without one; an OPEN ticket | Event time; `updatedAt`; null | `migration.api.test.ts` | Planned |
 | MIG-04 | AC-32 | `prisma migrate diff` from migrations to schema | Empty | `migration.api.test.ts` | Planned |
-| MIG-05 | AC-33 | Apply `rollback/lab_04_down.sql`, then run the Lab 3 staff-ticket-detail and comments API files against that database | Pass; Lab 4 tables and columns absent | `rollback.api.test.ts` | Planned |
+| MIG-05 | AC-33 | Migrate a scratch schema to Lab 4 and apply `rollback/lab_04_down.sql`; then `prisma migrate diff --from-url` that schema `--to-schema-datamodel` the Lab 3 `schema.prisma` (`git show 1fea5b2:server/prisma/schema.prisma`) | The diff concerns only the `TicketEventType` values `ACTION_CREATED` and `ACTION_UPDATED`; the `lab_04_actions_taken` row is gone from `_prisma_migrations`; `ActionTaken`, `ActionStatus`, `Ticket.version`, and `Ticket.resolvedAt` do not exist (Amendment 2) | `rollback.api.test.ts` | Planned |
 | SEED-01 | AC-34 | Seed run twice after editing an action and a ticket version | No duplicates; fixture values restored | `seed.api.test.ts` | Planned |
 | SEED-02 | AC-34 | Seed content | Every spec §7.5 fixture exists (zero, one, and several actions; a follow-up; zero-metric users; recent and old `resolvedAt`) | `seed.api.test.ts` | Planned |
 
@@ -405,4 +405,4 @@ Filled in #75 from a clean checkout of `main`.
 
 - **Ticket creation is not idempotent across a network retry** (L3-DEC-17 still holds). The busy state prevents double clicks. A retry after a lost response could create a duplicate ticket. This is not tested, because no protection exists to test.
 - **PERF-01 is a smoke test on one development machine**, not a load test. It catches an accidental N+1 query, not production capacity.
-- **Two new `TicketEventType` values survive rollback** (spec §7.4). MIG-05 proves this is harmless for Lab 3 code.
+- **Two new `TicketEventType` values survive rollback** (spec §7.4). MIG-05 proves they are the only difference between a rolled-back database and the Lab 3 schema. It compares schemas rather than running the Lab 3 suite, because that would need a second install of the Lab 3 dependencies (Amendment 2).
