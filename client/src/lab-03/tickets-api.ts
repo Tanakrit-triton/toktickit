@@ -46,6 +46,8 @@ export interface StaffTicket {
   attachments: Attachment[];
   createdAt: string;
   updatedAt: string;
+  /** Lab 4 (docs/lab-04/api-spec.md 3.1): sent back on owner, IT Priority, and status changes. */
+  version: number;
 }
 
 /** GET /staff/assignees, api-spec.md 5.3. */
@@ -115,17 +117,21 @@ export const fetchAssignees = () => send<Assignee[]>(`/staff/assignees`);
 export const claimTicket = (ticketId: string) =>
   send<StaffTicket>(`/staff/tickets/${ticketId}/claim`, withJson("POST"));
 
-export const assignTicket = (ticketId: string, ownerId: string) =>
-  send<StaffTicket>(`/staff/tickets/${ticketId}/owner`, withJson("PUT", { ownerId }));
+// Lab 4 requires the ticket's version on these three writes (docs/lab-04/
+// api-spec.md 3.2, Amendment 4). A stale one is a 409 STALE_UPDATE, shown like
+// any other conflict, after which the detail is re-fetched.
 
-export const changeItPriority = (ticketId: string, itPriority: Priority) =>
-  send<StaffTicket>(`/staff/tickets/${ticketId}/it-priority`, withJson("PUT", { itPriority }));
+export const assignTicket = (ticketId: string, ownerId: string, version: number) =>
+  send<StaffTicket>(`/staff/tickets/${ticketId}/owner`, withJson("PUT", { ownerId, version }));
+
+export const changeItPriority = (ticketId: string, itPriority: Priority, version: number) =>
+  send<StaffTicket>(`/staff/tickets/${ticketId}/it-priority`, withJson("PUT", { itPriority, version }));
 
 /** `reason` is sent only for the targets that take one (api-spec.md 5.7). */
-export const changeStatus = (ticketId: string, status: TicketStatus, reason?: string) =>
+export const changeStatus = (ticketId: string, status: TicketStatus, version: number, reason?: string) =>
   send<StaffTicket>(
     `/staff/tickets/${ticketId}/status`,
-    withJson("POST", reason === undefined ? { status } : { status, reason }),
+    withJson("POST", reason === undefined ? { status, version } : { status, reason, version }),
   );
 
 export const fetchComments = (ticketId: string) => send<CommentOrNote[]>(`/tickets/${ticketId}/comments`);

@@ -17,6 +17,9 @@ import {
   requiresReason,
   type TicketStatus,
 } from "./transitions.js";
+import { countResolutionBlockers, isResolutionBlocked, resolutionBlockedMessage } from "../lab-04/resolution-gate.js";
+import { isOpenActionStatus } from "../lab-04/action-rules.js";
+import { requiresResolutionGate, resolvedAtChange } from "../lab-04/workflow.js";
 
 // IT Staff ticket operations (docs/lab-03/api-spec.md sections 5.2 to 5.7, 8).
 //
@@ -27,6 +30,14 @@ import {
 // Every change runs in one transaction that first locks the ticket row, so
 // the checks and the write see the same state, and each Ticket Event is
 // written with the change it records (BR-54).
+//
+// Lab 4 (docs/lab-04/api-spec.md section 3): owner, IT Priority, and status
+// require the client's version and write with a conditional
+// UPDATE ... WHERE version = $expected (BR-28); claim increments the version
+// without needing it (BR-32); the status change enforces the resolution gate
+// inside the same transaction (BR-20, BR-30) and maintains resolvedAt (BR-25).
+// The detail reports version, resolvedAt, the action summary, and the gate's
+// blockers (section 3.1).
 
 export const staffTicketOpsRouter = Router();
 
@@ -60,6 +71,33 @@ const invalidField = (field: string, message: string) =>
 
 const OWNER_INVALID = () => invalidField("ownerId", "Choose an active IT Staff or Administrator user.");
 
+const VERSION_MESSAGE = "Send the version of the ticket you are changing.";
+const staleUpdate = () =>
+  new OperationRefused(
+    409,
+    buildError("STALE_UPDATE", "This ticket was changed by someone else. Reload to see the latest version."),
+  );
+
+/** L4 BR-28: the client's version, which must be an integer (api-spec 3.2). */
+function versionOf(body: Record<string, unknown>): number | null {
+  return Number.isInteger(body.version) ? (body.version as number) : null;
+}
+
+/**
+ * The conditional write (L4 BR-28): applies only if the stored version is
+ * still the one the client sent, and increments it. The row is already
+ * locked, so this cannot miss, but the condition is the rule.
+ */
+async function writeIfCurrent(tx: Tx, ticketId: string, expected: number, data: Prisma.TicketUncheckedUpdateManyInput) {
+  const { count } = await tx.ticket.updateMany({
+    where: { id: ticketId, version: expected },
+    data: { ...data, version: { increment: 1 } },
+  });
+  if (count === 0) {
+    throw staleUpdate();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Detail (api-spec.md section 5.2)
 
@@ -79,6 +117,9 @@ const DETAIL_SELECT = {
   category: { select: { id: true, name: true } },
   relatedSystem: { select: { id: true, name: true } },
   attachments: { orderBy: { uploadedAt: "asc" } },
+  version: true,
+  resolvedAt: true,
+  actions: { select: { status: true, followUpRequired: true } },
 } satisfies Prisma.TicketSelect;
 
 async function loadDetail(ticketId: string) {
@@ -86,6 +127,7 @@ async function loadDetail(ticketId: string) {
   if (ticket === null) {
     return null;
   }
+  const blockers = countResolutionBlockers(ticket.actions);
   return {
     id: ticket.id,
     ticketNumber: ticket.ticketNumber,
@@ -105,6 +147,16 @@ async function loadDetail(ticketId: string) {
     attachments: ticket.attachments.map(toAttachmentResponse),
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
+    // L4 api-spec section 3.1. availableTransitions above still includes
+    // RESOLVED when the matrix allows it, even if the gate would refuse it.
+    version: ticket.version,
+    resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
+    actionSummary: {
+      total: ticket.actions.length,
+      open: ticket.actions.filter((a) => isOpenActionStatus(a.status)).length,
+      outstandingFollowUps: blockers.outstandingFollowUps,
+    },
+    resolutionBlockers: isResolutionBlocked(blockers) ? blockers : null,
   };
 }
 
@@ -218,7 +270,8 @@ staffTicketOpsRouter.post("/tickets/:ticketId/claim", (req: Request, res: Respon
       // while the ticket is still unassigned.
       const { count } = await tx.ticket.updateMany({
         where: { id: ticketId, ownerId: null, currentStatus: ticket.currentStatus },
-        data: { ownerId: actorId, currentStatus: to },
+        // L4 BR-32: claim needs no version, but increments it.
+        data: { ownerId: actorId, currentStatus: to, version: { increment: 1 } },
       });
       if (count === 0) {
         throw alreadyClaimed;
@@ -235,15 +288,29 @@ staffTicketOpsRouter.post("/tickets/:ticketId/claim", (req: Request, res: Respon
 /** PUT /staff/tickets/{ticketId}/owner (api-spec 5.5, BR-28, BR-30, BR-31). */
 staffTicketOpsRouter.put("/tickets/:ticketId/owner", (req: Request, res: Response) => {
   const actorId = req.auth!.user.id;
-  const ownerId = (req.body ?? {}).ownerId as unknown;
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const ownerId = body.ownerId;
   return respondWith(req, res, "The ticket could not be assigned. Try again.", async (ticketId) => {
+    const version = versionOf(body);
+    const details: Record<string, string> = {};
     if (typeof ownerId !== "string" || !UUID_PATTERN.test(ownerId)) {
-      throw OWNER_INVALID();
+      details.ownerId = "Choose an active IT Staff or Administrator user.";
+    }
+    if (version === null) {
+      details.version = VERSION_MESSAGE;
+    }
+    if (Object.keys(details).length > 0) {
+      throw new OperationRefused(422, buildError("VALIDATION_ERROR", "One or more fields are invalid.", details));
     }
     await getPrisma().$transaction(async (tx) => {
       const ticket = await lockTicket(tx, ticketId);
-      if (!(await isEligibleOwner(tx, ownerId))) {
+      if (!(await isEligibleOwner(tx, ownerId as string))) {
         throw OWNER_INVALID();
+      }
+      // L4 api-spec 3.2: a stale version before any domain rule, even when
+      // the request would change nothing.
+      if (ticket.version !== version) {
+        throw staleUpdate();
       }
       if (!ASSIGNABLE_STATUSES.has(ticket.currentStatus)) {
         throw stateConflict();
@@ -253,10 +320,10 @@ staffTicketOpsRouter.put("/tickets/:ticketId/owner", (req: Request, res: Respons
       }
 
       const to: TicketStatus = ticket.currentStatus === "NEW" ? "OPEN" : ticket.currentStatus;
-      await tx.ticket.update({ where: { id: ticketId }, data: { ownerId, currentStatus: to } });
+      await writeIfCurrent(tx, ticketId, version!, { ownerId: ownerId as string, currentStatus: to });
       await recordEvent(tx, ticketId, actorId, "OWNER_CHANGED", {
         fromOwnerId: ticket.ownerId,
-        toOwnerId: ownerId,
+        toOwnerId: ownerId as string,
         cause: "ASSIGN",
       });
       if (to !== ticket.currentStatus) {
@@ -269,14 +336,26 @@ staffTicketOpsRouter.put("/tickets/:ticketId/owner", (req: Request, res: Respons
 /** PUT /staff/tickets/{ticketId}/it-priority (api-spec 5.6, BR-33). */
 staffTicketOpsRouter.put("/tickets/:ticketId/it-priority", (req: Request, res: Response) => {
   const actorId = req.auth!.user.id;
-  const itPriority = (req.body ?? {}).itPriority as unknown;
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const itPriority = body.itPriority;
   return respondWith(req, res, "The IT Priority could not be changed. Try again.", async (ticketId) => {
+    const version = versionOf(body);
+    const details: Record<string, string> = {};
     if (typeof itPriority !== "string" || !(REQUESTED_PRIORITIES as readonly string[]).includes(itPriority)) {
-      throw invalidField("itPriority", "Choose Low, Medium, High, or Urgent.");
+      details.itPriority = "Choose Low, Medium, High, or Urgent.";
+    }
+    if (version === null) {
+      details.version = VERSION_MESSAGE;
+    }
+    if (Object.keys(details).length > 0) {
+      throw new OperationRefused(422, buildError("VALIDATION_ERROR", "One or more fields are invalid.", details));
     }
     const to = itPriority as RequestedPriorityValue;
     await getPrisma().$transaction(async (tx) => {
       const ticket = await lockTicket(tx, ticketId);
+      if (ticket.version !== version) {
+        throw staleUpdate();
+      }
       if (!IT_PRIORITY_EDITABLE_STATUSES.has(ticket.currentStatus)) {
         throw stateConflict();
       }
@@ -284,7 +363,7 @@ staffTicketOpsRouter.put("/tickets/:ticketId/it-priority", (req: Request, res: R
         return; // No change and no event.
       }
       // requestedPriority is never written here (BR-33).
-      await tx.ticket.update({ where: { id: ticketId }, data: { itPriority: to } });
+      await writeIfCurrent(tx, ticketId, version!, { itPriority: to });
       await recordEvent(tx, ticketId, actorId, "IT_PRIORITY_CHANGED", { from: ticket.itPriority, to });
     });
   });
@@ -295,15 +374,27 @@ staffTicketOpsRouter.post("/tickets/:ticketId/status", (req: Request, res: Respo
   const actor = req.auth!.user;
   const body = (req.body ?? {}) as Record<string, unknown>;
   return respondWith(req, res, "The status could not be changed. Try again.", async (ticketId) => {
-    // Order of evaluation: status (422), transition (409), owner (409),
-    // reason (422).
+    // Order of evaluation (L4 api-spec 3.3): status and version (422),
+    // version (409), transition (409), owner (409), reason (422), gate (409).
     const to = body.status;
+    const version = versionOf(body);
+    const details: Record<string, string> = {};
     if (!isTicketStatus(to)) {
-      throw invalidField("status", "Choose a valid status.");
+      details.status = "Choose a valid status.";
+    }
+    if (version === null) {
+      details.version = VERSION_MESSAGE;
+    }
+    if (Object.keys(details).length > 0 || !isTicketStatus(to)) {
+      throw new OperationRefused(422, buildError("VALIDATION_ERROR", "One or more fields are invalid.", details));
     }
     await getPrisma().$transaction(async (tx) => {
       const ticket = await lockTicket(tx, ticketId);
       const from = ticket.currentStatus;
+
+      if (ticket.version !== version) {
+        throw staleUpdate();
+      }
 
       if (!isTransitionPermitted(from, to, actor.role) || !isStatusEndpointTransition(from, to)) {
         throw new OperationRefused(
@@ -330,19 +421,34 @@ staffTicketOpsRouter.post("/tickets/:ticketId/status", (req: Request, res: Respo
         reason = trimmed;
       }
 
+      // L4 BR-20: counted under the row lock, in the same transaction as the
+      // write. An action create updates this row too, so it cannot slip in
+      // between (BR-30).
+      if (requiresResolutionGate(from, to)) {
+        const actions = await tx.actionTaken.findMany({
+          where: { ticketId },
+          select: { status: true, followUpRequired: true },
+        });
+        const blockers = countResolutionBlockers(actions);
+        if (isResolutionBlocked(blockers)) {
+          throw new OperationRefused(409, buildError("RESOLUTION_BLOCKED", resolutionBlockedMessage(blockers)));
+        }
+      }
+
       // BR-40: reopening clears the indication, and an owner who is no
       // longer eligible.
       const reopening = to === "REOPENED";
       const clearOwner =
         reopening && ticket.ownerId !== null && !(await isEligibleOwner(tx, ticket.ownerId));
+      // L4 BR-25.
+      const resolvedAt = resolvedAtChange(from, to);
 
-      await tx.ticket.update({
-        where: { id: ticketId },
-        data: {
-          currentStatus: to,
-          ...(reopening ? { requesterIndicatedResolvedAt: null } : {}),
-          ...(clearOwner ? { ownerId: null } : {}),
-        },
+      await writeIfCurrent(tx, ticketId, version!, {
+        currentStatus: to,
+        ...(reopening ? { requesterIndicatedResolvedAt: null } : {}),
+        ...(clearOwner ? { ownerId: null } : {}),
+        ...(resolvedAt === "set" ? { resolvedAt: new Date() } : {}),
+        ...(resolvedAt === "clear" ? { resolvedAt: null } : {}),
       });
       await recordEvent(tx, ticketId, actor.id, "STATUS_CHANGED", reason === undefined ? { from, to } : { from, to, reason });
       if (clearOwner) {

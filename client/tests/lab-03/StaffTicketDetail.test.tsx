@@ -22,6 +22,10 @@ import {
 // Detail, ui-spec.md section 6.5, against api-spec.md sections 5 and 6.
 
 const DETAIL = `/staff/tickets/${TICKET_ID}`;
+// Lab 4: owner, IT Priority, and status writes send the loaded ticket's version
+// (docs/lab-04/api-spec.md 3.2; docs/lab-04/tests.md section 4).
+const VERSION = 4;
+const versioned = (overrides: Record<string, unknown> = {}) => staffTicket({ version: VERSION, ...overrides });
 const NOTE_LABEL = "Internal note — not visible to Requester";
 
 async function openDetail(api: ReturnType<typeof fakeApi>) {
@@ -83,7 +87,7 @@ describe("UI-27 (AC-34) - staff detail layout", () => {
   });
 
   it("shows the IT Priority select with the current value, and Save only once it changes", async () => {
-    const api = await openDetail(fakeApi(staffRoutes()));
+    const api = await openDetail(fakeApi(staffRoutes(versioned())));
     api.routes[`PUT /staff/tickets/${TICKET_ID}/it-priority`] = ok(staffTicket({ itPriority: "LOW" }));
 
     const select = screen.getByTestId("field-it-priority") as HTMLSelectElement;
@@ -94,7 +98,7 @@ describe("UI-27 (AC-34) - staff detail layout", () => {
     await userEvent.click(screen.getByTestId("btn-save-it-priority"));
 
     await waitFor(() => expect(detailGets(api)).toBe(2));
-    expect(api.callsTo("PUT", `/staff/tickets/${TICKET_ID}/it-priority`)[0].body).toEqual({ itPriority: "LOW" });
+    expect(api.callsTo("PUT", `/staff/tickets/${TICKET_ID}/it-priority`)[0].body).toEqual({ itPriority: "LOW", version: VERSION });
   });
 
   it("shows IT Priority read-only on CLOSED and CANCELLED tickets", async () => {
@@ -177,7 +181,7 @@ describe("UI-28 (AC-35, AC-37) - owner controls", () => {
   });
 
   it("re-fetches the detail after a successful assign, sending the chosen ownerId", async () => {
-    const api = await openDetail(fakeApi(staffRoutes()));
+    const api = await openDetail(fakeApi(staffRoutes(versioned())));
     const target = ASSIGNEES[0];
     const reassigned = staffTicket({ owner: { id: target.id, fullName: target.fullName } });
     api.routes[`PUT /staff/tickets/${TICKET_ID}/owner`] = ok(reassigned);
@@ -187,7 +191,7 @@ describe("UI-28 (AC-35, AC-37) - owner controls", () => {
     await userEvent.click(screen.getByTestId("btn-assign"));
 
     await waitFor(() => expect(detailGets(api)).toBe(2));
-    expect(api.callsTo("PUT", `/staff/tickets/${TICKET_ID}/owner`)[0].body).toEqual({ ownerId: target.id });
+    expect(api.callsTo("PUT", `/staff/tickets/${TICKET_ID}/owner`)[0].body).toEqual({ ownerId: target.id, version: VERSION });
     await waitFor(() => expect(screen.getByTestId("ticket-owner")).toHaveTextContent(target.fullName));
   });
 });
@@ -237,14 +241,14 @@ describe("UI-29 (AC-39) - transition buttons", () => {
   });
 
   it("sends a transition without a dialog when none is required, then re-fetches", async () => {
-    const api = await openDetail(fakeApi(staffRoutes()));
+    const api = await openDetail(fakeApi(staffRoutes(versioned())));
     api.routes[`POST /staff/tickets/${TICKET_ID}/status`] = ok(staffTicket({ currentStatus: "WAITING_FOR_REQUESTER" }));
 
     await userEvent.click(screen.getByTestId("btn-transition-WAITING_FOR_REQUESTER"));
 
     expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument();
     await waitFor(() => expect(detailGets(api)).toBe(2));
-    expect(api.callsTo("POST", `/staff/tickets/${TICKET_ID}/status`)[0].body).toEqual({ status: "WAITING_FOR_REQUESTER" });
+    expect(api.callsTo("POST", `/staff/tickets/${TICKET_ID}/status`)[0].body).toEqual({ status: "WAITING_FOR_REQUESTER", version: VERSION });
   });
 });
 
@@ -252,7 +256,7 @@ describe("UI-30 (AC-41) - confirmation dialogs", () => {
   const statusPath = `/staff/tickets/${TICKET_ID}/status`;
 
   it("Resolve opens a dialog, sends nothing until confirmed, then sends RESOLVED", async () => {
-    const api = await openDetail(fakeApi(staffRoutes()));
+    const api = await openDetail(fakeApi(staffRoutes(versioned())));
     api.routes[`POST ${statusPath}`] = ok(staffTicket({ currentStatus: "RESOLVED", availableTransitions: ["CLOSED", "REOPENED"] }));
 
     await userEvent.click(screen.getByTestId("btn-transition-RESOLVED"));
@@ -266,7 +270,7 @@ describe("UI-30 (AC-41) - confirmation dialogs", () => {
     await userEvent.click(within(dialog).getByTestId("btn-confirm"));
 
     await waitFor(() => expect(api.callsTo("POST", statusPath)).toHaveLength(1));
-    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "RESOLVED" });
+    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "RESOLVED", version: VERSION });
     await waitFor(() => expect(screen.queryByTestId("confirm-dialog")).not.toBeInTheDocument());
   });
 
@@ -283,7 +287,7 @@ describe("UI-30 (AC-41) - confirmation dialogs", () => {
   });
 
   it("Cancel ticket requires a reason of at least 5 characters before anything is sent", async () => {
-    const api = await openDetail(fakeApi(staffRoutes()));
+    const api = await openDetail(fakeApi(staffRoutes(versioned())));
     api.routes[`POST ${statusPath}`] = ok(staffTicket({ currentStatus: "CANCELLED", availableTransitions: ["REOPENED"] }));
 
     await userEvent.click(screen.getByTestId("btn-transition-CANCELLED"));
@@ -306,12 +310,12 @@ describe("UI-30 (AC-41) - confirmation dialogs", () => {
     await userEvent.click(within(dialog).getByTestId("btn-confirm"));
 
     await waitFor(() => expect(api.callsTo("POST", statusPath)).toHaveLength(1));
-    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "CANCELLED", reason: "Duplicate of TKT-2026-00040" });
+    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "CANCELLED", reason: "Duplicate of TKT-2026-00040", version: VERSION });
   });
 
   it("Reopen requires a reason of at least 5 characters before anything is sent", async () => {
     const api = await openDetail(
-      fakeApi(staffRoutes(staffTicket({ currentStatus: "CLOSED", availableTransitions: ["REOPENED"] }))),
+      fakeApi(staffRoutes(versioned({ currentStatus: "CLOSED", availableTransitions: ["REOPENED"] }))),
     );
     api.routes[`POST ${statusPath}`] = ok(staffTicket({ currentStatus: "REOPENED" }));
 
@@ -327,7 +331,7 @@ describe("UI-30 (AC-41) - confirmation dialogs", () => {
     await userEvent.click(within(dialog).getByTestId("btn-confirm"));
 
     await waitFor(() => expect(api.callsTo("POST", statusPath)).toHaveLength(1));
-    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "REOPENED", reason: "abcde" });
+    expect(api.callsTo("POST", statusPath)[0].body).toEqual({ status: "REOPENED", reason: "abcde", version: VERSION });
   });
 
   it("dismissing the dialog sends nothing and returns focus to the trigger", async () => {

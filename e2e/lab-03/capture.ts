@@ -184,6 +184,16 @@ const REPORTS: { summary: string; description: string; priority: string; categor
   { summary: "Laptop docking station not charging", description: "The docking station at desk 12 shows displays correctly but the laptop battery does not charge.", priority: "MEDIUM", category: 1, system: 2 },
 ];
 
+/**
+ * Lab 4: owner, IT Priority, and status writes send the ticket's current
+ * version (docs/lab-04/api-spec.md 3.2, docs/lab-04/tests.md section 4). Reads
+ * it from the staff detail and adds it to the body.
+ */
+export async function versioned(staff: ApiSession, ticketId: string, body: Record<string, unknown>) {
+  const { version } = (await staff.get(`/staff/tickets/${ticketId}`)) as { version: number };
+  return { ...body, version };
+}
+
 /** Creates a ticket through POST /tickets with chosen values. */
 export async function fileTicket(
   requester: ApiSession,
@@ -229,14 +239,14 @@ export async function ensureRealisticQueue(): Promise<void> {
         const worker = staff[i % staff.length];
         expect((await worker.send("POST", `/staff/tickets/${ticket.id}/claim`)).status).toBe(200);
         if (i % 4 === 1) {
-          const raised = await worker.send("PUT", `/staff/tickets/${ticket.id}/it-priority`, { itPriority: "URGENT" });
+          const raised = await worker.send("PUT", `/staff/tickets/${ticket.id}/it-priority`, await versioned(worker, ticket.id, { itPriority: "URGENT" }));
           expect(raised.status).toBe(200);
         }
         if (i % 3 === 2) {
-          expect((await worker.send("POST", `/staff/tickets/${ticket.id}/status`, { status: "IN_PROGRESS" })).status).toBe(200);
+          expect((await worker.send("POST", `/staff/tickets/${ticket.id}/status`, await versioned(worker, ticket.id, { status: "IN_PROGRESS" }))).status).toBe(200);
         }
         if (i % 5 === 4) {
-          const waiting = await worker.send("POST", `/staff/tickets/${ticket.id}/status`, { status: "WAITING_FOR_REQUESTER" });
+          const waiting = await worker.send("POST", `/staff/tickets/${ticket.id}/status`, await versioned(worker, ticket.id, { status: "WAITING_FOR_REQUESTER" }));
           expect([200, 409]).toContain(waiting.status);
         }
       }
@@ -280,8 +290,8 @@ export async function workedTicket(summary = "Laptop fan runs at full speed whil
     expect(upload.status(), "attachment upload").toBe(201);
 
     expect((await staff.send("POST", `/staff/tickets/${ticket.id}/claim`)).status).toBe(200);
-    expect((await staff.send("PUT", `/staff/tickets/${ticket.id}/it-priority`, { itPriority: "HIGH" })).status).toBe(200);
-    expect((await staff.send("POST", `/staff/tickets/${ticket.id}/status`, { status: "IN_PROGRESS" })).status).toBe(200);
+    expect((await staff.send("PUT", `/staff/tickets/${ticket.id}/it-priority`, await versioned(staff, ticket.id, { itPriority: "HIGH" }))).status).toBe(200);
+    expect((await staff.send("POST", `/staff/tickets/${ticket.id}/status`, await versioned(staff, ticket.id, { status: "IN_PROGRESS" }))).status).toBe(200);
     const reply = await staff.send("POST", `/tickets/${ticket.id}/comments`, {
       body: "Thanks for the report. Could you tell me whether it happens on battery as well as on the charger?",
     });

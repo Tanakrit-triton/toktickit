@@ -196,11 +196,11 @@ export function StaffTicketDetail() {
           assignees={assignees}
           busy={busy}
           onClaim={() => void operate("claim", () => ticketsApi.claimTicket(ticket.id))}
-          onAssign={(ownerId) => void operate("assign", () => ticketsApi.assignTicket(ticket.id, ownerId))}
-          onSavePriority={(priority) => void operate("priority", () => ticketsApi.changeItPriority(ticket.id, priority))}
+          onAssign={(ownerId) => void operate("assign", () => ticketsApi.assignTicket(ticket.id, ownerId, ticket.version))}
+          onSavePriority={(priority) => void operate("priority", () => ticketsApi.changeItPriority(ticket.id, priority, ticket.version))}
           onTransition={(target) => {
             if (dialogFor(target, ticket.ticketNumber) !== null) setPendingTransition(target);
-            else void operate(`status-${target}`, () => ticketsApi.changeStatus(ticket.id, target));
+            else void operate(`status-${target}`, () => ticketsApi.changeStatus(ticket.id, target, ticket.version));
           }}
         />
 
@@ -243,7 +243,7 @@ export function StaffTicketDetail() {
           confirmLabel={dialog.confirmLabel}
           confirmVariant={dialog.confirmVariant}
           cancelLabel={dialog.cancelLabel}
-          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => ticketsApi.changeStatus(ticket.id, pendingTransition, reason))}
+          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => ticketsApi.changeStatus(ticket.id, pendingTransition, ticket.version, reason))}
           onClose={() => setPendingTransition(null)}
         />
       )}
