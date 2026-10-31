@@ -482,7 +482,7 @@ describe("WF-10 ticket history (AC-23, BR-34)", () => {
     }
     expect(events.find((e) => e.eventType === "OWNER_CHANGED")!.payload).toEqual({ fromOwnerId: null, toOwnerId: ids.wichai, cause: "CLAIM" });
     expect(events[2].payload).toEqual({ actionId: created.body.data.id, status: "PLANNED", performedById: ids.arisa });
-    expect(events[4].payload).toEqual({ from: "IN_PROGRESS", to: "RESOLVED" });
+    expect(events[4].payload).toEqual({ from: "OPEN", to: "RESOLVED" });
     expect(res.body.users).toEqual({ [ids.wichai]: "Wichai Prasert", [ids.arisa]: "Arisa Kongkaew" });
 
     const refused = await requester.agent.get(`${base(ticket.id)}/history`);
