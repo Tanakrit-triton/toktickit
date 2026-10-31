@@ -111,12 +111,16 @@ export function StaffTicketDetail() {
   }, [load]);
 
   /** Runs one operation, reports a 409 or a failure, and always re-fetches. */
-  async function operate(key: string, request: () => Promise<unknown>) {
+  async function operate(key: string, request: () => Promise<StaffTicket>) {
     setConflict(null);
     setOperationFailed(false);
     setBusy(key);
     try {
-      await request();
+      // Every write returns the fresh detail, version included. It is shown
+      // before the controls are usable again, so an operation sent at once
+      // carries the new version rather than the one loaded before this write
+      // (docs/lab-04 Amendment 5). The re-fetch below still follows.
+      setTicket(await request());
     } catch (error) {
       if (error instanceof ticketsApi.TicketRequestError && error.kind === "CONFLICT") {
         setConflict(error.conflictMessage ?? "This ticket has changed.");
