@@ -133,11 +133,8 @@ describe("rollback to the Lab 3 schema (MIG-05 - AC-33)", () => {
     expect(names).toHaveLength(3);
   });
 
-  it("differs from the Lab 3 schema only in the two TicketEventType values", () => {
+  it("differs from the Lab 3 schema only in the two TicketEventType values", async () => {
     rollBack();
-    const removed = diffScript.match(/The values? \[([^\]]*)\] on the enum `TicketEventType` will be removed/);
-    expect(removed, `no TicketEventType value removal in:\n${diffScript}`).not.toBeNull();
-    expect(removed![1].split(",").map((v) => v.trim()).sort()).toEqual(["ACTION_CREATED", "ACTION_UPDATED"]);
 
     const statements = diffScript
       .replace(/--.*$/gm, "")
@@ -153,7 +150,19 @@ describe("rollback to the Lab 3 schema (MIG-05 - AC-33)", () => {
 
     // The enum Prisma would rebuild is exactly the Lab 3 one.
     const created = diffScript.match(/CREATE TYPE "TicketEventType_new" AS ENUM \(([^)]*)\)/);
-    expect(created, diffScript).not.toBeNull();
-    expect(created![1].split(",").map((v) => v.trim().replace(/'/g, ""))).toEqual(LAB3_EVENT_TYPES);
+    expect(created, `no TicketEventType rebuild in:\n${diffScript}`).not.toBeNull();
+    const rebuilt = created![1].split(",").map((v) => v.trim().replace(/'/g, ""));
+    expect(rebuilt).toEqual(LAB3_EVENT_TYPES);
+
+    // What the rebuild would drop is read from the database itself, not from a
+    // CLI message: exactly the two Lab 4 values.
+    const stored = await db.$queryRawUnsafe<{ value: string }[]>(
+      `SELECT e.enumlabel AS "value" FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid JOIN pg_namespace n ON n.oid = t.typnamespace
+       WHERE n.nspname = '${ROLLBACK_SCHEMA}' AND t.typname = 'TicketEventType'
+       ORDER BY e.enumsortorder`,
+    );
+    const dropped = stored.map((row) => row.value).filter((value) => !rebuilt.includes(value));
+    expect(dropped.sort()).toEqual(["ACTION_CREATED", "ACTION_UPDATED"]);
   });
 });
