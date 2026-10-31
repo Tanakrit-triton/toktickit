@@ -13,6 +13,7 @@ import { staffTicketOpsRouter } from "./lab-03/staff-ticket-ops.routes.js";
 import { commentsNotesRouter } from "./lab-03/comments-notes.routes.js";
 import { actionsRouter, staffActionsRouter } from "./lab-04/actions.routes.js";
 import { staffHistoryRouter } from "./lab-04/history.routes.js";
+import { requesterDashboardRouter, staffDashboardRouter } from "./lab-04/dashboard.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
@@ -78,6 +79,9 @@ app.use("/api/v1", commentsNotesRouter); // #41, api-spec.md section 6
 app.use("/api/v1", actionsRouter);
 app.use("/api/v1/staff", staffActionsRouter);
 app.use("/api/v1/staff", staffHistoryRouter); // api-spec.md section 3.4
+// Dashboards (api-spec.md section 5): stubs until #71, behind their guards.
+app.use("/api/v1", requesterDashboardRouter);
+app.use("/api/v1/staff", staffDashboardRouter);
 
 // Any other /api/v1 path, including the removed GET /dev-requesters
 // (api-spec.md section 3). The message differs from the ownership refusal

@@ -5,6 +5,7 @@ import { requireRole } from "../lab-03/require-role.js";
 import { requireSession } from "../lab-03/require-session.js";
 import { allocateTicketNumber } from "./ticket-number.js";
 import { parseTicketListQuery } from "./ticket-query.js";
+import { statusesForGroup } from "../lab-04/status-groups.js";
 import {
   validateDescription,
   validateReferenceId,
@@ -189,7 +190,7 @@ ticketsRouter.get("/tickets", ...requesterOnly, async (req: Request, res: Respon
     res.status(400).json(buildError("BAD_REQUEST", parsed.message));
     return;
   }
-  const { q, categoryId, relatedSystemId, requestedPriority, sortBy, sortOrder, page, pageSize } =
+  const { q, categoryId, relatedSystemId, requestedPriority, status, statusGroup, sortBy, sortOrder, page, pageSize } =
     parsed.query;
 
   // requesterId is applied here and cannot be overridden by any parameter, so
@@ -200,6 +201,10 @@ ticketsRouter.get("/tickets", ...requesterOnly, async (req: Request, res: Respon
     ...(categoryId === undefined ? {} : { categoryId }),
     ...(relatedSystemId === undefined ? {} : { relatedSystemId }),
     ...(requestedPriority === undefined ? {} : { requestedPriority }),
+    // Lab 4 drill-down (docs/lab-04/api-spec.md section 4.1). The parser has
+    // already refused the two together.
+    ...(status === undefined ? {} : { currentStatus: status }),
+    ...(statusGroup === undefined ? {} : { currentStatus: { in: [...statusesForGroup(statusGroup)] } }),
     ...(q === undefined
       ? {}
       : {
