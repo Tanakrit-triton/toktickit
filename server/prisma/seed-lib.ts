@@ -3,7 +3,9 @@ import { allocateTicketNumber } from "../src/lab-02/ticket-number.js";
 import { hashPassword } from "../src/lab-03/password-hash.js";
 import { revokeAllSessions } from "../src/lab-03/sessions.js";
 
-// Lab 3 seed, per docs/lab-03/specification.md section 7.5.
+// Lab 3 seed, per docs/lab-03/specification.md section 7.5, extended for Lab 4
+// per docs/lab-04/specification.md section 7.5 (Actions Taken, version,
+// resolvedAt, and tickets #10 and #11 from Amendment 2).
 //
 // Idempotent. Reference data and users are upserted on their natural unique
 // keys; tickets, comments, notes, and events on fixed UUIDs, so ids stay
@@ -12,7 +14,9 @@ import { revokeAllSessions } from "../src/lab-03/sessions.js";
 //
 // Every run also resets each seeded account's password, password-change flag,
 // role, and activation to its fixture value and revokes its sessions (AC-62),
-// which keeps first-login and password-change tests repeatable.
+// which keeps first-login and password-change tests repeatable. Likewise every
+// seeded ticket's version and resolvedAt, and every seeded action, are reset
+// to their fixture values (L4 AC-34).
 //
 // All names and text are fictional.
 
@@ -74,6 +78,29 @@ export const SEED_ACCOUNTS: Account[] = [
 // Each ticket's events replay how it reached its seeded owner and status, so
 // the latest OWNER_CHANGED and STATUS_CHANGED always agree with the row.
 
+type ActionStatus = "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
+/** An Action Taken. Times are fixed and later than the ticket's creation. */
+type ActionSpec = {
+  createdBy: string;
+  performedBy: string;
+  actionAt: string;
+  description: string;
+  result: string | null;
+  status: ActionStatus;
+  followUpNote?: string;
+  attachmentNotes?: string;
+};
+
+/**
+ * resolvedAt for RESOLVED and CLOSED tickets (L4 BR-25). "daysAgo" values are
+ * relative to the time the seed runs, so the dashboards' recent window is
+ * never empty (L4 section 7.5). They may be later than the ticket's RESOLVED
+ * event (Amendment 2). "atEvent" uses the time of the ticket's latest
+ * STATUS_CHANGED -> RESOLVED event, as the migration backfill does.
+ */
+type ResolvedAtSpec = { daysAgo: number } | "atEvent";
+
 type EventSpec =
   | { type: "OWNER_CHANGED"; actor: string; from: string | null; to: string; cause: "CLAIM" | "ASSIGN" }
   | { type: "STATUS_CHANGED"; actor: string; from: Status; to: Status; reason?: string }
@@ -94,6 +121,9 @@ type TicketSpec = {
   events: EventSpec[];
   comments: { author: string; body: string }[];
   notes: { author: string; body: string }[];
+  /** Required exactly for RESOLVED and CLOSED tickets. */
+  resolvedAt?: ResolvedAtSpec;
+  actions?: ActionSpec[];
 };
 
 const claim = (who: string): EventSpec[] => [
@@ -168,6 +198,43 @@ const TICKETS: TicketSpec[] = [
       { author: "napat", body: "Yes, I can come on Thursday afternoon." },
     ],
     notes: [{ author: "arisa", body: "Battery health reads 61 percent. Replacement part requested." }],
+    // L4 section 7.5: several actions, one IN_PROGRESS by another IT Staff
+    // member (BR-02). Resolution is blocked.
+    actions: [
+      {
+        createdBy: "arisa",
+        performedBy: "arisa",
+        actionAt: "2026-09-24T03:00:00Z",
+        description: "Ran the battery diagnostic and saved the health report.",
+        result: "Battery health reads 61 percent. A replacement is needed.",
+        status: "COMPLETED",
+        attachmentNotes: "Diagnostic report saved to the shared IT drive.",
+      },
+      {
+        createdBy: "arisa",
+        performedBy: "arisa",
+        actionAt: "2026-09-24T04:00:00Z",
+        description: "Re-image the laptop to rule out a software cause.",
+        result: "Not needed: the diagnostic confirmed a hardware fault.",
+        status: "CANCELLED",
+      },
+      {
+        createdBy: "arisa",
+        performedBy: "wichai",
+        actionAt: "2026-09-25T02:00:00Z",
+        description: "Ordering a replacement battery from the vendor.",
+        result: null,
+        status: "IN_PROGRESS",
+      },
+      {
+        createdBy: "arisa",
+        performedBy: "arisa",
+        actionAt: "2026-09-28T03:00:00Z",
+        description: "Install the replacement battery once it arrives.",
+        result: null,
+        status: "PLANNED",
+      },
+    ],
   },
   {
     n: 5,
@@ -191,6 +258,18 @@ const TICKETS: TicketSpec[] = [
       { author: "teerapat", body: "Which version of the VPN client is installed? It is shown under Help, then About." },
     ],
     notes: [],
+    // L4 section 7.5: an outstanding follow-up. Resolution is blocked.
+    actions: [
+      {
+        createdBy: "teerapat",
+        performedBy: "teerapat",
+        actionAt: "2026-09-24T02:00:00Z",
+        description: "Reset the authentication token on the requester's VPN account.",
+        result: "Token reset. The account authenticates from the office network.",
+        status: "COMPLETED",
+        followUpNote: "Confirm with the requester that the VPN now connects from home.",
+      },
+    ],
   },
   {
     n: 6,
@@ -212,6 +291,7 @@ const TICKETS: TicketSpec[] = [
     ],
     comments: [{ author: "wichai", body: "The toner cartridge was replaced. Please confirm that pages print correctly." }],
     notes: [{ author: "wichai", body: "Cartridge was a counterfeit batch. Reported to procurement." }],
+    resolvedAt: { daysAgo: 1 },
   },
   {
     n: 7,
@@ -232,6 +312,7 @@ const TICKETS: TicketSpec[] = [
     ],
     comments: [{ author: "arisa", body: "The course cache was refreshed. The current semester now appears." }],
     notes: [],
+    resolvedAt: { daysAgo: 2 },
   },
   {
     n: 8,
@@ -259,6 +340,17 @@ const TICKETS: TicketSpec[] = [
     ],
     comments: [],
     notes: [{ author: "wichai", body: "Feeder roller looks worn. Vendor visit may be needed." }],
+    // L4 section 7.5: one COMPLETED action, no follow-up. Resolvable.
+    actions: [
+      {
+        createdBy: "sasithorn",
+        performedBy: "sasithorn",
+        actionAt: "2026-09-17T03:00:00Z",
+        description: "Cleaned the feeder roller and printed twenty test cards.",
+        result: "All twenty cards printed without a jam.",
+        status: "COMPLETED",
+      },
+    ],
   },
   {
     n: 9,
@@ -284,6 +376,62 @@ const TICKETS: TicketSpec[] = [
     comments: [],
     notes: [],
   },
+  // L4 Amendment 2: a Done ticket resolved before the recent window.
+  {
+    n: 10,
+    requester: "thanawat",
+    owner: "wichai",
+    category: "Software",
+    system: "Email",
+    summary: "Shared mailbox missing from the email client",
+    description: "The department's shared mailbox no longer appears in my email client, although colleagues still see it.",
+    priority: "LOW",
+    status: "CLOSED",
+    indicatedResolved: false,
+    createdAt: "2026-09-01T03:00:00Z",
+    events: [
+      ...claim("wichai"),
+      { type: "STATUS_CHANGED", actor: "wichai", from: "OPEN", to: "IN_PROGRESS" },
+      { type: "STATUS_CHANGED", actor: "wichai", from: "IN_PROGRESS", to: "RESOLVED" },
+      { type: "STATUS_CHANGED", actor: "wichai", from: "RESOLVED", to: "CLOSED" },
+    ],
+    comments: [{ author: "wichai", body: "Your access to the shared mailbox was restored. Restart the email client to see it." }],
+    notes: [],
+    resolvedAt: "atEvent",
+  },
+  // L4 Amendment 2: Napat's WAITING_FOR_REQUESTER ticket, and Arisa's open
+  // action on another owner's ticket. Deliberately blocked by the resolution
+  // gate (its open PLANNED action), so no test may resolve it.
+  {
+    n: 11,
+    requester: "napat",
+    owner: "wichai",
+    category: "Hardware",
+    system: "Corporate Laptop",
+    summary: "Docking station does not detect the external monitor",
+    description: "The docking station charges the laptop, but the external monitor shows no signal since I moved desks.",
+    priority: "MEDIUM",
+    status: "WAITING_FOR_REQUESTER",
+    indicatedResolved: false,
+    createdAt: "2026-09-25T02:00:00Z",
+    events: [
+      ...claim("wichai"),
+      { type: "STATUS_CHANGED", actor: "wichai", from: "OPEN", to: "IN_PROGRESS" },
+      { type: "STATUS_CHANGED", actor: "wichai", from: "IN_PROGRESS", to: "WAITING_FOR_REQUESTER" },
+    ],
+    comments: [{ author: "wichai", body: "Which desk are you at now? We will bring a replacement cable." }],
+    notes: [],
+    actions: [
+      {
+        createdBy: "wichai",
+        performedBy: "arisa",
+        actionAt: "2026-09-26T03:00:00Z",
+        description: "Swap the docking station's display cable at the requester's new desk.",
+        result: null,
+        status: "PLANNED",
+      },
+    ],
+  },
 ];
 
 // Fixed, valid version-4-shaped UUIDs: 5eed<kind>-0000-4000-8000-<ticket><index>.
@@ -294,6 +442,27 @@ export const seedTicketId = (n: number) => fixedId(1, n);
 const commentId = (n: number, i: number) => fixedId(2, n, i);
 const noteId = (n: number, i: number) => fixedId(3, n, i);
 const eventId = (n: number, i: number) => fixedId(4, n, i);
+const actionId = (n: number, i: number) => fixedId(5, n, i);
+const actionClientRequestId = (n: number, i: number) => fixedId(6, n, i);
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function resolvedAtFor(ticket: TicketSpec, now: Date): Date | null {
+  const done = ticket.status === "RESOLVED" || ticket.status === "CLOSED";
+  if (done !== (ticket.resolvedAt !== undefined)) {
+    throw new Error(`Seed ticket ${ticket.n}: resolvedAt is required exactly for RESOLVED and CLOSED tickets.`);
+  }
+  if (ticket.resolvedAt === undefined) return null;
+  if (ticket.resolvedAt === "atEvent") {
+    // Event i is dated i + 1 minutes after the ticket (see the loop below).
+    for (let i = ticket.events.length - 1; i >= 0; i--) {
+      const event = ticket.events[i];
+      if (event.type === "STATUS_CHANGED" && event.to === "RESOLVED") return minutesAfter(ticket.createdAt, i + 1);
+    }
+    throw new Error(`Seed ticket ${ticket.n}: no STATUS_CHANGED -> RESOLVED event.`);
+  }
+  return new Date(now.getTime() - ticket.resolvedAt.daysAgo * DAY_MS);
+}
 
 /** History entries are spaced a minute apart after the ticket's creation. */
 const minutesAfter = (iso: string, minutes: number) =>
@@ -327,6 +496,7 @@ export async function seedDatabase(
       "SEED_PASSWORD is not set. Add the local development value from server/.env.example to server/.env.",
     );
   }
+  const now = new Date();
 
   for (const name of CATEGORIES) {
     await prisma.category.upsert({
@@ -391,6 +561,8 @@ export async function seedDatabase(
         : null,
       createdAt: new Date(ticket.createdAt),
       updatedAt: minutesAfter(ticket.createdAt, lastMinute),
+      version: 0,
+      resolvedAt: resolvedAtFor(ticket, now),
     };
 
     await prisma.$transaction(async (tx) => {
@@ -442,6 +614,30 @@ export async function seedDatabase(
           body: note.body,
           createdAt: minutesAfter(ticket.createdAt, ticket.events.length + ticket.comments.length + i + 1),
         },
+      });
+    }
+    // Actions are fixtures, not history: every run resets each one in full.
+    for (const [i, action] of (ticket.actions ?? []).entries()) {
+      const fixture = {
+        ticketId: id,
+        createdById: userIds.get(action.createdBy)!,
+        performedById: userIds.get(action.performedBy)!,
+        actionAt: new Date(action.actionAt),
+        description: action.description,
+        result: action.result,
+        status: action.status,
+        followUpRequired: action.followUpNote !== undefined,
+        followUpNote: action.followUpNote ?? null,
+        attachmentNotes: action.attachmentNotes ?? null,
+        clientRequestId: actionClientRequestId(ticket.n, i),
+        version: 0,
+        createdAt: new Date(action.actionAt),
+        updatedAt: new Date(action.actionAt),
+      };
+      await prisma.actionTaken.upsert({
+        where: { id: actionId(ticket.n, i) },
+        update: fixture,
+        create: { id: actionId(ticket.n, i), ...fixture },
       });
     }
   }

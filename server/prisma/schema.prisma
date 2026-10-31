@@ -1,6 +1,7 @@
 // TokTickIT data model.
 // Lab 2 schema per docs/lab-02/specification.md section 7, extended for Lab 3
-// per docs/lab-03/specification.md section 7.
+// per docs/lab-03/specification.md section 7 and for Lab 4 per
+// docs/lab-04/specification.md section 7.
 // DATABASE_URL lives in server/.env (copy it from .env.example).
 
 generator client {
@@ -48,12 +49,25 @@ enum Role {
   ADMINISTRATOR
 }
 
-/// The changes Lab 3 records (BR-55, DEV-12).
+/// The changes Lab 3 records (BR-55, DEV-12), plus the two Lab 4 action events
+/// (L4 BR-34). Extended with ADD VALUE only; PostgreSQL cannot drop enum values,
+/// so these two survive a rollback (L4 section 7.4).
 enum TicketEventType {
   OWNER_CHANGED
   STATUS_CHANGED
   IT_PRIORITY_CHANGED
   RESOLUTION_INDICATED
+  ACTION_CREATED
+  ACTION_UPDATED
+}
+
+/// Action Taken statuses (L4 BR-13). The permitted transitions are enforced in
+/// src/lab-04/action-rules.ts, not by the type.
+enum ActionStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +128,8 @@ model User {
   internalNotes       InternalNote[]
   ticketEvents        TicketEvent[]
   sessions            Session[]
+  createdActions      ActionTaken[]   @relation("ActionCreatedBy")
+  performedActions    ActionTaken[]   @relation("ActionPerformedBy")
 
   @@map("RequesterUser")
 }
@@ -133,6 +149,11 @@ model Ticket {
   itPriority                   Priority
   currentStatus                TicketStatus @default(NEW)
   requesterIndicatedResolvedAt DateTime?
+  /// Incremented by every staff change, checked by conditional update
+  /// (L4 DEC-06).
+  version                      Int          @default(0)
+  /// Set on entering RESOLVED, kept on CLOSED, cleared on REOPENED (L4 BR-25).
+  resolvedAt                   DateTime?
   createdAt                    DateTime     @default(now())
   updatedAt                    DateTime     @updatedAt
 
@@ -144,6 +165,7 @@ model Ticket {
   comments      PublicComment[]
   notes         InternalNote[]
   events        TicketEvent[]
+  actions       ActionTaken[]
 
   /// Every My Tickets query filters on requesterId and sorts by createdAt
   /// descending by default, so this composite index serves the dominant
@@ -154,6 +176,10 @@ model Ticket {
   @@index([ownerId])
   /// The queue's status filter plus its default age order.
   @@index([currentStatus, createdAt])
+  /// Requester Dashboard counts (L4 section 7.3).
+  @@index([requesterId, currentStatus])
+  /// "Resolved recently" (L4 section 7.3, DEC-09).
+  @@index([resolvedAt])
 }
 
 /// Removal is soft (BR-35). Active is represented by removedAt IS NULL rather
@@ -228,6 +254,38 @@ model TicketEvent {
   actor  User?  @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([ticketId, createdAt])
+}
+
+/// An Action Taken (L4 section 7.1). Never deleted. createdBy is the caller,
+/// from the session; performedBy defaults to the caller (L4 DEC-01). The check
+/// constraint "followUpRequired = false OR followUpNote IS NOT NULL" backs
+/// BR-09; Prisma cannot declare it, so it lives in the migration SQL only.
+model ActionTaken {
+  id               String       @id @default(uuid())
+  ticketId         String
+  createdById      String
+  performedById    String
+  actionAt         DateTime
+  description      String
+  result           String?
+  status           ActionStatus
+  followUpRequired Boolean      @default(false)
+  followUpNote     String?
+  attachmentNotes  String?
+  /// Idempotent create (L4 BR-31).
+  clientRequestId  String       @unique
+  version          Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  createdBy   User   @relation("ActionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  performedBy User   @relation("ActionPerformedBy", fields: [performedById], references: [id], onDelete: Restrict)
+
+  /// The per-ticket list in BR-19 order.
+  @@index([ticketId, actionAt, createdAt])
+  /// "My open actions" on the IT Staff Dashboard.
+  @@index([performedById, status])
 }
 
 // ---------------------------------------------------------------------------

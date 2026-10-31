@@ -22,8 +22,10 @@ const MIGRATIONS = join(SERVER, "prisma", "migrations");
 const SCHEMA_FILE = join(SERVER, "prisma", "schema.prisma");
 const PRISMA_CLI = createRequire(import.meta.url).resolve("prisma/build/index.js");
 
-/** The last migration Lab 2 shipped. Everything after it is Lab 3. */
+/** The last migration Lab 2 shipped. Everything after it, up to LAB3_LAST, is Lab 3. */
 const LAB2_LAST = "20260904000000_lab_02_data_model";
+/** The last migration Lab 3 shipped. Later ones belong to Lab 4 (docs/lab-04/tests.md section 4). */
+const LAB3_LAST = "20261002213302_lab_03_users_sessions";
 
 const MIGRATION_SCHEMA = "lab3_migration_test";
 const SHADOW_SCHEMA = "lab3_shadow_test";
@@ -48,7 +50,7 @@ function prismaCli(args: string[], databaseUrl: string) {
 /** The Lab 3 migration's folder name. Section 7.3 specifies exactly one. */
 function lab3Migration(): string {
   const later = readdirSync(MIGRATIONS, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && entry.name > LAB2_LAST)
+    .filter((entry) => entry.isDirectory() && entry.name > LAB2_LAST && entry.name <= LAB3_LAST)
     .map((entry) => entry.name);
   expect(later, "Lab 3 adds exactly one migration after the Lab 2 one").toHaveLength(1);
   return later[0];
