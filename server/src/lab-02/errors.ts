@@ -33,7 +33,12 @@ export type ErrorCode =
   | "INVALID_STATUS_TRANSITION"
   | "TICKET_OWNER_REQUIRED"
   | "RESOLUTION_ALREADY_INDICATED"
-  | "TOO_MANY_ATTEMPTS";
+  | "TOO_MANY_ATTEMPTS"
+  // Lab 4 (docs/lab-04/api-spec.md section 7).
+  | "STALE_UPDATE"
+  | "RESOLUTION_BLOCKED"
+  | "INVALID_ACTION_TRANSITION"
+  | "ACTION_STATE_CONFLICT";
 
 /** Flat field-to-message map, so the UI can place each message beside its own field (FR-11). */
 export type ErrorDetails = Record<string, string>;
