@@ -7,6 +7,13 @@
 // and whether an owner UUID names IT Staff or an Administrator needs the
 // database, so the route checks those.
 
+import {
+  STATUS_AND_GROUP_MESSAGE,
+  STATUS_GROUPS,
+  isStatusGroup,
+  type StatusGroup,
+} from "../lab-04/status-groups.js";
+
 export const QUEUE_SORTABLE = ["ticketNumber", "createdAt", "updatedAt", "itPriority", "status"] as const;
 export const SORT_ORDERS = ["asc", "desc"] as const;
 export const PAGE_SIZES = [10, 20, 50] as const;
@@ -40,6 +47,7 @@ export type OwnerFilter = { kind: "me" } | { kind: "unassigned" } | { kind: "use
 export interface QueueQuery {
   q?: string;
   status?: QueueStatus;
+  statusGroup?: StatusGroup;
   itPriority?: QueuePriority;
   categoryId?: number;
   owner?: OwnerFilter;
@@ -54,6 +62,8 @@ export type QueueQueryResult = { ok: true; query: QueueQuery } | { ok: false; me
 const KNOWN = new Set([
   "q",
   "status",
+  // Lab 4 drill-down filter (docs/lab-04/api-spec.md section 4.2).
+  "statusGroup",
   "itPriority",
   "categoryId",
   "owner",
@@ -110,6 +120,17 @@ export function parseQueueQuery(raw: Record<string, unknown>): QueueQueryResult 
       return bad(`Query parameter status must be one of ${STATUS_ORDER.join(", ")}.`);
     }
     query.status = status;
+  }
+
+  const statusGroup = value("statusGroup");
+  if (statusGroup !== undefined) {
+    if (status !== undefined) {
+      return bad(STATUS_AND_GROUP_MESSAGE);
+    }
+    if (!isStatusGroup(statusGroup)) {
+      return bad(`Query parameter statusGroup must be one of ${STATUS_GROUPS.join(", ")}.`);
+    }
+    query.statusGroup = statusGroup;
   }
 
   const itPriority = value("itPriority");

@@ -63,12 +63,17 @@ let ticketCounter = 0;
 const ticketUrl = (ticketId: string, op = "") => `/api/v1/staff/tickets/${ticketId}${op}`;
 
 const claim = (who: SignedIn, ticketId: string) => who.agent.post(ticketUrl(ticketId, "/claim"));
-const assign = (who: SignedIn, ticketId: string, ownerId: unknown) =>
-  who.agent.put(ticketUrl(ticketId, "/owner")).send({ ownerId });
-const setItPriority = (who: SignedIn, ticketId: string, itPriority: unknown) =>
-  who.agent.put(ticketUrl(ticketId, "/it-priority")).send({ itPriority });
-const changeStatus = (who: SignedIn, ticketId: string, body: Record<string, unknown>) =>
-  who.agent.post(ticketUrl(ticketId, "/status")).send(body);
+// Lab 4 requires the ticket's current version on these three writes
+// (docs/lab-04/api-spec.md section 3.2). Each helper reads it and sends it, so
+// what every test asserts is unchanged (docs/lab-04/tests.md section 4).
+const currentVersion = async (ticketId: string) =>
+  (await prisma.ticket.findUnique({ where: { id: ticketId }, select: { version: true } }))?.version ?? 0;
+const assign = async (who: SignedIn, ticketId: string, ownerId: unknown) =>
+  who.agent.put(ticketUrl(ticketId, "/owner")).send({ ownerId, version: await currentVersion(ticketId) });
+const setItPriority = async (who: SignedIn, ticketId: string, itPriority: unknown) =>
+  who.agent.put(ticketUrl(ticketId, "/it-priority")).send({ itPriority, version: await currentVersion(ticketId) });
+const changeStatus = async (who: SignedIn, ticketId: string, body: Record<string, unknown>) =>
+  who.agent.post(ticketUrl(ticketId, "/status")).send({ ...body, version: await currentVersion(ticketId) });
 
 type TicketSetup = {
   status?: TicketStatus;
@@ -214,6 +219,11 @@ describe("staff detail (OPS-01 - AC-34)", () => {
         ],
         createdAt: ticket.createdAt.toISOString(),
         updatedAt: ticket.updatedAt.toISOString(),
+        // Lab 4 additions (docs/lab-04/api-spec.md 3.1; docs/lab-04/tests.md section 4).
+        version: 0,
+        resolvedAt: null,
+        actionSummary: { total: 0, open: 0, outstandingFollowUps: 0 },
+        resolutionBlockers: null,
       },
     });
     expect(res.text).not.toContain("storedFilename");
@@ -791,7 +801,7 @@ describe("Requester refused (OPS-16 - AC-27)", () => {
     const requester = await loginAs(REQUESTER);
 
     // Built lazily: a Supertest request starts its server when created.
-    const calls = (ticketId: string): (() => Test)[] => [
+    const calls = (ticketId: string): (() => PromiseLike<request.Response>)[] => [
       () => claim(requester, ticketId),
       () => assign(requester, ticketId, ids.wichai),
       () => setItPriority(requester, ticketId, "URGENT"),
@@ -862,11 +872,11 @@ describe("event payload safety (OPS-17 - AC-45, BR-56)", () => {
     const ticket = await makeTicket({ status: "NEW" });
     const operations = [
       () => send(request(app).post(ticketUrl(ticket.id, "/claim"))),
-      () => send(request(app).put(ticketUrl(ticket.id, "/it-priority"))).send({ itPriority: "HIGH" }),
-      () => send(request(app).put(ticketUrl(ticket.id, "/owner"))).send({ ownerId: ids.arisa }),
-      () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "IN_PROGRESS" }),
-      () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "CANCELLED", reason: REASON }),
-      () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "REOPENED", reason: REASON }),
+      async () => send(request(app).put(ticketUrl(ticket.id, "/it-priority"))).send({ itPriority: "HIGH", version: await currentVersion(ticket.id) }),
+      async () => send(request(app).put(ticketUrl(ticket.id, "/owner"))).send({ ownerId: ids.arisa, version: await currentVersion(ticket.id) }),
+      async () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "IN_PROGRESS", version: await currentVersion(ticket.id) }),
+      async () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "CANCELLED", reason: REASON, version: await currentVersion(ticket.id) }),
+      async () => send(request(app).post(ticketUrl(ticket.id, "/status"))).send({ status: "REOPENED", reason: REASON, version: await currentVersion(ticket.id) }),
     ];
     for (const operation of operations) {
       expect((await operation()).status).toBe(200);

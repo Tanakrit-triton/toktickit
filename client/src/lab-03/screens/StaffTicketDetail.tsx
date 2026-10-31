@@ -111,12 +111,16 @@ export function StaffTicketDetail() {
   }, [load]);
 
   /** Runs one operation, reports a 409 or a failure, and always re-fetches. */
-  async function operate(key: string, request: () => Promise<unknown>) {
+  async function operate(key: string, request: () => Promise<StaffTicket>) {
     setConflict(null);
     setOperationFailed(false);
     setBusy(key);
     try {
-      await request();
+      // Every write returns the fresh detail, version included. It is shown
+      // before the controls are usable again, so an operation sent at once
+      // carries the new version rather than the one loaded before this write
+      // (docs/lab-04 Amendment 5). The re-fetch below still follows.
+      setTicket(await request());
     } catch (error) {
       if (error instanceof ticketsApi.TicketRequestError && error.kind === "CONFLICT") {
         setConflict(error.conflictMessage ?? "This ticket has changed.");
@@ -196,11 +200,11 @@ export function StaffTicketDetail() {
           assignees={assignees}
           busy={busy}
           onClaim={() => void operate("claim", () => ticketsApi.claimTicket(ticket.id))}
-          onAssign={(ownerId) => void operate("assign", () => ticketsApi.assignTicket(ticket.id, ownerId))}
-          onSavePriority={(priority) => void operate("priority", () => ticketsApi.changeItPriority(ticket.id, priority))}
+          onAssign={(ownerId) => void operate("assign", () => ticketsApi.assignTicket(ticket.id, ownerId, ticket.version))}
+          onSavePriority={(priority) => void operate("priority", () => ticketsApi.changeItPriority(ticket.id, priority, ticket.version))}
           onTransition={(target) => {
             if (dialogFor(target, ticket.ticketNumber) !== null) setPendingTransition(target);
-            else void operate(`status-${target}`, () => ticketsApi.changeStatus(ticket.id, target));
+            else void operate(`status-${target}`, () => ticketsApi.changeStatus(ticket.id, target, ticket.version));
           }}
         />
 
@@ -243,7 +247,7 @@ export function StaffTicketDetail() {
           confirmLabel={dialog.confirmLabel}
           confirmVariant={dialog.confirmVariant}
           cancelLabel={dialog.cancelLabel}
-          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => ticketsApi.changeStatus(ticket.id, pendingTransition, reason))}
+          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => ticketsApi.changeStatus(ticket.id, pendingTransition, ticket.version, reason))}
           onClose={() => setPendingTransition(null)}
         />
       )}

@@ -159,8 +159,8 @@ Anything here appearing in the implementation is a defect.
 |---|---|
 | BR-13 | The action statuses are Planned, In Progress, Completed, and Cancelled, stored as `PLANNED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`. |
 | BR-14 | An action may be created as `PLANNED`, `IN_PROGRESS`, or `COMPLETED`. It cannot be created as `CANCELLED`. |
-| BR-15 | Only the action transitions in the table below are permitted. Any other change of `status`, including setting the current status again, is refused with `INVALID_ACTION_TRANSITION`. |
-| BR-16 | `PLANNED` and `IN_PROGRESS` actions are fully editable. On a `COMPLETED` action, only `description`, `result`, `followUpRequired`, `followUpNote`, `attachmentNotes`, and `actionAt` may change; changing `performedById` or `status` is refused with `ACTION_STATE_CONFLICT`. A `CANCELLED` action is read-only, and any edit is refused with `ACTION_STATE_CONFLICT`. |
+| BR-15 | Only the action transitions in the table below are permitted. Any other change of `status`, including any change from a terminal status, is refused with `INVALID_ACTION_TRANSITION`. An edit that repeats the stored status is not a status change, and is treated like any other unchanged value (Amendment 1). |
+| BR-16 | `PLANNED` and `IN_PROGRESS` actions are fully editable. On a `COMPLETED` action, only `description`, `result`, `followUpRequired`, `followUpNote`, `attachmentNotes`, and `actionAt` may change; changing `performedById` is refused with `ACTION_STATE_CONFLICT`. A `CANCELLED` action is read-only, and any field edit is refused with `ACTION_STATE_CONFLICT`. A status change on either is refused by BR-15 with `INVALID_ACTION_TRANSITION`, which is checked first (Amendment 1). |
 | BR-17 | Actions may be created or edited only while the ticket is `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, or `REOPENED`. In `NEW` (claim the ticket first), `RESOLVED`, `CLOSED`, or `CANCELLED`, the request is refused with `TICKET_STATE_CONFLICT`. |
 | BR-18 | Creating or editing an action does not change the ticket's status, owner, or IT Priority. No hidden side effect (as L3-DEC-09). |
 | BR-19 | Actions are listed by `actionAt` ascending, then `createdAt` ascending, then `id` ascending, so the order is stable even when two actions share a time. |
@@ -237,7 +237,7 @@ ignore actions on tickets that are not active (BR-35).
 
 | ID | Rule |
 |---|---|
-| BR-27 | Every ticket has an integer `version`, starting at 0. It increases by 1 on every change to the ticket row: claim, owner change, IT Priority change, status change, resolution indication, and every action create or edit on that ticket. |
+| BR-27 | Every ticket has an integer `version`, starting at 0. It increases by 1 on every change to the ticket row: claim, owner change, IT Priority change, status change, resolution indication, and every action create or edit on that ticket. The list is exhaustive: a Public Comment advances `updatedAt` (BR-33) but not `version`, so a Requester comment never makes a staff form stale (Amendment 4). |
 | BR-28 | Owner change, IT Priority change, and status change require the client's `version`. If it differs from the stored version, the request is refused with `409 STALE_UPDATE` and nothing changes. The check and the update are one conditional `UPDATE … WHERE version = $expected`. |
 | BR-29 | Every action has its own `version`. An action edit requires it, with the same `STALE_UPDATE` rule. |
 | BR-30 | Action create increments the ticket's `version` with a conditional update on the ticket's status in the same transaction. A resolve and an action create racing on one ticket therefore serialize: whichever commits second receives `STALE_UPDATE` or `TICKET_STATE_CONFLICT`. |
@@ -264,7 +264,7 @@ check runs before any lookup (L3-BR-23).
 
 | ID | Rule |
 |---|---|
-| BR-34 | Ticket Events stay append-only (L3-BR-54). Lab 4 adds `ACTION_CREATED { actionId, status, performedById }` and `ACTION_UPDATED { actionId, changes }`, where `changes` lists each changed field. For `status`, `performedById`, and `followUpRequired`, it holds `{ from, to }`. For text fields, it holds `{ changed: true }` only. History is listed oldest first, then by `id`, and is visible only to IT Staff and Administrators. |
+| BR-34 | Ticket Events stay append-only (L3-BR-54). Lab 4 adds `ACTION_CREATED { actionId, status, performedById }` and `ACTION_UPDATED { actionId, changes }`, where `changes` lists each changed field. For `status`, `performedById`, and `followUpRequired`, it holds `{ from, to }`. For `actionAt`, it holds `{ from, to }` as ISO 8601 UTC strings (Amendment 3). For text fields, it holds `{ changed: true }` only. History is listed oldest first, then by `id`, and is visible only to IT Staff and Administrators. |
 
 ### 5.8 Dashboards
 
@@ -344,7 +344,7 @@ Navigation by role (Dashboard comes first):
 
 | Model | Change |
 |---|---|
-| `ActionTaken` | New. `id` UUID; `ticketId` (FK → `Ticket`, restrict); `createdById` (FK → `User`, restrict); `performedById` (FK → `User`, restrict); `actionAt` timestamptz; `description` text; `result` text nullable; `status ActionStatus`; `followUpRequired` boolean default false; `followUpNote` text nullable; `attachmentNotes` text nullable; `clientRequestId` UUID unique; `version` int default 0; `createdAt`; `updatedAt`. |
+| `ActionTaken` | New. `id` UUID; `ticketId` (FK → `Ticket`, restrict); `createdById` (FK → `User`, restrict); `performedById` (FK → `User`, restrict); `actionAt` `TIMESTAMP(3)` (UTC, no time zone, like every other timestamp column; Amendment 2); `description` text; `result` text nullable; `status ActionStatus`; `followUpRequired` boolean default false; `followUpNote` text nullable; `attachmentNotes` text nullable; `clientRequestId` UUID unique; `version` int default 0; `createdAt`; `updatedAt`. |
 | `Ticket` | New fields: `version Int @default(0)`, `resolvedAt DateTime?`. |
 | `User` | New back-relations only (`createdActions`, `performedActions`). No column change. |
 | Every other model | Unchanged. |
@@ -392,7 +392,7 @@ Events are not rewritten.
 **Rollback and recovery (DEC-08).**
 - Before migrating a database that holds real data, take `pg_dump -Fc`. The README gives the command. Restoring that dump is the recovery path.
 - `server/prisma/rollback/lab_04_down.sql` drops `ActionTaken`, the two `Ticket` columns, the new indexes, and `ActionStatus`, then deletes the matching row from `_prisma_migrations`.
-- PostgreSQL cannot remove enum values, so the two new `TicketEventType` values stay after rollback. That is harmless, because no Lab 3 code writes them. MIG-05 confirms that Lab 3 tests pass on a rolled-back database.
+- PostgreSQL cannot remove enum values, so the two new `TicketEventType` values stay after rollback. That is harmless, because no Lab 3 code writes them. MIG-05 confirms that a rolled-back database differs from the Lab 3 schema only in those two values (Amendment 2).
 
 ### 7.5 Seed
 
@@ -411,8 +411,23 @@ repeated runs agree.
 | Zero-metric fixtures | Pimchanok Sonthi has no tickets: every Requester metric is 0. Teerapat Boonsri performs no open action: "My open actions" is 0. |
 | Non-zero fixtures | Napat Chaiwong has a WAITING_FOR_REQUESTER ticket; Arisa Kongkaew has open actions; at least one ticket is URGENT and Active. |
 
+**Added tickets (Amendment 2).** The nine Lab 3 tickets cannot hold every
+fixture above, so the seed adds two. Both are requested by a Lab 3 ticket
+Requester (never Pimchanok Sonthi), and no account is added or changed.
+
+| Ticket | Content | Satisfies |
+|---|---|---|
+| #10 | CLOSED, requested by Thanawat Rattana, owned by Wichai Prasert, `resolvedAt` outside the recent window | Resolved and Closed: outside the window |
+| #11 | WAITING_FOR_REQUESTER, requested by Napat Chaiwong, owned by Wichai Prasert, one PLANNED action performed by Arisa Kongkaew. Resolution is deliberately blocked by the gate (the open PLANNED action), so no test may resolve it. | Napat's WAITING_FOR_REQUESTER ticket; Arisa's open action on another owner's ticket (tests.md §1) |
+
 Seeded "recent" timestamps are relative to the time the seed runs, so the
 recent window is never empty on demonstration day. All text is fictional.
+
+**`resolvedAt` and history (Amendment 2).** The seeded `resolvedAt` values are
+fixtures, not derived from events. A recent `resolvedAt` is therefore later than
+the ticket's September STATUS_CHANGED → RESOLVED event, and later than its
+`updatedAt`. The §7.4 backfill rule applies to migrated rows only. Existing Ticket
+Events are never modified to match.
 
 ---
 
@@ -455,7 +470,7 @@ is unchanged (L3 api-spec §9).
 | AC-05 | Given a description of 4 or 2001 characters, `followUpRequired` true with no note, a note of 1001 characters, attachment notes of 501 characters, or `actionAt` before the ticket's creation or more than 30 days ahead, when an action is saved, then it is refused with 422 and field details. The boundary values 5, 2000, 1000, and 500 are accepted. |
 | AC-06 | Given an action moving to COMPLETED or CANCELLED without a result, or to COMPLETED with `actionAt` in the future, when it is saved, then it is refused with 422. |
 | AC-07 | Given each permitted action transition, when it is applied, then it succeeds. Given any other transition, including from a terminal status, then it is refused with `INVALID_ACTION_TRANSITION` and nothing changes. |
-| AC-08 | Given a COMPLETED action, when its performer or status is changed, then the request is refused with `ACTION_STATE_CONFLICT`. Its description, result, follow-up fields, attachment notes, and date can still be edited. Given a CANCELLED action, every edit is refused. |
+| AC-08 | Given a COMPLETED action, when its performer is changed, then the request is refused with `ACTION_STATE_CONFLICT`. Its description, result, follow-up fields, attachment notes, and date can still be edited. Given a CANCELLED action, every field edit is refused with `ACTION_STATE_CONFLICT`. A status change on either is refused with `INVALID_ACTION_TRANSITION`. |
 | AC-09 | Given a ticket in NEW, RESOLVED, CLOSED, or CANCELLED, when an action is created or edited, then it is refused with `TICKET_STATE_CONFLICT`. |
 | AC-10 | Given a ticket with several actions, including two with the same `actionAt`, when the list is requested twice, then both responses list the actions in the same BR-19 order. |
 | AC-11 | Given the ticket's Requester, when the action list is requested, then every action is returned read-only. Given another Requester, then the response is 404. Given a Requester calling create or edit, then the response is 403. |
@@ -495,7 +510,7 @@ is unchanged (L3 api-spec §9).
 | ID | Criterion |
 |---|---|
 | AC-32 | Given a database populated under the Lab 3 schema, when the Lab 4 migration is applied, then every existing row survives unchanged, every ticket has version 0, and every RESOLVED or CLOSED ticket has `resolvedAt` per Section 7.4. |
-| AC-33 | Given the rollback script applied after the migration, when the Lab 3 API suite runs, then it passes. |
+| AC-33 | Given the rollback script applied after the migration, when the database is compared with the Lab 3 schema, then they differ only in the two TicketEventType values. |
 | AC-34 | Given the seed has run, when it runs again, then no row is duplicated and fixture values are restored. The database contains the Section 7.5 fixtures. |
 | AC-35 | Given the final `main`, when every Lab 1, Lab 2, and Lab 3 suite runs, then all pass, or each superseded test is mapped in `tests.md` Section 4. |
 | AC-36 | Given each role, when it signs in and uses the representative Lab 2 and Lab 3 flows (create ticket, attachments, comments, notes, claim, assign, transitions, user management), then each still works end to end. |
@@ -570,6 +585,16 @@ on the final `main`.
 | DEC-11 | `/` keeps the Lab 3 landing screens. Dashboard is the first navigation item. | Changing the landing would break Lab 3 routing and E2E tests late in the final sprint. The dashboard is still one click from every screen. |
 | DEC-12 | Dashboard drill-down uses new `status` and `statusGroup` filters on existing lists. | The handout requires drill-down into the detailed screens. Adding filters reuses those screens instead of building new ones. |
 | DEC-13 | Ticket History is a read-only staff tab over existing Ticket Events. | Part 7 asks for evidence of append-only behaviour and stable ordering. L3-DEV-12 named this as Lab 4 scope. |
+
+### Amendments after approval
+
+| ID | Found in | Change | Why |
+|---|---|---|---|
+| Amendment 1 | #70, writing UT-03 | BR-15, BR-16, and AC-08: a status change on a terminal action is always `INVALID_ACTION_TRANSITION`; `ACTION_STATE_CONFLICT` is only for field edits. Repeating the stored status is a no-op. | The approved text gave two different codes for the same request (COMPLETED → IN_PROGRESS was `ACTION_STATE_CONFLICT` under BR-16 and `INVALID_ACTION_TRANSITION` under AC-07 and ACT-07), and both refused and accepted a repeated status (ACT-07 against ACT-16). One request must have one outcome. |
+| Amendment 2 | #70, planning MIG-05 and the seed | AC-33, §7.4, and MIG-05: the rollback is proved by comparing the rolled-back database with the Lab 3 schema (`prisma migrate diff`), and only the two `TicketEventType` values may differ. §7.5: seed tickets #10 and #11 added; #11 is deliberately blocked by the resolution gate (its open PLANNED action), so no test may resolve it; seeded `resolvedAt` may differ from event times. §7.1: `actionAt` is `TIMESTAMP(3)`. | Running the Lab 3 suite needs the Lab 3 Prisma client, so a second dependency install inside the test: slow, network-dependent, and flaky. The nine Lab 3 tickets had no room for an old `resolvedAt`, Napat's WAITING_FOR_REQUESTER ticket, or Arisa's action on another owner's ticket. Every other timestamp column is `TIMESTAMP(3)`, and §7.1 alone said `timestamptz`. |
+| Amendment 3 | #70, planning ACT-01 to ACT-17 | BR-34: `changes.actionAt` is `{ from, to }` in ISO 8601 UTC. api-spec §1.1 and §2.3: for an action PATCH, step 8 checks only the body shape, and every field rule runs at step e on the resulting action. api-spec §2.2: the idempotency lookup runs after the ticket is found and `clientRequestId` is a UUID, before other rules. | BR-34 gave no format for `actionAt`, which is neither a status-like field nor free text. §1.1 put all body validation before the 409 checks, but §2.3 put field rules after them, so a request such as a short description on a CANCELLED action had two possible answers (422 or 409). §2.2 did not place the idempotency lookup; placing it early keeps a retry returning its original action. |
+| Amendment 4 | #70, planning WF-01 to WF-12 | BR-27: the list of versioned changes is exhaustive; a Public Comment does not increment `version`. tests.md §4: the Lab 3 client and E2E callers of the owner, IT Priority, and status endpoints send `version` from #70, not #72. | BR-27 said "every change to the ticket row" and gave a list that left out comments, which BR-33 makes change the row. Once #70 requires `version`, a Lab 3 client that does not send it cannot change owner, IT Priority, or status, and the Lab 3 E2E suite fails; that suite must pass at the end of #70. |
+| Amendment 5 | #70, the Lab 3 E2E run (E2E-03) | tests.md: UI-31 added to §2.7, to #70's scope in §3, and to AC-18 in §5. Staff Ticket Detail uses a write's returned detail (claim, assign, IT Priority, status) before it re-enables its controls. | The screen re-enabled its controls before its re-fetch finished, so an operation sent at once carried the version from before the previous write, and the user's own change was reported as "changed by someone else" (`STALE_UPDATE`). No test covered that gap before E2E-03 found it. |
 
 ### Carried deviations
 

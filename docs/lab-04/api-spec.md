@@ -34,6 +34,11 @@ The first failure wins.
 A version mismatch is reported before domain rules. A user who was working on
 an old view must reload before any domain message can be trusted.
 
+For `PATCH /staff/actions/{actionId}`, Section 2.3 refines step 8 (Amendment 3):
+step 8 checks only the body's shape (`version` present and an integer, `status`
+a known value, `performedById` a UUID), and every field rule runs at step e,
+on the resulting action, after the version and domain checks.
+
 ### 1.2 Shared DTOs (additions)
 
 ```ts
@@ -146,6 +151,7 @@ Messages for the most common details:
 - `followUpNote`: "Describe the follow-up that is needed (5–1000 characters)."
 - `result` (completing): "Record the result before completing this action."
 - `actionAt` (future completion): "A completed action cannot be dated in the future."
+- `result` (cancelling): "Say why this action is being cancelled."
 
 **Domain rules** (after validation):
 
@@ -157,6 +163,7 @@ Messages for the most common details:
 - If an action with this `clientRequestId` already exists on this ticket, respond `200` with that action. No change, no event, no version increment.
 - If it exists on a different ticket, respond `422` with `details.clientRequestId`: "This request id was already used."
 - The unique index on `clientRequestId` settles a race between two identical requests. The loser re-reads and returns `200`.
+- The lookup runs once the ticket is found (step 7) and `clientRequestId` is a valid UUID, before the other field rules and the ticket-state rule. A retry therefore returns the original action even if the ticket's status has changed since (Amendment 3).
 
 **Side effects, in one transaction:**
 1. `UPDATE "Ticket" SET version = version + 1, "updatedAt" = now() WHERE id = $id AND "currentStatus" IN (active-for-actions) RETURNING version`. If no row is returned, the ticket left those statuses concurrently, so respond `409 TICKET_STATE_CONFLICT` (BR-30).
@@ -193,12 +200,13 @@ IT Staff and Administrator only. Partial update: only fields present are changed
 |---|---|---|
 | a | Action `version` matches | `409 STALE_UPDATE` |
 | b | Ticket status allows action edits (BR-17) | `409 TICKET_STATE_CONFLICT` |
-| c | Action is not `CANCELLED`; on `COMPLETED`, only the permitted fields change (BR-16) | `409 ACTION_STATE_CONFLICT` "This action is {status} and can no longer be changed in that way." |
-| d | `status` change is in the BR-15 table | `409 INVALID_ACTION_TRANSITION` "This action cannot move from {From} to {To}." |
+| c | If `status` changes, the change is in the BR-15 table | `409 INVALID_ACTION_TRANSITION` "This action cannot move from {From} to {To}." |
+| d | Action is not `CANCELLED`; on `COMPLETED`, only the permitted fields change (BR-16) | `409 ACTION_STATE_CONFLICT` "This action is {status} and can no longer be changed in that way." |
 | e | Field rules on the resulting action | `422` with `details` |
 
-A body that changes nothing (every field equal to stored values) returns `200`
-with no event and no version increment.
+Values equal to the stored ones, including `status`, are dropped before step c
+(Amendment 1). A body that changes nothing returns `200` with no event and no
+version increment.
 
 **Side effects, in one transaction:**
 1. `UPDATE "ActionTaken" SET …, version = version + 1 WHERE id = $id AND version = $expected`. If no row is updated, respond `409 STALE_UPDATE`.
@@ -448,7 +456,7 @@ Every Lab 2 and Lab 3 code is unchanged (L3 api-spec §9).
 | `409` | `STALE_UPDATE` | The `version` sent for a ticket or action is not the stored one. Message: "This ticket was changed by someone else. Reload to see the latest version." |
 | `409` | `RESOLUTION_BLOCKED` | Resolving a ticket with open actions or outstanding follow-ups (BR-20) |
 | `409` | `INVALID_ACTION_TRANSITION` | An action status change not in the BR-15 table |
-| `409` | `ACTION_STATE_CONFLICT` | Editing a CANCELLED action, or changing performer or status on a COMPLETED one (BR-16) |
+| `409` | `ACTION_STATE_CONFLICT` | A field edit on a CANCELLED action, or a performer change on a COMPLETED one (BR-16). Status changes are `INVALID_ACTION_TRANSITION`. |
 
 `TICKET_STATE_CONFLICT` gains one more use: creating or editing an action on a
 ticket in NEW, RESOLVED, CLOSED, or CANCELLED (BR-17).

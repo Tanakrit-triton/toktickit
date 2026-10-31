@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { Prisma } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
 import { buildError } from "../lab-02/errors.js";
+import { statusesForGroup } from "../lab-04/status-groups.js";
 import {
   PRIORITY_ORDER,
   STATUS_ORDER,
@@ -51,6 +52,11 @@ function whereClause(query: QueueQuery, ownerId: string | null | undefined): Pri
   }
   if (query.status !== undefined) {
     conditions.push(Prisma.sql`t."currentStatus"::text = ${query.status}`);
+  }
+  // Lab 4 drill-down (docs/lab-04/api-spec.md section 4.2). The parser has
+  // already refused statusGroup combined with status.
+  if (query.statusGroup !== undefined) {
+    conditions.push(Prisma.sql`t."currentStatus"::text = ANY(${[...statusesForGroup(query.statusGroup)]}::text[])`);
   }
   if (query.itPriority !== undefined) {
     conditions.push(Prisma.sql`t."itPriority"::text = ${query.itPriority}`);

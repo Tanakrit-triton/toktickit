@@ -73,7 +73,7 @@ The Final column reads Planned until #75 records results from `main`.
 |---|---|---|---|---|---|
 | UT-01 | AC-07 | Every (from, to) pair of the 4 action statuses against the BR-15 table, including same-status pairs | Exactly the 5 listed pairs are allowed | `action-transitions.unit.test.ts` | Planned |
 | UT-02 | AC-05, AC-06 | Field validation boundaries: description 4/5/2000/2001; result required on COMPLETED and CANCELLED; follow-up note 4/5/1000/1001 when flagged and ignored when not; attachment notes 500/501; `actionAt` before ticket creation, now + 30 days ± 1 minute, completed now + 5 minutes ± 1 second | Each boundary accepted or refused as BR-05 to BR-10 state | `action-validation.unit.test.ts` | Planned |
-| UT-03 | AC-08 | Edit policy for each action status and field | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none | `action-edit-policy.unit.test.ts` | Planned |
+| UT-03 | AC-08 | Edit policy for each action status and field, with and without a status change | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none; a status change from a terminal status is `INVALID_ACTION_TRANSITION`, checked before fields | `action-edit-policy.unit.test.ts` | Planned |
 | UT-04 | AC-14, AC-15 | Gate counting over action lists: none, all done, one open, one follow-up on a cancelled action, one follow-up on a completed action | Blockers `{open, followUps}` correct; cancelled follow-ups not counted | `resolution-gate.unit.test.ts` | Planned |
 | UT-05 | AC-16 | All 64 (from, to) ticket-status pairs against the spec §5.4 matrix, with the gate flag | Exactly the 18 listed pairs are allowed; the 4 into RESOLVED carry the gate | `ticket-transitions.unit.test.ts` | Planned |
 | UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, and 23:59:59 UTC on a fixed date, and across a month boundary | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
@@ -87,7 +87,7 @@ The Final column reads Planned until #75 records results from `main`.
 | MIG-02 | AC-32 | A Lab 3-populated database upgraded to Lab 4 | Row counts and ids of User, Ticket, Attachment, PublicComment, InternalNote, TicketEvent, and Session unchanged; every ticket has version 0 | `migration.api.test.ts` | Planned |
 | MIG-03 | AC-32 | `resolvedAt` backfill: a RESOLVED ticket with a STATUS_CHANGED → RESOLVED event; a CLOSED ticket without one; an OPEN ticket | Event time; `updatedAt`; null | `migration.api.test.ts` | Planned |
 | MIG-04 | AC-32 | `prisma migrate diff` from migrations to schema | Empty | `migration.api.test.ts` | Planned |
-| MIG-05 | AC-33 | Apply `rollback/lab_04_down.sql`, then run the Lab 3 staff-ticket-detail and comments API files against that database | Pass; Lab 4 tables and columns absent | `rollback.api.test.ts` | Planned |
+| MIG-05 | AC-33 | Migrate a scratch schema to Lab 4 and apply `rollback/lab_04_down.sql`; then `prisma migrate diff --from-url` that schema `--to-schema-datamodel` the Lab 3 `schema.prisma` (`git show 1fea5b2:server/prisma/schema.prisma`) | The diff concerns only the `TicketEventType` values `ACTION_CREATED` and `ACTION_UPDATED`; the `lab_04_actions_taken` row is gone from `_prisma_migrations`; `ActionTaken`, `ActionStatus`, `Ticket.version`, and `Ticket.resolvedAt` do not exist (Amendment 2) | `rollback.api.test.ts` | Planned |
 | SEED-01 | AC-34 | Seed run twice after editing an action and a ticket version | No duplicates; fixture values restored | `seed.api.test.ts` | Planned |
 | SEED-02 | AC-34 | Seed content | Every spec §7.5 fixture exists (zero, one, and several actions; a follow-up; zero-metric users; recent and old `resolvedAt`) | `seed.api.test.ts` | Planned |
 
@@ -101,8 +101,8 @@ The Final column reads Planned until #75 records results from `main`.
 | ACT-04 | AC-04 | Body supplies `createdById`, `createdAt`, `id`, `version` | Ignored; server values stored | Planned |
 | ACT-05 | AC-05 | Table-driven field boundaries through the API | 422 with the right `details` key; boundary values 201 | Planned |
 | ACT-06 | AC-06 | Create COMPLETED without result; PATCH to CANCELLED without result; COMPLETED with `actionAt` now + 10 minutes | 422 `details.result` / `details.actionAt` | Planned |
-| ACT-07 | AC-07 | Each of the 5 permitted transitions; COMPLETED → IN_PROGRESS; PLANNED → PLANNED; create as CANCELLED | 200; 409 `INVALID_ACTION_TRANSITION`; 409; 422 `details.status` | Planned |
-| ACT-08 | AC-08 | On COMPLETED: change performer, change status, edit result; on CANCELLED: edit description | 409 `ACTION_STATE_CONFLICT`; 409; 200; 409 | Planned |
+| ACT-07 | AC-07 | Each of the 5 permitted transitions; COMPLETED → IN_PROGRESS; CANCELLED → PLANNED; create as CANCELLED | 200; 409 `INVALID_ACTION_TRANSITION`; 409 `INVALID_ACTION_TRANSITION`; 422 `details.status` | Planned |
+| ACT-08 | AC-08 | On COMPLETED: change performer, edit result; on CANCELLED: edit description | 409 `ACTION_STATE_CONFLICT`; 200; 409 `ACTION_STATE_CONFLICT` | Planned |
 | ACT-09 | AC-09 | Create and PATCH while the ticket is NEW, RESOLVED, CLOSED, CANCELLED | 409 `TICKET_STATE_CONFLICT`; nothing saved | Planned |
 | ACT-10 | AC-10 | Three actions, two sharing `actionAt`, listed twice | Same order both times, per BR-19 | Planned |
 | ACT-11 | AC-11 | Ticket's Requester lists; another Requester lists; Requester POST and PATCH | 200 full list; 404; 403; 403 | Planned |
@@ -110,7 +110,7 @@ The Final column reads Planned until #75 records results from `main`.
 | ACT-13 | AC-13 | Create, then edit status and result | One `ACTION_CREATED`, one `ACTION_UPDATED` whose `changes` has status from/to and `result: {changed: true}`; ticket version +1 each time; `updatedAt` advanced | Planned |
 | ACT-14 | AC-20 | Same `clientRequestId` sent twice in sequence, twice concurrently, and once on another ticket | 201 then 200 with the same id; one row; one event; 422 | Planned |
 | ACT-15 | AC-18 | Two PATCHes with the same action `version` | First 200; second 409 `STALE_UPDATE`; action holds the first change | Planned |
-| ACT-16 | AC-13 | PATCH with values equal to stored ones | 200; no event; versions unchanged | Planned |
+| ACT-16 | AC-13 | PATCH with values equal to stored ones, including `status` | 200; no event; versions unchanged | Planned |
 | ACT-17 | AC-01 | Administrator creates and edits | Same results as IT Staff | Planned |
 
 ### 2.4 API — Ticket workflow — `server/tests/lab-04/ticket-workflow.api.test.ts`
@@ -191,6 +191,7 @@ The Final column reads Planned until #75 records results from `main`.
 | UI-19 | AC-23 | History tab | Sentences oldest first; "System" for a null actor; arrow keys move between the three tabs | `TicketWorkflow.test.tsx` | Planned |
 | UI-20 | AC-29 | Shell for each role | Dashboard nav first, with the right route; `aria-current` on the active item | `navigation.test.tsx` | Planned |
 | UI-21 | AC-28 | My Tickets and Queue opened with `?statusGroup=ACTIVE` | Chip "Showing: Open tickets"; Clear removes the parameter and refetches | `DrilldownFilter.test.tsx` | Planned |
+| UI-31 | AC-18 | Claim, assign, IT Priority, or status succeeds while the detail re-fetch is still pending, then a second operation is sent (Amendment 5) | The second request carries the `version` from the first write's response, not the version loaded before it | `staff-detail-version.test.tsx` | Planned |
 
 ### 2.8 UI style — `client/tests/lab-04/theme.style.test.tsx`
 
@@ -244,7 +245,7 @@ retargeted and no conflict is resolved repeatedly.
 | Issue | Title | Depends on | ACs | Tests |
 |---|---|---|---|---|
 | #69 | Sprint 4 engineering contract | — | — | — (this document) |
-| #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03 (46) |
+| #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03, UI-31 (47) |
 | #71 | Dashboard API | #70 | AC-24–AC-29, AC-31 | UT-06, DSR-01–06, DSS-01–07, PERF-01 (15) |
 | #72 | Actions Taken and workflow UI | #70 | AC-01, AC-02, AC-05, AC-07–AC-12, AC-14, AC-18, AC-20–AC-23, AC-38 | UI-08–19, STY-01 (13) |
 | #73 | Dashboards UI, navigation, and drill-down filters | #71 | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
@@ -266,11 +267,11 @@ superseded. Their assertions about behaviour stay the same.
 
 | Lab 3 test location | Change in #70 or #72 | Behaviour asserted |
 |---|---|---|
-| `server/tests/lab-03/staff-ticket-detail.api.test.ts` (OPS tests calling `/owner`, `/it-priority`, `/status`) | Each call first reads `version` from the detail, or uses a helper `withVersion(agent, ticketId, body)` | Unchanged |
-| `client/tests/lab-03/StaffTicketDetail.test.tsx` (assertions on request bodies) | Expected bodies include `version` | Unchanged |
-| `e2e/lab-03/capture.ts`, `e2e/lab-03/responsive.spec.ts` (direct API setup calls) | Setup calls send `version` | Unchanged |
+| `server/tests/lab-03/staff-ticket-detail.api.test.ts` (OPS tests calling `/owner`, `/it-priority`, `/status`) | #70: the helpers `assign`, `setItPriority`, and `changeStatus`, and the OPS-17 inline calls, read the ticket's current `version` and send it. OPS-01's exact detail body gains the four §3.1 fields with their values for a ticket with no actions (`version: 0`, `resolvedAt: null`, `actionSummary` all 0, `resolutionBlockers: null`). Edited: OPS-01 "returns the api-spec 5.2 detail with Requester, owner, IT Priority, indication, transitions, and attachments"; OPS-05 "rejects a Requester, the inactive IT Staff, an unknown UUID, a malformed id, and no id with 422 details.ownerId"; OPS-06 "records OWNER_CHANGED with from and to on reassignment, and keeps a non-NEW status", "answers assigning the current owner with 200, no change, and no event"; OPS-08 "changes IT Priority, records IT_PRIORITY_CHANGED, and leaves Requested Priority alone", "answers the same value with 200 and no event", "refuses a change on a %s ticket with 409 TICKET_STATE_CONFLICT", "rejects %s with 422 details.itPriority"; OPS-09 "%s -> %s gives 200 and one STATUS_CHANGED event"; OPS-10 "%s -> %s gives 409 INVALID_STATUS_TRANSITION with no change and no event", "names both statuses by display name in the message", "reports an impossible transition as such even when the reason is also missing", "rejects status %s with 422 details.status"; OPS-11 "refuses REOPENED -> IN_PROGRESS with no owner, then allows it after a claim"; OPS-12 "%s: rejects no reason, an empty one, and 4 characters with 422 details.reason", "%s: accepts 5 and 500 characters and stores the reason in the event"; OPS-13 "keeps an eligible owner and still clears the indication"; OPS-14 "refuses claim, assign, and IT Priority with TICKET_STATE_CONFLICT, then allows reopening"; OPS-15 "claims, assigns, changes IT Priority, and changes status with the same outcomes and events"; OPS-16 "gives identical 403 bodies on the Requester's own ticket and on a random UUID, changing nothing"; OPS-17 "writes no secret into any event payload, and every event has ticketId, eventType, and createdAt". | Unchanged; OPS-01 also asserts the §3.1 additions |
+| `client/tests/lab-03/StaffTicketDetail.test.tsx` (assertions on request bodies) | #70 (Amendment 4): the loaded detail carries `version: 4`, and expected bodies include it. Edited: UI-27 "shows the IT Priority select with the current value, and Save only once it changes"; UI-28 "re-fetches the detail after a successful assign, sending the chosen ownerId"; UI-29 "sends a transition without a dialog when none is required, then re-fetches"; UI-30 "Resolve opens a dialog, sends nothing until confirmed, then sends RESOLVED", "Cancel ticket requires a reason of at least 5 characters before anything is sent", "Reopen requires a reason of at least 5 characters before anything is sent". | Unchanged |
+| `e2e/lab-03/capture.ts`, `e2e/lab-03/responsive.spec.ts` (direct API setup calls) | #70 (Amendment 4): setup calls send `version` through a new `versioned()` helper in `capture.ts`. Edited: `ensureRealisticQueue()` and `workedTicket()` setup, and the CLOSED-ticket setup in `responsive.spec.ts`. | Unchanged |
 | `server/tests/lab-03/seed.api.test.ts` | Checked in #70. Lab 3 fixtures are unchanged, so no edit is expected. Any edit is recorded here. | Unchanged |
-| `server/tests/lab-03/migration.api.test.ts` | None expected. Its drift check now runs against the Lab 4 schema. | Unchanged |
+| `server/tests/lab-03/migration.api.test.ts` | `lab3Migration()` filter bounded by `LAB3_LAST`, so the Lab 4 migration is not counted as a Lab 3 one. Edited: MIG-01 to MIG-04 (via the helper). Its drift check now runs against the Lab 4 schema. | Unchanged |
 
 #70 records the final list of edited test names in this table before it merges.
 
@@ -299,7 +300,7 @@ Every AC maps to at least one test. Status is filled in #75.
 | AC-15 | UT-04, WF-03, E2E-03 | Planned |
 | AC-16 | UT-05, WF-04 | Planned |
 | AC-17 | WF-05 | Planned |
-| AC-18 | ACT-15, WF-06, WF-07, UI-18, E2E-04 | Planned |
+| AC-18 | ACT-15, WF-06, WF-07, UI-18, UI-31, E2E-04 | Planned |
 | AC-19 | WF-08 | Planned |
 | AC-20 | ACT-14, UI-09 | Planned |
 | AC-21 | UI-12, UI-18, E2E-04 | Planned |
@@ -405,4 +406,4 @@ Filled in #75 from a clean checkout of `main`.
 
 - **Ticket creation is not idempotent across a network retry** (L3-DEC-17 still holds). The busy state prevents double clicks. A retry after a lost response could create a duplicate ticket. This is not tested, because no protection exists to test.
 - **PERF-01 is a smoke test on one development machine**, not a load test. It catches an accidental N+1 query, not production capacity.
-- **Two new `TicketEventType` values survive rollback** (spec §7.4). MIG-05 proves this is harmless for Lab 3 code.
+- **Two new `TicketEventType` values survive rollback** (spec §7.4). MIG-05 proves they are the only difference between a rolled-back database and the Lab 3 schema. It compares schemas rather than running the Lab 3 suite, because that would need a second install of the Lab 3 dependencies (Amendment 2).
