@@ -9,6 +9,7 @@ import { Callout } from "../../lab-03/components/Callout.js";
 import { ConfirmDialog } from "../../lab-03/components/ConfirmDialog.js";
 import { RequesterComments } from "../../lab-03/components/RequesterComments.js";
 import * as ticketsApi from "../../lab-03/tickets-api.js";
+import { ActionsTaken } from "../../lab-04/components/ActionsTaken.js";
 
 // Requester Ticket Detail -- ui-spec.md section 5.5.
 //
@@ -19,6 +20,9 @@ import * as ticketsApi from "../../lab-03/tickets-api.js";
 // panel, the Comments card, and the attachment lock. The Requester still gets
 // no status, cancel, reopen, claim, assign, or IT Priority control, and no
 // Internal Notes (AC-27, BR-53).
+//
+// Lab 4 (#72, docs/lab-04/ui-spec.md 4.1) adds the read-only Actions Taken
+// card, "Work done on your ticket", after the ticket information (AC-11).
 
 /** Statuses in which "Problem appears resolved" may be indicated (BR-43). */
 const RESOLUTION_STATUSES = new Set(["OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"]);
@@ -146,6 +150,8 @@ export function RequesterTicketDetail() {
           </span>
         </div>
       </section>
+
+      <ActionsTaken mode="requester" ticketId={ticket.id} />
 
       {conflict !== null && (
         <Callout variant="conflict" testId="callout-conflict">
