@@ -48,6 +48,12 @@ export async function signIn(page: Page, email: string, password = seedPassword(
     .locator('[data-testid="app-shell"], [data-testid="change-password-screen"]')
     .first()
     .waitFor({ state: "visible", timeout: 25000 });
+  // Lab 4 #74, Issue #66: the landing screen loads its list right after
+  // sign-in. A caller that navigates at once aborts that request mid-flight,
+  // and an aborted request through the Vite proxy can fail the next one on the
+  // same connection ("Something went wrong" on the next screen). Wait until the
+  // landing screen has finished loading, which is a visible state.
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 25000 });
 }
 
 export async function signOut(page: Page): Promise<void> {

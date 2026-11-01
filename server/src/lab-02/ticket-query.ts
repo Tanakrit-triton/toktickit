@@ -5,6 +5,14 @@
 // substituting a default would hide a client defect and make list behaviour
 // untestable (BR-47, DEC-03).
 
+import { TICKET_STATUSES, isTicketStatus, type TicketStatus } from "../lab-03/transitions.js";
+import {
+  STATUS_AND_GROUP_MESSAGE,
+  STATUS_GROUPS,
+  isStatusGroup,
+  type StatusGroup,
+} from "../lab-04/status-groups.js";
+
 export const SORTABLE = ["ticketNumber", "createdAt", "updatedAt", "requestedPriority"] as const;
 export const SORT_ORDERS = ["asc", "desc"] as const;
 export const PAGE_SIZES = [10, 20, 50] as const;
@@ -15,6 +23,9 @@ const KNOWN = new Set([
   "categoryId",
   "relatedSystemId",
   "requestedPriority",
+  // Lab 4 drill-down filters (docs/lab-04/api-spec.md section 4.1).
+  "status",
+  "statusGroup",
   "sortBy",
   "sortOrder",
   "page",
@@ -28,6 +39,8 @@ export interface TicketListQuery {
   categoryId?: number;
   relatedSystemId?: number;
   requestedPriority?: (typeof PRIORITIES)[number];
+  status?: TicketStatus;
+  statusGroup?: StatusGroup;
   sortBy: (typeof SORTABLE)[number];
   sortOrder: (typeof SORT_ORDERS)[number];
   page: number;
@@ -89,6 +102,24 @@ export function parseTicketListQuery(raw: Record<string, unknown>): QueryResult 
       return bad(`Query parameter requestedPriority must be one of ${PRIORITIES.join(", ")}.`);
     }
     query.requestedPriority = value as TicketListQuery["requestedPriority"];
+  }
+
+  if (raw.status !== undefined && raw.statusGroup !== undefined) {
+    return bad(STATUS_AND_GROUP_MESSAGE);
+  }
+  if (raw.status !== undefined) {
+    const value = raw.status as string;
+    if (!isTicketStatus(value)) {
+      return bad(`Query parameter status must be one of ${TICKET_STATUSES.join(", ")}.`);
+    }
+    query.status = value;
+  }
+  if (raw.statusGroup !== undefined) {
+    const value = raw.statusGroup as string;
+    if (!isStatusGroup(value)) {
+      return bad(`Query parameter statusGroup must be one of ${STATUS_GROUPS.join(", ")}.`);
+    }
+    query.statusGroup = value;
   }
 
   if (raw.sortBy !== undefined) {

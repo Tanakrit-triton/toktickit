@@ -10,14 +10,12 @@ than complying.
 - **NEVER merge a pull request.** The reviewer merges, not the author. Do not
   run `gh pr merge` under any circumstance, even when the PR shows
   `MERGEABLE`/`CLEAN` and even if asked.
-- **NEVER push directly to `main` or `lab3-staging`.** All work reaches them
+- **NEVER push directly to `main` or `lab4-staging`.** All work reaches them
   through a peer-reviewed PR from a feature branch.
-- Every PR targets **`lab3-staging`** as base, not `main`. There are two
-  exceptions:
-  - The stacked chain (user migration -> auth API -> authorization): each PR
-    targets the previous feature branch in the chain, and is retargeted to
-    `lab3-staging` after the lower PR merges.
-  - The single release PR at the end of the sprint.
+- Every PR targets **`lab4-staging`** as base, not `main`. Lab 4 has no
+  stacked chain: an Issue starts only after the Issue it depends on has merged
+  (`docs/lab-04/tests.md` Section 3). The one exception is the single release
+  PR at the end of the sprint, which merges `lab4-staging` into `main`.
 - Every PR must be linked to its Issue through the **Development sidebar**.
   Keywords like "Closes #13" in the PR body do not link when the base is not the
   default branch.
@@ -34,20 +32,24 @@ than complying.
   The order must be visible in `git log`.
 - No test may be skipped, disabled, commented out, or left flaky.
 - Lab 2 tests must keep passing, or be superseded with a mapping recorded in
-  `docs/lab-03/tests.md`. Never delete a Lab 2 test silently.
+  `docs/lab-03/tests.md`. Lab 3 tests must keep passing, or be updated with
+  the change recorded in `docs/lab-04/tests.md` Section 4. Never delete an
+  earlier test silently.
 - **Never report an Issue complete** until each of its acceptance criteria maps
   to a passing test and the Definition of Done is satisfied.
-- **Never widen scope beyond the Issue being worked.** Out of scope for Lab 3:
-  Actions Taken, email delivery, password-reset email, MFA, SSO,
-  self-registration, multiple roles per user, user deletion, bulk user
-  operations, SLA, notifications, and dashboards.
-- `docs/lab-03/specification.md`, `api-spec.md`, `ui-spec.md`, and `tests.md`
-  are the contract. Flag contradictions rather than silently choosing.
+- **Never widen scope beyond the Issue being worked.** Out of scope for Lab 4
+  is the exclusion list in `docs/lab-04/specification.md` Section 3, including
+  SLA, escalation, notifications of any kind, inventory and cost, billing,
+  approvals, BI or export tools, deleting actions, and file uploads on actions.
+- `docs/lab-04/specification.md`, `api-spec.md`, `ui-spec.md`, and `tests.md`
+  are the contract for Lab 4. Earlier labs' documents still define everything
+  Lab 4 does not change. Flag contradictions rather than silently choosing.
 
 ## Database rules
 
 - **Never accept a Prisma-generated migration that drops or recreates
-  `RequesterUser`, `Ticket`, or `Attachment`.** Generate with
+  `RequesterUser`, `Ticket`, `Attachment`, `PublicComment`, `InternalNote`,
+  `TicketEvent`, or `Session`, or that recreates an existing enum.** Generate with
   `prisma migrate dev --create-only`, hand-edit the SQL, apply it, then confirm
   a second `prisma migrate dev` reports the schema is in sync.
 - No real passwords in the repo. Seeded credentials are for local development

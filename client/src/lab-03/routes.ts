@@ -9,6 +9,14 @@ export function landingFor(role: Role): string {
 }
 
 /**
+ * The role's dashboard (docs/lab-04/ui-spec.md section 2). It is not the
+ * landing: `/` keeps the Lab 3 landing above (DEC-11).
+ */
+export function dashboardFor(role: Role): string {
+  return role === "REQUESTER" ? "/dashboard" : "/staff/dashboard";
+}
+
+/**
  * `next` is honoured only if it is a path on this site: a single leading `/`,
  * not `//` and not `/\` (which browsers treat as `//`), and no scheme. Anything
  * else is ignored, which prevents an open redirect (ui-spec.md section 4).

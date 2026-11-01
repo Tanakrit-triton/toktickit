@@ -580,9 +580,12 @@ textarea.zg-field {
 
 .zg-page-size { margin-bottom: 0; }
 
-/* Tablet drops Related System; everything else is retained (ui-spec 5.4). */
+/* Tablet drops Related System; everything else is retained (ui-spec 5.4).
+ * The one-line Summary is capped narrower so the My Tickets and Queue tables
+ * fit the 800px tablet container (Lab 4 #74); the full text stays in `title`. */
 @media (max-width: 991.98px) {
   .zg-col-system { display: none; }
+  .zg-table .zg-truncate { max-width: 240px; }
 }
 
 @media (max-width: 767.98px) {

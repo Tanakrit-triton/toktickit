@@ -15,6 +15,9 @@ import { defineConfig, devices } from "@playwright/test";
 // the evidence spec open their own browser context at each width they capture
 // (docs/lab-03/tests.md 2.12), so running them once covers all three.
 const LAB3_DESKTOP_ONLY = /lab-03[\\/](authentication|staff-ticket-flow|user-administration|responsive|evidence)\.spec\.ts$/;
+// Every Lab 4 spec follows the same rule (docs/lab-04/tests.md 2.9 and 2.10):
+// the responsive suite opens its own context at each width.
+const LAB4_DESKTOP_ONLY = /lab-04[\\/][^\\/]+\.spec\.ts$/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -42,12 +45,12 @@ export default defineConfig({
     {
       name: "tablet",
       use: { ...devices["Desktop Chrome"], viewport: { width: 834, height: 1112 } },
-      testIgnore: LAB3_DESKTOP_ONLY,
+      testIgnore: [LAB3_DESKTOP_ONLY, LAB4_DESKTOP_ONLY],
     },
     {
       name: "mobile",
       use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } },
-      testIgnore: LAB3_DESKTOP_ONLY,
+      testIgnore: [LAB3_DESKTOP_ONLY, LAB4_DESKTOP_ONLY],
     },
   ],
 });

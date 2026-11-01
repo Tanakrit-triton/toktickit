@@ -1,0 +1,209 @@
+/* =========================================================================
+ * Lab 4 Actions Taken and workflow feedback -- docs/lab-04/ui-spec.md
+ * sections 1, 4, 5, 6, and 7. No new tokens: every value is a Lab 2 token
+ * from src/lab-02/styles/zen-green.css. Owned by Issue 72.
+ * ========================================================================= */
+
+/* --- 4.3 Action status badges -------------------------------------------- */
+
+.zg-badge--action-planned { background: var(--zg-surface); color: var(--zg-secondary); border: 1px solid var(--zg-secondary); }
+.zg-badge--action-in-progress { background: var(--zg-secondary); color: var(--zg-surface); }
+.zg-badge--action-completed { background: var(--zg-pale); color: var(--zg-success); }
+.zg-badge--action-cancelled { background: var(--zg-disabled-bg); color: var(--zg-text-muted); border: 1px solid var(--zg-border); }
+
+/* --- 1. Follow-up indicator and resolution-blocked notice ----------------- */
+
+.zg-indicator-follow-up {
+  display: inline-block;
+  padding: 2px var(--zg-space-2);
+  border-radius: var(--zg-radius-sm);
+  background: var(--zg-warning-bg);
+  color: var(--zg-warning);
+  font: var(--zg-font-label);
+}
+
+.zg-notice-blocked {
+  margin: var(--zg-space-2) 0 0;
+  padding: var(--zg-space-2) var(--zg-space-3);
+  border-radius: var(--zg-radius-sm);
+  background: var(--zg-warning-bg);
+  color: var(--zg-warning);
+  font: var(--zg-font-small);
+}
+
+.zg-notice-blocked a {
+  display: inline-block;
+  margin-top: var(--zg-space-1);
+  color: var(--zg-warning);
+  font-weight: 600;
+}
+
+.zg-resolved-at {
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+}
+
+/* --- 4.2 List ------------------------------------------------------------- */
+
+.zg-actions-summary {
+  margin: 0 0 var(--zg-space-3);
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+}
+
+.zg-actions-heading:focus-visible {
+  outline: 2px solid var(--zg-primary);
+  outline-offset: 2px;
+}
+
+.zg-actions-card .zg-table td {
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.zg-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.zg-actions-small {
+  display: block;
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+}
+
+.zg-actions-details td {
+  background: var(--zg-readonly-bg);
+}
+
+.zg-actions-details dl,
+.zg-action-card dl {
+  margin: 0;
+}
+
+.zg-actions-details dt,
+.zg-action-card dt {
+  font: var(--zg-font-label);
+  color: var(--zg-text-muted);
+}
+
+.zg-actions-details dd,
+.zg-action-card dd {
+  margin: 0 0 var(--zg-space-2);
+  overflow-wrap: anywhere;
+}
+
+.zg-actions-row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zg-space-2);
+}
+
+.zg-btn--small {
+  padding: 2px var(--zg-space-2);
+  font: var(--zg-font-small);
+  /* Table cells wrap long words (overflow-wrap: anywhere); a button label
+   * must stay on one line ("Details", not "Detail / s"). */
+  white-space: nowrap;
+}
+
+/* Tablet: the Follow-up column moves into Details (ui-spec 7). */
+.zg-actions-follow-up-detail { display: none; }
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .zg-actions-col-follow-up { display: none; }
+  .zg-actions-follow-up-detail { display: block; }
+}
+
+.zg-action-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--zg-space-3);
+}
+
+.zg-action-card {
+  border: 1px solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  padding: var(--zg-space-3);
+}
+
+.zg-actions-footer {
+  margin-top: var(--zg-space-3);
+}
+
+/* --- 4.4 Create Action and Edit Action dialog ----------------------------- */
+
+.zg-modal.zg-action-dialog {
+  max-width: 560px;
+  max-height: calc(100vh - 2 * var(--zg-space-4));
+  overflow-y: auto;
+}
+
+.zg-action-dialog .zg-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zg-space-1);
+  margin-bottom: var(--zg-space-3);
+}
+
+.zg-action-dialog .zg-field {
+  width: 100%;
+}
+
+.zg-action-dialog .zg-check {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-2);
+  font: var(--zg-font-label);
+}
+
+/* The checkbox is painted in its accent colour, which is otherwise the
+ * operating system's (STY-03, AC-38). */
+.zg-action-dialog .zg-check input[type="checkbox"] {
+  accent-color: var(--zg-primary);
+  color: inherit;
+}
+
+.zg-action-dialog .zg-callout {
+  margin-bottom: var(--zg-space-3);
+}
+
+.zg-action-dialog-warning {
+  margin: 0 0 var(--zg-space-3);
+  color: var(--zg-warning);
+  font: var(--zg-font-label);
+}
+
+@media (max-width: 767.98px) {
+  .zg-modal.zg-action-dialog {
+    max-width: none;
+    width: calc(100% - 2 * var(--zg-space-4));
+  }
+
+  .zg-action-dialog .zg-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+/* --- 6. History ----------------------------------------------------------- */
+
+.zg-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.zg-history-item {
+  padding: var(--zg-space-2) 0;
+  border-bottom: 1px solid var(--zg-border);
+  overflow-wrap: anywhere;
+}
+
+.zg-history-item:last-child {
+  border-bottom: 0;
+}

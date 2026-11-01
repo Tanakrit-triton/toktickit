@@ -12,6 +12,7 @@ import {
   painted,
   shot,
   shotBusy,
+  versioned,
   workedTicket,
   type Viewport,
 } from "./capture.js";
@@ -515,7 +516,7 @@ test("ui-spec 12 staff and requester detail states", async ({ browser }) => {
   const staff = await apiSession(ACCOUNTS.staff.email);
   try {
     for (const status of ["RESOLVED", "CLOSED"]) {
-      expect((await staff.send("POST", `/staff/tickets/${done.id}/status`, { status })).status, status).toBe(200);
+      expect((await staff.send("POST", `/staff/tickets/${done.id}/status`, await versioned(staff, done.id, { status }))).status, status).toBe(200);
     }
   } finally {
     await staff.dispose();

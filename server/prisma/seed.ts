@@ -21,15 +21,16 @@ async function main() {
 
   await seedDatabase(prisma, { password });
 
-  const [users, tickets, comments, notes, events] = await Promise.all([
+  const [users, tickets, actions, comments, notes, events] = await Promise.all([
     prisma.user.count(),
     prisma.ticket.count(),
+    prisma.actionTaken.count(),
     prisma.publicComment.count(),
     prisma.internalNote.count(),
     prisma.ticketEvent.count(),
   ]);
   console.log(
-    `Seeded: ${users} users, ${tickets} tickets, ${comments} comments, ` +
+    `Seeded: ${users} users, ${tickets} tickets, ${actions} actions, ${comments} comments, ` +
       `${notes} notes, ${events} ticket events.`,
   );
 }

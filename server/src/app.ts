@@ -11,6 +11,9 @@ import { requireSession } from "./lab-03/require-session.js";
 import { staffQueueRouter } from "./lab-03/staff-queue.routes.js";
 import { staffTicketOpsRouter } from "./lab-03/staff-ticket-ops.routes.js";
 import { commentsNotesRouter } from "./lab-03/comments-notes.routes.js";
+import { actionsRouter, staffActionsRouter } from "./lab-04/actions.routes.js";
+import { staffHistoryRouter } from "./lab-04/history.routes.js";
+import { requesterDashboardRouter, staffDashboardRouter } from "./lab-04/dashboard.routes.js";
 
 // The Express app is exported separately from app.listen() (see index.ts) so
 // Supertest can import `app` without opening a port. Do not merge these files.
@@ -71,6 +74,14 @@ app.use("/api/v1/admin", requireSession, requireRole("ADMINISTRATOR"), adminUser
 app.use("/api/v1/staff", staffQueueRouter);
 app.use("/api/v1/staff", staffTicketOpsRouter); // #40, api-spec.md sections 5.2 to 5.7
 app.use("/api/v1", commentsNotesRouter); // #41, api-spec.md section 6
+
+// Lab 4 -- Actions Taken (docs/lab-04/api-spec.md section 2).
+app.use("/api/v1", actionsRouter);
+app.use("/api/v1/staff", staffActionsRouter);
+app.use("/api/v1/staff", staffHistoryRouter); // api-spec.md section 3.4
+// Dashboards (api-spec.md section 5).
+app.use("/api/v1", requesterDashboardRouter);
+app.use("/api/v1/staff", staffDashboardRouter);
 
 // Any other /api/v1 path, including the removed GET /dev-requesters
 // (api-spec.md section 3). The message differs from the ownership refusal

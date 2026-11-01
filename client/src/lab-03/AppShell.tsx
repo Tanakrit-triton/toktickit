@@ -4,7 +4,7 @@ import { useAuth } from "./AuthContext.js";
 import type { Role } from "./auth-api.js";
 import { Callout } from "./components/Callout.js";
 import { RoleBadge } from "./components/RoleBadge.js";
-import { landingFor } from "./routes.js";
+import { dashboardFor, landingFor } from "./routes.js";
 import { ChangePassword } from "./screens/ChangePassword.js";
 
 // Application shell (docs/lab-03/ui-spec.md section 3). Replaces the Lab 2
@@ -16,13 +16,19 @@ import { ChangePassword } from "./screens/ChangePassword.js";
 
 type Destination = { to: string; label: string; testId: string; end?: boolean };
 
+// Dashboard comes first for every role (docs/lab-04/ui-spec.md section 2).
 const NAV: Record<Role, Destination[]> = {
   REQUESTER: [
+    { to: dashboardFor("REQUESTER"), label: "Dashboard", testId: "nav-dashboard" },
     { to: "/tickets", label: "My Tickets", testId: "nav-my-tickets", end: true },
     { to: "/tickets/new", label: "Create Ticket", testId: "nav-create-ticket" },
   ],
-  IT_STAFF: [{ to: "/staff/queue", label: "Ticket Queue", testId: "nav-ticket-queue" }],
+  IT_STAFF: [
+    { to: dashboardFor("IT_STAFF"), label: "Dashboard", testId: "nav-dashboard" },
+    { to: "/staff/queue", label: "Ticket Queue", testId: "nav-ticket-queue" },
+  ],
   ADMINISTRATOR: [
+    { to: dashboardFor("ADMINISTRATOR"), label: "Dashboard", testId: "nav-dashboard" },
     { to: "/staff/queue", label: "Ticket Queue", testId: "nav-ticket-queue" },
     { to: "/admin/users", label: "User Management", testId: "nav-user-management" },
   ],

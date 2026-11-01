@@ -125,6 +125,13 @@ const toEntry = (row: EntryRow) => ({
 type EntryKind = {
   label: string;
   noun: string;
+  /**
+   * L4 BR-33: a Public Comment sets the ticket's updatedAt, so "recently
+   * updated" reflects what the Requester can see. An Internal Note does not,
+   * so its existence cannot be inferred. Neither changes the ticket's version
+   * (L4 BR-27, Amendment 4).
+   */
+  touchesTicket: boolean;
   list: (db: Tx, ticketId: string) => Promise<EntryRow[]>;
   create: (db: Tx, data: { ticketId: string; authorId: string; body: string }) => Promise<EntryRow>;
 };
@@ -132,6 +139,7 @@ type EntryKind = {
 const COMMENTS: EntryKind = {
   label: "Comment",
   noun: "comments",
+  touchesTicket: true,
   list: (db, ticketId) =>
     db.publicComment.findMany({ where: { ticketId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: ENTRY_SELECT }),
   create: (db, data) => db.publicComment.create({ data, select: ENTRY_SELECT }),
@@ -140,6 +148,7 @@ const COMMENTS: EntryKind = {
 const NOTES: EntryKind = {
   label: "Note",
   noun: "notes",
+  touchesTicket: false,
   list: (db, ticketId) =>
     db.internalNote.findMany({ where: { ticketId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: ENTRY_SELECT }),
   create: (db, data) => db.internalNote.create({ data, select: ENTRY_SELECT }),
@@ -173,9 +182,18 @@ function postEntry(kind: EntryKind) {
         );
       }
       const created = await getPrisma().$transaction(async (tx) => {
+        // A comment writes the ticket row (updatedAt), so it takes the row
+        // lock FOR UPDATE at once: two comments each holding FOR SHARE and then
+        // upgrading would deadlock.
+        if (kind.touchesTicket) {
+          await tx.$queryRaw`SELECT id FROM "Ticket" WHERE id = ${ticketId} FOR UPDATE`;
+        }
         const ticket = await reachableTicket(tx, ticketId, author, true);
         if (ticket.currentStatus === "CLOSED") {
           throw stateConflict(`A ${kind.label.toLowerCase()} cannot be added to a closed ticket.`);
+        }
+        if (kind.touchesTicket) {
+          await tx.ticket.update({ where: { id: ticketId }, data: { updatedAt: new Date() } });
         }
         return kind.create(tx, { ticketId, authorId: author.id, body });
       });
@@ -218,7 +236,11 @@ commentsNotesRouter.post("/tickets/:ticketId/appears-resolved", ...requesterOnly
       // The status never changes (BR-43). The event payload is empty and the
       // Requester is the actor (BR-55).
       const indicatedAt = new Date();
-      await tx.ticket.update({ where: { id: ticketId }, data: { requesterIndicatedResolvedAt: indicatedAt } });
+      // L4 BR-32: no version needed, but it increments.
+      await tx.ticket.update({
+        where: { id: ticketId },
+        data: { requesterIndicatedResolvedAt: indicatedAt, version: { increment: 1 } },
+      });
       await tx.ticketEvent.create({
         data: { ticketId, actorId: requester.id, eventType: "RESOLUTION_INDICATED", payload: {} },
       });
