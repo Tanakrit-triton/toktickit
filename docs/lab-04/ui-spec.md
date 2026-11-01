@@ -139,7 +139,7 @@ Test hooks: `requester-dashboard-screen`, `staff-dashboard-screen`,
 | Desktop and tablet | Table: Date/Time · Description · Performed by · Status · Follow-up · Edit |
 | Mobile | One card per action, with fields stacked as label and value pairs |
 
-- **Date/Time** is shown in Bangkok time: "29 Oct 2026, 10:15". The `<time datetime>` attribute holds the ISO value. Month names are fixed three-letter forms ("Sep", not "Sept"). Current ICU writes "Sept" in en-GB, so the client formats months itself in `client/src/lab-04/bangkok-time.ts` (decided in #72).
+- **Date/Time** is shown in Bangkok time: "29 Oct 2026, 10:15". The `<time datetime>` attribute holds the ISO value. Month names are fixed three-letter forms ("Sep", not "Sept"), and the day has no leading zero ("1 Sep 2026"), as in the dashboards' `d MMM yyyy` (§3.1). Current ICU writes "Sept" in en-GB, so the client formats months itself in `client/src/lab-04/bangkok-time.ts` (decided in #72).
 - **Description** shows the first 2 lines. **Result** and **Attachment Notes** show in an expandable row opened by a "Details" disclosure button (`aria-expanded`). On mobile, the card shows everything.
 - **Performed by:** the full name. If the user is inactive, add " (inactive)" in `--zg-text-muted`. If the performer is not the creator, add "Recorded by {creator}" in `--zg-font-small`.
 - **Follow-up:** the follow-up indicator "⚑ Follow-up required" with the note under it, or "—".

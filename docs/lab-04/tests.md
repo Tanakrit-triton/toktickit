@@ -180,7 +180,7 @@ UI-21).
 
 | ID | AC | What it tests | Expected result | File | Final |
 |---|---|---|---|---|---|
-| UI-01 | AC-28 | Staff dashboard renders cards, tables, and lists from a mocked response | Values shown; each card is a link to its `link`; list items link to Ticket Detail | `StaffDashboard.test.tsx` | Planned |
+| UI-01 | AC-28 | Staff dashboard renders cards, tables, and lists from a mocked response | Values shown; each card is a link to its `link`; list items link to Ticket Detail; My open actions uses the Actions Taken status badge (ui-spec §4.3) | `StaffDashboard.test.tsx` | Planned |
 | UI-02 | AC-27 | All-zero response | 0 and empty messages; no blank region | `StaffDashboard.test.tsx` | Planned |
 | UI-03 | AC-30 | Pending, 500, and 403 responses | Skeleton with `aria-busy`; error callout with Retry (Retry refetches); forbidden state | `StaffDashboard.test.tsx` | Planned |
 | UI-04 | AC-29 | Administrator response with `users`; IT Staff with `users: null` | User accounts card only for the Administrator | `StaffDashboard.test.tsx` | Planned |
@@ -202,6 +202,7 @@ UI-21).
 | UI-20 | AC-29 | Shell for each role | Dashboard nav first, with the right route; `aria-current` on the active item | `navigation.test.tsx` | Planned |
 | UI-21 | AC-28 | My Tickets and Queue opened with `?statusGroup=ACTIVE` | Chip "Showing: Open tickets"; Clear removes the parameter and refetches | `DrilldownFilter.test.tsx` | Planned |
 | UI-31 | AC-18 | Claim, assign, IT Priority, or status succeeds while the detail re-fetch is still pending, then a second operation is sent (Amendment 5) | The second request carries the `version` from the first write's response, not the version loaded before it | `staff-detail-version.test.tsx` | Planned |
+| UI-32 | — (ui-spec §4.2, §9) | Ticket Date on Requester and Staff Ticket Detail; Public Comment and Internal Note times (added in #74, from the #72 browser check) | Bangkok format "1 Sep 2026, 20:24", the same as action dates and History; `<time>` keeps the ISO value in `datetime` and `title` | `bangkok-times.test.tsx` | Planned |
 
 ### 2.8 UI style — `client/tests/lab-04/`
 
@@ -264,7 +265,7 @@ retargeted and no conflict is resolved repeatedly.
 | #71 | Dashboard API | #70 | AC-24–AC-29, AC-31 | UT-06, DSR-01–06, DSS-01–07, PERF-01 (15) |
 | #72 | Actions Taken and workflow UI | #70 | AC-01, AC-02, AC-05, AC-07–AC-12, AC-14, AC-18, AC-20–AC-23, AC-38 | UI-08–19, STY-01 (13) |
 | #73 | Dashboards UI, navigation, and drill-down filters | #70 (Amendment 6) | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
-| #74 | Final hardening: E2E, responsive, accessibility, regression, polish | #72, #73 | AC-03, AC-11, AC-14, AC-15, AC-18, AC-21–AC-24, AC-28, AC-35–AC-40 | STY-03, STY-04, RSP-01–05, E2E-01–09, REG-01–03 (19) |
+| #74 | Final hardening: E2E, responsive, accessibility, regression, polish | #72, #73 | AC-03, AC-11, AC-14, AC-15, AC-18, AC-21–AC-24, AC-28, AC-35–AC-40 | STY-03, STY-04, RSP-01–05, E2E-01–09, REG-01–03, UI-32 (20) |
 | #75 | Release: reviewer.md, ai-use.md, final results, `lab4-staging` → `main` | #74 | — | Runs every suite on `main` and fills Section 8 |
 
 **Boundaries.**

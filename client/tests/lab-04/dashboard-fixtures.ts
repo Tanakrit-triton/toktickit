@@ -49,8 +49,9 @@ export function requesterDashboard(overrides: Partial<{ counts: Partial<Record<s
     metrics: {
       openTickets: { count: counts.openTickets, link: "/tickets?statusGroup=ACTIVE" },
       waitingForMe: { count: counts.waitingForMe, link: "/tickets?status=WAITING_FOR_REQUESTER" },
-      updatedRecently: { count: counts.updatedRecently, link: "/tickets?sortBy=updatedAt&sortOrder=desc" },
-      resolvedRecently: { count: counts.resolvedRecently, link: "/tickets?statusGroup=DONE" },
+      // Amendment 7: no drill-down for the two recent-window cards.
+      updatedRecently: { count: counts.updatedRecently, link: null },
+      resolvedRecently: { count: counts.resolvedRecently, link: null },
     },
     lists: overrides.lists ?? {
       needsAttention: [listItem(5, "WAITING_FOR_REQUESTER")],

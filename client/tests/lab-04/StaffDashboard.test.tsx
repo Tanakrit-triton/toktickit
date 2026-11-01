@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { CurrentUser } from "../../src/lab-03/auth-api.js";
+import { ActionStatusBadge } from "../../src/lab-04/components/ActionBadges.js";
 import { ADMINISTRATOR, IT_STAFF, REQUESTER, mockStartupSession, renderApp } from "../lab-03/helpers.js";
 import { failure, fakeApi, ok } from "../lab-03/ticket-fixtures.js";
 import {
@@ -122,6 +123,15 @@ describe("UI-01 (AC-28) - populated Staff Dashboard", () => {
     const badge = within(item).getByTestId("badge-action-status");
     expect(badge).toHaveAttribute("data-status", "PLANNED");
     expect(badge).toHaveTextContent("Planned");
+  });
+
+  it("shows the action status with the Actions Taken badge, not a dashboard-only copy (ui-spec 4.3)", async () => {
+    await openPopulated();
+
+    const item = screen.getByTestId(`list-item-myOpenActions-${ACTION_ID}`);
+    const badge = within(item).getByTestId("badge-action-status");
+    const { container } = render(<ActionStatusBadge status="PLANNED" />);
+    expect(badge.outerHTML).toBe(container.innerHTML);
   });
 
   it("lists urgent tickets with the owner or Unassigned, and recently updated tickets, each linking to Staff Ticket Detail", async () => {

@@ -25,18 +25,20 @@ const REQ_WINDOW = "zz.dsr.window@example.test";
 const MARKER = "[dsr-71]";
 const URL = "/api/v1/dashboard/requester";
 
-const LINKS = {
+const LINKS: Record<"openTickets" | "waitingForMe" | "updatedRecently" | "resolvedRecently", string | null> = {
   openTickets: "/tickets?statusGroup=ACTIVE",
   waitingForMe: "/tickets?status=WAITING_FOR_REQUESTER",
-  updatedRecently: "/tickets?sortBy=updatedAt&sortOrder=desc",
-  resolvedRecently: "/tickets?statusGroup=DONE",
+  // No list screen filters by the recent window, so these two cards have no
+  // drill-down (Amendment 7).
+  updatedRecently: null,
+  resolvedRecently: null,
 };
 
 type Item = { id: string; ticketNumber: string; summary: string; currentStatus: TicketStatus; updatedAt: string; resolvedAt?: string };
 type Dashboard = {
   generatedAt: string;
   window: { from: string; to: string; timeZone: string };
-  metrics: Record<keyof typeof LINKS, { count: number; link: string }>;
+  metrics: Record<keyof typeof LINKS, { count: number; link: string | null }>;
   lists: { needsAttention: Item[]; recentlyUpdated: Item[]; recentlyResolved: Item[] };
 };
 
@@ -167,7 +169,7 @@ describe("Requester Dashboard values (DSR-01 - AC-25, api-spec section 5.1)", ()
     expect(dashboard.metrics.waitingForMe.count).toBeGreaterThan(0);
   });
 
-  it("gives every card its client route", async () => {
+  it("gives each linked card its client route, and Updated and Resolved recently link null (Amendment 7)", async () => {
     const dashboard = await dashboardOf(napat);
 
     for (const [key, link] of Object.entries(LINKS)) {
@@ -273,7 +275,7 @@ describe("Requester Dashboard drill-down (DSR-06 - AC-28)", () => {
     const dashboard = await dashboardOf(napat);
     const metric = dashboard.metrics[key];
 
-    const res = await napat.agent.get(apiPathOf(metric.link));
+    const res = await napat.agent.get(apiPathOf(metric.link!));
 
     expect(res.status).toBe(200);
     expect(res.body.meta.totalItems).toBe(metric.count);
