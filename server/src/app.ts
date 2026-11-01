@@ -79,7 +79,7 @@ app.use("/api/v1", commentsNotesRouter); // #41, api-spec.md section 6
 app.use("/api/v1", actionsRouter);
 app.use("/api/v1/staff", staffActionsRouter);
 app.use("/api/v1/staff", staffHistoryRouter); // api-spec.md section 3.4
-// Dashboards (api-spec.md section 5): stubs until #71, behind their guards.
+// Dashboards (api-spec.md section 5).
 app.use("/api/v1", requesterDashboardRouter);
 app.use("/api/v1/staff", staffDashboardRouter);
 

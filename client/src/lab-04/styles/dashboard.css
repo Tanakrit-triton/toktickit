@@ -252,31 +252,6 @@ a.zg-metric-card:focus-visible {
 .zg-dash-area-priority { grid-area: priority; min-width: 0; }
 .zg-dash-area-recent { grid-area: recent; min-width: 0; }
 
-/* ---- Action status badge, dashboard-only (ui-spec 4.3) -----------------
- * Replaced by #72's badge in #74. */
-
-.zg-dash-action-badge--planned {
-  background: var(--zg-surface);
-  color: var(--zg-secondary);
-  border: 1px solid var(--zg-secondary);
-}
-
-.zg-dash-action-badge--in-progress {
-  background: var(--zg-secondary);
-  color: var(--zg-surface);
-}
-
-.zg-dash-action-badge--completed {
-  background: var(--zg-pale);
-  color: var(--zg-success);
-}
-
-.zg-dash-action-badge--cancelled {
-  background: var(--zg-disabled-bg);
-  color: var(--zg-text-muted);
-  border: 1px solid var(--zg-border);
-}
-
 /* ---- Drill-down filter chip (ui-spec 3.5, 7) ---------------------------- */
 
 .zg-dash-chip-row {

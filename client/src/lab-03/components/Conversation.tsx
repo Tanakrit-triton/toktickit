@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { RoleBadge } from "./RoleBadge.js";
 import { TicketRequestError, type CommentOrNote } from "../tickets-api.js";
+import { formatBangkok } from "../../lab-04/bangkok-time.js";
 
 // Public Comment and Internal Note items, and the composer both use
 // (docs/lab-03/ui-spec.md section 8).
@@ -20,7 +21,7 @@ export function EntryItem({ entry, kind }: { entry: CommentOrNote; kind: "commen
         <span className="zg-entry-author">{entry.author.fullName}</span>
         <RoleBadge role={entry.author.role} />
         <time className="zg-entry-time" dateTime={entry.createdAt} title={entry.createdAt}>
-          {new Date(entry.createdAt).toLocaleString()}
+          {formatBangkok(entry.createdAt)}
         </time>
       </div>
       <p className="zg-entry-body zg-preserve-lines">{entry.body}</p>

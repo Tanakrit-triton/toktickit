@@ -9,6 +9,7 @@ import { Callout } from "../../lab-03/components/Callout.js";
 import { ConfirmDialog } from "../../lab-03/components/ConfirmDialog.js";
 import { RequesterComments } from "../../lab-03/components/RequesterComments.js";
 import * as ticketsApi from "../../lab-03/tickets-api.js";
+import { formatBangkok } from "../../lab-04/bangkok-time.js";
 import { ActionsTaken } from "../../lab-04/components/ActionsTaken.js";
 
 // Requester Ticket Detail -- ui-spec.md section 5.5.
@@ -118,7 +119,7 @@ export function RequesterTicketDetail() {
       <section className="zg-card" data-testid="ticket-information">
         <div className="zg-grid-2">
           <Field label="Ticket Number" value={ticket.ticketNumber} />
-          <Field label="Ticket Date" value={new Date(ticket.ticketDate).toLocaleString()} />
+          <Field label="Ticket Date" value={formatBangkok(ticket.ticketDate)} />
           <Field label="Requester" value={ticket.requester.fullName} />
           <div className="zg-readonly-field">
             <span className="zg-label">Current Status</span>

@@ -83,8 +83,10 @@ export async function requesterDashboard(prisma: PrismaClient, requesterId: stri
     metrics: {
       openTickets: { count: openTickets, link: "/tickets?statusGroup=ACTIVE" },
       waitingForMe: { count: waitingForMe, link: "/tickets?status=WAITING_FOR_REQUESTER" },
-      updatedRecently: { count: updatedRecently, link: "/tickets?sortBy=updatedAt&sortOrder=desc" },
-      resolvedRecently: { count: resolvedRecently, link: "/tickets?statusGroup=DONE" },
+      // No list screen filters by the recent window, so these two cards have no
+      // drill-down; their lists link to each ticket (Amendment 7).
+      updatedRecently: { count: updatedRecently, link: null },
+      resolvedRecently: { count: resolvedRecently, link: null },
     },
     lists: {
       needsAttention: needsAttention.map(toTicketItem),
