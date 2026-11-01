@@ -104,6 +104,9 @@
 .zg-btn--small {
   padding: 2px var(--zg-space-2);
   font: var(--zg-font-small);
+  /* Table cells wrap long words (overflow-wrap: anywhere); a button label
+   * must stay on one line ("Details", not "Detail / s"). */
+  white-space: nowrap;
 }
 
 /* Tablet: the Follow-up column moves into Details (ui-spec 7). */
@@ -156,6 +159,13 @@
   align-items: center;
   gap: var(--zg-space-2);
   font: var(--zg-font-label);
+}
+
+/* The checkbox is painted in its accent colour, which is otherwise the
+ * operating system's (STY-03, AC-38). */
+.zg-action-dialog .zg-check input[type="checkbox"] {
+  accent-color: var(--zg-primary);
+  color: inherit;
 }
 
 .zg-action-dialog .zg-callout {

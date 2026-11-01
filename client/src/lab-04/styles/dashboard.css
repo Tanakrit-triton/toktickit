@@ -364,3 +364,7 @@ a.zg-metric-card:focus-visible {
     min-height: 44px;
   }
 }
+
+/* The secondary "Create a ticket" link (ui-spec 3.2) in the token link colour,
+ * like links in callouts, not the framework's default blue (STY-03). */
+.zg-dash-create-link { color: var(--zg-secondary); }
