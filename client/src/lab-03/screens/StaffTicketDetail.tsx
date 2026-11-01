@@ -6,8 +6,14 @@ import { Callout } from "../components/Callout.js";
 import { ConfirmDialog } from "../components/ConfirmDialog.js";
 import { Composer, EntryList, NOTE_LABEL } from "../components/Conversation.js";
 import { Forbidden } from "../components/Forbidden.js";
+import { useAuth } from "../AuthContext.js";
 import * as ticketsApi from "../tickets-api.js";
-import type { Assignee, CommentOrNote, Priority, StaffTicket, TicketStatus } from "../tickets-api.js";
+import type { Assignee, CommentOrNote, Priority, TicketStatus } from "../tickets-api.js";
+import * as workflowApi from "../../lab-04/actions-api.js";
+import type { HistoryEvent, StaffTicketDetail as StaffTicket } from "../../lab-04/actions-api.js";
+import { formatBangkok } from "../../lab-04/bangkok-time.js";
+import { ActionsTaken } from "../../lab-04/components/ActionsTaken.js";
+import { HistoryList } from "../../lab-04/components/TicketHistory.js";
 
 // IT Staff Ticket Detail (docs/lab-03/ui-spec.md section 6.5).
 //
@@ -16,6 +22,15 @@ import type { Assignee, CommentOrNote, Priority, StaffTicket, TicketStatus } fro
 // server's availableTransitions and never from a copy of the matrix (api-spec
 // 5.2). After any operation the detail is re-fetched, so the screen shows
 // server state rather than assuming the change took effect.
+//
+// Lab 4 (docs/lab-04/ui-spec.md sections 4 to 6) adds the Actions Taken card,
+// the resolve-blocked notice, "Resolved on", the History tab, and STALE_UPDATE
+// handling. A STALE_UPDATE is not re-fetched behind the user's back: the
+// Conflict callout offers Reload ticket, and a reason typed into a Cancel or
+// Reopen dialog stays there until the dialog is closed.
+
+const STALE_MESSAGE = "This ticket was changed by someone else.";
+const RESOLUTION_NOTICE_ID = "notice-resolution-blocked";
 
 /** specification.md 5.6, status-dependent operations. */
 const OWNER_CHANGE_STATUSES = new Set<TicketStatus>(["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"]);
@@ -85,10 +100,12 @@ type LoadState = "loading" | "ready" | "not-found" | "forbidden" | "failed";
 
 export function StaffTicketDetail() {
   const { ticketId } = useParams();
+  const { user } = useAuth();
   const [ticket, setTicket] = useState<StaffTicket | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [conflict, setConflict] = useState<string | null>(null);
+  const [stale, setStale] = useState(false);
   const [operationFailed, setOperationFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [pendingTransition, setPendingTransition] = useState<TicketStatus | null>(null);
@@ -110,11 +127,17 @@ export function StaffTicketDetail() {
     ticketsApi.fetchAssignees().then(setAssignees, () => setAssignees([]));
   }, [load]);
 
-  /** Runs one operation, reports a 409 or a failure, and always re-fetches. */
+  /**
+   * Runs one operation and reports a 409 or a failure. It re-fetches afterwards,
+   * except after STALE_UPDATE, where the user chooses when to reload and an open
+   * Cancel or Reopen dialog keeps its reason (docs/lab-04/ui-spec.md section 5).
+   */
   async function operate(key: string, request: () => Promise<StaffTicket>) {
     setConflict(null);
+    setStale(false);
     setOperationFailed(false);
     setBusy(key);
+    let refetch = true;
     try {
       // Every write returns the fresh detail, version included. It is shown
       // before the controls are usable again, so an operation sent at once
@@ -122,16 +145,33 @@ export function StaffTicketDetail() {
       // (docs/lab-04 Amendment 5). The re-fetch below still follows.
       setTicket(await request());
     } catch (error) {
-      if (error instanceof ticketsApi.TicketRequestError && error.kind === "CONFLICT") {
+      if (workflowApi.isStaleUpdate(error)) {
+        setStale(true);
+        refetch = false;
+      } else if (error instanceof ticketsApi.TicketRequestError && error.kind === "CONFLICT") {
         setConflict(error.conflictMessage ?? "This ticket has changed.");
       } else {
         setOperationFailed(true);
       }
     } finally {
       setBusy(null);
-      setPendingTransition(null);
-      await load();
+      if (refetch) {
+        setPendingTransition(null);
+        await load();
+      }
     }
+  }
+
+  async function reloadTicket() {
+    setStale(false);
+    setConflict(null);
+    await load();
+  }
+
+  /** An action write moved the ticket's version: use it now, then re-fetch (Amendment 5). */
+  function onActionSaved(ticketVersion: number) {
+    setTicket((current) => (current === null ? current : { ...current, version: ticketVersion }));
+    void load();
   }
 
   if (loadState === "loading") {
@@ -176,6 +216,11 @@ export function StaffTicketDetail() {
       <header className="zg-detail-header">
         <h1 className="zg-title zg-mono">{ticket.ticketNumber}</h1>
         <StatusBadge status={ticket.currentStatus} />
+        {ticket.resolvedAt != null && (
+          <span className="zg-resolved-at" data-testid="resolved-at">
+            Resolved on <time dateTime={ticket.resolvedAt}>{formatBangkok(ticket.resolvedAt)}</time>
+          </span>
+        )}
         <span className="zg-label">IT Priority</span>
         <ItPriorityBadge priority={ticket.itPriority} />
         {ticket.requesterIndicatedResolvedAt !== null && (
@@ -183,6 +228,16 @@ export function StaffTicketDetail() {
         )}
       </header>
 
+      {stale && (
+        <div>
+          <Callout variant="conflict" testId="callout-conflict">
+            {STALE_MESSAGE}
+          </Callout>
+          <button type="button" className="zg-btn zg-btn--secondary" data-testid="btn-reload-ticket" onClick={() => void reloadTicket()}>
+            Reload ticket
+          </button>
+        </div>
+      )}
       {conflict !== null && (
         <Callout variant="conflict" testId="callout-conflict">
           {conflict} The ticket has been reloaded.
@@ -200,11 +255,11 @@ export function StaffTicketDetail() {
           assignees={assignees}
           busy={busy}
           onClaim={() => void operate("claim", () => ticketsApi.claimTicket(ticket.id))}
-          onAssign={(ownerId) => void operate("assign", () => ticketsApi.assignTicket(ticket.id, ownerId, ticket.version))}
-          onSavePriority={(priority) => void operate("priority", () => ticketsApi.changeItPriority(ticket.id, priority, ticket.version))}
+          onAssign={(ownerId) => void operate("assign", () => workflowApi.assignTicket(ticket.id, ownerId, ticket.version))}
+          onSavePriority={(priority) => void operate("priority", () => workflowApi.changeItPriority(ticket.id, priority, ticket.version))}
           onTransition={(target) => {
             if (dialogFor(target, ticket.ticketNumber) !== null) setPendingTransition(target);
-            else void operate(`status-${target}`, () => ticketsApi.changeStatus(ticket.id, target, ticket.version));
+            else void operate(`status-${target}`, () => workflowApi.changeStatus(ticket.id, target, ticket.version));
           }}
         />
 
@@ -228,7 +283,20 @@ export function StaffTicketDetail() {
             </div>
           </section>
 
-          <ConversationCard ticketId={ticket.id} closed={ticket.currentStatus === "CLOSED"} />
+          <ActionsTaken
+            mode="staff"
+            ticketId={ticket.id}
+            refreshKey={ticket.version}
+            ticketStatus={ticket.currentStatus}
+            summary={ticket.actionSummary}
+            assignees={assignees}
+            currentUser={{ id: user?.id ?? "", fullName: user?.fullName ?? "" }}
+            onSaved={onActionSaved}
+            onReloadTicket={load}
+          />
+
+          {/* The ticket version moves on every change that writes an event, so it keys the history. */}
+          <ConversationCard ticketId={ticket.id} closed={ticket.currentStatus === "CLOSED"} historyKey={ticket.version} />
 
           <AttachmentSection
             ticketId={ticket.id}
@@ -243,11 +311,12 @@ export function StaffTicketDetail() {
       {pendingTransition !== null && dialog !== null && (
         <ConfirmDialog
           title={dialog.title}
+          text={stale ? `${STALE_MESSAGE} Close this dialog and reload the ticket before trying again.` : undefined}
           reasonRequired={dialog.reasonRequired}
           confirmLabel={dialog.confirmLabel}
           confirmVariant={dialog.confirmVariant}
           cancelLabel={dialog.cancelLabel}
-          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => ticketsApi.changeStatus(ticket.id, pendingTransition, ticket.version, reason))}
+          onConfirm={(reason) => operate(`status-${pendingTransition}`, () => workflowApi.changeStatus(ticket.id, pendingTransition, ticket.version, reason))}
           onClose={() => setPendingTransition(null)}
         />
       )}
@@ -283,6 +352,10 @@ function OperationsCard({
 
   const ownerChangeable = OWNER_CHANGE_STATUSES.has(ticket.currentStatus);
   const working = busy !== null;
+  // The server lists RESOLVED even when the gate blocks it, so the reason can
+  // be shown (api-spec 3.1). The server still enforces the gate (BR-20).
+  const blockers = ticket.resolutionBlockers ?? null;
+  const resolveBlocked = blockers !== null && ticket.availableTransitions.includes("RESOLVED");
 
   return (
     <aside className="zg-card zg-operations" data-testid="operations-card">
@@ -388,7 +461,8 @@ function OperationsCard({
               type="button"
               className={`zg-btn ${target === "CANCELLED" ? "zg-btn--destructive" : "zg-btn--secondary"}`}
               data-testid={`btn-transition-${target}`}
-              disabled={working}
+              disabled={working || (target === "RESOLVED" && resolveBlocked)}
+              aria-describedby={target === "RESOLVED" && resolveBlocked ? RESOLUTION_NOTICE_ID : undefined}
               aria-busy={busy === `status-${target}` ? "true" : undefined}
               onClick={() => onTransition(target)}
             >
@@ -396,19 +470,48 @@ function OperationsCard({
             </button>
           ))}
         </div>
+        {resolveBlocked && (
+          <p className="zg-notice-blocked" id={RESOLUTION_NOTICE_ID} data-testid="notice-resolution-blocked">
+            Can't resolve yet: {blockers.openActions} action(s) open, {blockers.outstandingFollowUps} follow-up(s)
+            outstanding. <a href="#actions">Go to Actions Taken</a>
+          </p>
+        )}
       </div>
     </aside>
   );
 }
 
-type Tab = "comments" | "notes";
+type Tab = "comments" | "notes" | "history";
+const TAB_ORDER: Tab[] = ["comments", "notes", "history"];
 
-function ConversationCard({ ticketId, closed }: { ticketId: string; closed: boolean }) {
+function ConversationCard({ ticketId, closed, historyKey }: { ticketId: string; closed: boolean; historyKey: unknown }) {
   const [tab, setTab] = useState<Tab>("comments");
   const [comments, setComments] = useState<CommentOrNote[] | null>(null);
   const [notes, setNotes] = useState<CommentOrNote[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const tabRefs = { comments: useRef<HTMLButtonElement>(null), notes: useRef<HTMLButtonElement>(null) };
+  const [history, setHistory] = useState<{ events: HistoryEvent[]; users: Record<string, string> } | null>(null);
+  const [historyFailed, setHistoryFailed] = useState(false);
+  const tabRefs = {
+    comments: useRef<HTMLButtonElement>(null),
+    notes: useRef<HTMLButtonElement>(null),
+    history: useRef<HTMLButtonElement>(null),
+  };
+
+  // Lab 4 History tab (docs/lab-04/ui-spec.md section 6), re-read whenever the
+  // ticket's version moves so it follows every change made on this screen.
+  const loadHistory = useCallback(async () => {
+    try {
+      const { data, users } = await workflowApi.fetchHistory(ticketId);
+      setHistory({ events: data, users });
+      setHistoryFailed(false);
+    } catch {
+      setHistoryFailed(true);
+    }
+  }, [ticketId]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory, historyKey]);
 
   const load = useCallback(async () => {
     setFailed(false);
@@ -425,11 +528,12 @@ function ConversationCard({ ticketId, closed }: { ticketId: string; closed: bool
     void load();
   }, [load]);
 
-  // WAI-ARIA tabs: arrow keys move between the two tabs (ui-spec 10).
+  // WAI-ARIA tabs: arrow keys move between the tabs, wrapping at either end (ui-spec 10).
   function onTabKey(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
-    const next: Tab = tab === "comments" ? "notes" : "comments";
+    const step = event.key === "ArrowRight" ? 1 : -1;
+    const next = TAB_ORDER[(TAB_ORDER.indexOf(tab) + step + TAB_ORDER.length) % TAB_ORDER.length];
     setTab(next);
     tabRefs[next].current?.focus();
   }
@@ -469,6 +573,21 @@ function ConversationCard({ ticketId, closed }: { ticketId: string; closed: bool
         >
           Internal Notes ({notes?.length ?? 0})
         </button>
+        <button
+          ref={tabRefs.history}
+          type="button"
+          role="tab"
+          id="tab-history"
+          className="zg-tab"
+          data-testid="tab-history"
+          aria-selected={tab === "history"}
+          aria-controls="panel-history"
+          tabIndex={tab === "history" ? 0 : -1}
+          onClick={() => setTab("history")}
+          onKeyDown={onTabKey}
+        >
+          History ({history?.events.length ?? 0})
+        </button>
       </div>
 
       {failed && (
@@ -483,7 +602,22 @@ function ConversationCard({ ticketId, closed }: { ticketId: string; closed: bool
       )}
 
       {/* Only the active panel is rendered, so only one composer exists. */}
-      {tab === "comments" ? (
+      {tab === "history" ? (
+        // Read-only: no composer and no primary button (ui-spec 6).
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history">
+          {historyFailed && (
+            <div>
+              <Callout variant="error" testId="history-error">
+                We couldn't load the history. Try again.
+              </Callout>
+              <button type="button" className="zg-btn zg-btn--secondary" onClick={() => void loadHistory()}>
+                Retry
+              </button>
+            </div>
+          )}
+          {history !== null && <HistoryList events={history.events} users={history.users} />}
+        </div>
+      ) : tab === "comments" ? (
         <div role="tabpanel" id="panel-comments" aria-labelledby="tab-comments">
           {comments !== null && <EntryList entries={comments} kind="comment" emptyText="No comments yet." />}
           {closed ? (
