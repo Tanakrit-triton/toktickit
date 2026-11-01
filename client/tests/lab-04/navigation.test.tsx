@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { CurrentUser } from "../../src/lab-03/auth-api.js";
 import { ADMINISTRATOR, IT_STAFF, REQUESTER, mockStartupSession, renderApp } from "../lab-03/helpers.js";
@@ -84,6 +84,8 @@ describe("UI-20 (AC-29) - Dashboard navigation", () => {
     ["IT Staff", IT_STAFF, "/staff/queue"],
   ] as const)("keeps the Lab 3 landing at / for the %s (DEC-11)", async (_role, user, landing) => {
     await openAs(user, "/");
-    expect(screen.getByTestId("location")).toHaveTextContent(new RegExp(`^${landing}$`));
+    // The redirect from / runs in an effect after the shell renders, so the
+    // location is polled until it settles rather than read once.
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(new RegExp(`^${landing}$`)));
   });
 });

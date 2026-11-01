@@ -34,12 +34,14 @@ async function open(reply: Parameters<typeof fakeApi>[0][string]) {
   return api;
 }
 
-const CARDS = [
+// The cards that have a link. Updated recently and Resolved recently have
+// `link: null` (Amendment 7) and are covered by the describe block below.
+const LINKED_CARDS = [
   ["openTickets", "Open tickets", 3, "/tickets?statusGroup=ACTIVE"],
   ["waitingForMe", "Waiting for you", 1, "/tickets?status=WAITING_FOR_REQUESTER"],
-  ["updatedRecently", "Updated recently", 2, "/tickets?sortBy=updatedAt&sortOrder=desc"],
-  ["resolvedRecently", "Resolved recently", 1, "/tickets?statusGroup=DONE"],
 ] as const;
+
+const CARDS = ["openTickets", "waitingForMe", "updatedRecently", "resolvedRecently"] as const;
 
 describe("UI-05 (AC-24, AC-28) - populated Requester Dashboard", () => {
   it("shows the title, then the window line, then four cards in order", async () => {
@@ -49,13 +51,13 @@ describe("UI-05 (AC-24, AC-28) - populated Requester Dashboard", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByTestId("dashboard-window")).toHaveTextContent(WINDOW_LINE);
 
-    const cards = CARDS.map(([key]) => screen.getByTestId(`metric-${key}`));
+    const cards = CARDS.map((key) => screen.getByTestId(`metric-${key}`));
     for (let i = 1; i < cards.length; i++) {
       expect(cards[i - 1].compareDocumentPosition(cards[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
   });
 
-  it.each(CARDS)("renders %s as one link named \"{Label}: {n}. View list\" to the server's link", async (key, label, count, link) => {
+  it.each(LINKED_CARDS)("renders %s as one link named \"{Label}: {n}. View list\" to the server's link", async (key, label, count, link) => {
     await open(ok(requesterDashboard()));
     const card = await screen.findByRole("link", { name: `${label}: ${count}. View list` });
 
@@ -100,15 +102,10 @@ describe("UI-05 (AC-24, AC-28) - populated Requester Dashboard", () => {
 
 describe("UI-05 (AC-28, Amendment 7) - Requester cards without a drill-down", () => {
   it("renders Updated recently and Resolved recently with link null as sections with no link and no View list", async () => {
-    const base = requesterDashboard();
-    const data = {
-      ...base,
-      metrics: {
-        ...base.metrics,
-        updatedRecently: { ...base.metrics.updatedRecently, link: null },
-        resolvedRecently: { ...base.metrics.resolvedRecently, link: null },
-      },
-    };
+    // The shared fixture follows api-spec 5.1 after Amendment 7: both links are null.
+    const data = requesterDashboard();
+    expect(data.metrics.updatedRecently.link).toBeNull();
+    expect(data.metrics.resolvedRecently.link).toBeNull();
     await open(ok(data));
     await screen.findByTestId("metric-openTickets");
 

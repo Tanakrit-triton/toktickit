@@ -57,7 +57,7 @@ export function RequesterDashboard() {
       underTitle={(data) =>
         hasNothing(data) && (
           <p>
-            <Link to="/tickets/new" data-testid="link-create-ticket">
+            <Link to="/tickets/new" className="zg-dash-create-link" data-testid="link-create-ticket">
               Create a ticket
             </Link>
           </p>

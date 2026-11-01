@@ -282,8 +282,8 @@ check runs before any lookup (L3-BR-23).
 |---|---|---|---|
 | `openTickets` | Open tickets | count, status in Active | `/tickets?statusGroup=ACTIVE` |
 | `waitingForMe` | Waiting for you | count, status = `WAITING_FOR_REQUESTER` | `/tickets?status=WAITING_FOR_REQUESTER` |
-| `updatedRecently` | Updated recently | count, `updatedAt` in window | `/tickets?sortBy=updatedAt&sortOrder=desc` |
-| `resolvedRecently` | Resolved recently | count, status in Done and `resolvedAt` in window | `/tickets?statusGroup=DONE` |
+| `updatedRecently` | Updated recently | count, `updatedAt` in window | none (Amendment 7); the Recently updated list links to each ticket |
+| `resolvedRecently` | Resolved recently | count, status in Done and `resolvedAt` in window | none (Amendment 7); the Recently resolved list links to each ticket |
 | list `needsAttention` | Needs your attention | status = `WAITING_FOR_REQUESTER`, `updatedAt` desc | each item → `/tickets/{id}` |
 | list `recentlyUpdated` | Recently updated | `updatedAt` in window, `updatedAt` desc | each item → `/tickets/{id}` |
 | list `recentlyResolved` | Recently resolved | Done, `resolvedAt` in window, `resolvedAt` desc | each item → `/tickets/{id}` |
@@ -500,7 +500,7 @@ is unchanged (L3 api-spec §9).
 | AC-25 | Given the seeded database, when each Requester and IT Staff metric is retrieved, then its value equals an independent Prisma query implementing the Section 5.8 calculation. |
 | AC-26 | Given a ticket updated at 23:59 Asia/Bangkok seven days ago and another at 00:00 six days ago, when the dashboard is retrieved, then only the second counts as recent. |
 | AC-27 | Given a Requester with no tickets, or IT Staff with no open actions, when the dashboard renders, then each card shows 0 and each list shows its empty message. |
-| AC-28 | Given a dashboard card or list item, when it is activated by mouse or keyboard, then the matching filtered list or Ticket Detail opens, and the list's count matches the card. |
+| AC-28 | Given a dashboard card that has a link, or a list item, when it is activated by mouse or keyboard, then the matching filtered list or Ticket Detail opens, and the list's count matches the card. |
 | AC-29 | Given IT Staff, when the Requester Dashboard endpoint is called, then the response is 403. Given a Requester, when the IT Staff Dashboard endpoint is called, then the response is 403. Given an Administrator, then the IT Staff Dashboard includes user counts. |
 | AC-30 | Given each dashboard, when it is loading, fails, or is opened by the wrong role, then distinct loading, safe-failure with Retry, and forbidden states are shown. |
 | AC-31 | Given a seeded database with 1,000 additional tickets, when each dashboard endpoint is called 20 times, then the 95th-percentile response time is under 500 ms on the development machine. |
@@ -522,7 +522,7 @@ is unchanged (L3 api-spec §9).
 | AC-37 | Given each viewport width, when the dashboards and Ticket Details with Actions Taken render, then there is no horizontal page scrolling, clipping, or overlap. |
 | AC-38 | Given an action status, ticket status, or IT Priority badge, when it renders, then its value is conveyed by text as well as colour. Every computed colour appears in the token table. |
 | AC-39 | Given keyboard-only use, when the user moves through dashboards, the Actions Taken list, and the action dialogs, then every control is reachable, focus is visible, and dialogs trap and return focus. |
-| AC-40 | Given any screen, when it is used normally, then the browser console shows no errors, there are no broken links, and no placeholder text or unfinished control remains. |
+| AC-40 | Given any screen, when it is used normally, then the browser console shows no errors, there are no broken links, and no placeholder text or unfinished control remains. Browsers log every HTTP error response as a console error, so two are excluded and only these: the `401` from `GET /api/v1/auth/me` before sign-in, and a `4xx` the test causes on purpose, matched by exact URL and status (Amendment 8). |
 
 ---
 
@@ -595,6 +595,9 @@ on the final `main`.
 | Amendment 3 | #70, planning ACT-01 to ACT-17 | BR-34: `changes.actionAt` is `{ from, to }` in ISO 8601 UTC. api-spec §1.1 and §2.3: for an action PATCH, step 8 checks only the body shape, and every field rule runs at step e on the resulting action. api-spec §2.2: the idempotency lookup runs after the ticket is found and `clientRequestId` is a UUID, before other rules. | BR-34 gave no format for `actionAt`, which is neither a status-like field nor free text. §1.1 put all body validation before the 409 checks, but §2.3 put field rules after them, so a request such as a short description on a CANCELLED action had two possible answers (422 or 409). §2.2 did not place the idempotency lookup; placing it early keeps a retry returning its original action. |
 | Amendment 4 | #70, planning WF-01 to WF-12 | BR-27: the list of versioned changes is exhaustive; a Public Comment does not increment `version`. tests.md §4: the Lab 3 client and E2E callers of the owner, IT Priority, and status endpoints send `version` from #70, not #72. | BR-27 said "every change to the ticket row" and gave a list that left out comments, which BR-33 makes change the row. Once #70 requires `version`, a Lab 3 client that does not send it cannot change owner, IT Priority, or status, and the Lab 3 E2E suite fails; that suite must pass at the end of #70. |
 | Amendment 5 | #70, the Lab 3 E2E run (E2E-03) | tests.md: UI-31 added to §2.7, to #70's scope in §3, and to AC-18 in §5. Staff Ticket Detail uses a write's returned detail (claim, assign, IT Priority, status) before it re-enables its controls. | The screen re-enabled its controls before its re-fetch finished, so an operation sent at once carried the version from before the previous write, and the user's own change was reported as "changed by someone else" (`STALE_UPDATE`). No test covered that gap before E2E-03 found it. |
+| Amendment 6 | #73, starting the Issue | tests.md §3: #73 depends on #70, not #71. | The dashboards UI is tested against mocked api-spec §5 responses, so it needs only #70's routes and filters. E2E against the real dashboard endpoints is #74's, which depends on both. |
+| Amendment 7 | #73, the browser check | api-spec §5.1 and the §5.8 Requester table: `updatedRecently` and `resolvedRecently` have `link: null`, like `myOpenActions`. AC-28 applies to cards that have a link. | Their links (`/tickets?sortBy=updatedAt&sortOrder=desc` and `/tickets?statusGroup=DONE`) list every matching ticket, not only those in the recent window, so the list count did not match the card ("Updated recently" 0 against a list of 4 for Napat). The handout requires drill-down only where practical, and the Recently updated and Recently resolved lists already link to each ticket. |
+| Amendment 8 | #72 and #73 browser checks, #74 writing E2E-08 | AC-40 and E2E-08: a console line "Failed to load resource" is excused only for (1) the `401` from `GET /api/v1/auth/me` before sign-in, and (2) a `4xx` the test triggers on purpose, declared by exact URL and status. Each excused line must match a response the page received. Any other console error or warning fails. ui-spec §10 names STY-04 and E2E-08 (it said STY-10 and E2E-07, which do not exist). | Chrome logs every HTTP error response as a console error. The Lab 3 startup session check answers `401` before anyone signs in, on every visit to Login, so "no console error" could never pass. A test that provokes a `422` on purpose, such as E2E-02, would fail the same way. Matching by exact URL and status keeps every other error visible. |
 
 ### Carried deviations
 

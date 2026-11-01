@@ -267,7 +267,7 @@ export function StaffTicketDetail() {
           <section className="zg-card" data-testid="ticket-information">
             <h2 className="zg-section-title">Ticket information</h2>
             <div className="zg-grid-2">
-              <Field label="Ticket Date" value={new Date(ticket.ticketDate).toLocaleString()} />
+              <Field label="Ticket Date" value={formatBangkok(ticket.ticketDate)} />
               <Field label="Requester" value={`${ticket.requester.fullName} (${ticket.requester.email})`} />
               <Field label="Category" value={ticket.category.name} />
               <Field label="Related System" value={ticket.relatedSystem.name} />

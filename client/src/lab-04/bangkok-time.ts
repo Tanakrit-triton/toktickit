@@ -21,7 +21,9 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 /** "29 Oct 2026, 10:15". */
 export function formatBangkok(iso: string): string {
   const part = Object.fromEntries(PARTS.formatToParts(new Date(iso)).map((p) => [p.type, p.value]));
-  return `${part.day} ${MONTHS[Number(part.month) - 1]} ${part.year}, ${part.hour}:${part.minute}`;
+  // Number() drops the leading zero en-GB gives the day when a time is included,
+  // so the date reads "1 Sep 2026" like the dashboards' window line (ui-spec 3.1).
+  return `${Number(part.day)} ${MONTHS[Number(part.month) - 1]} ${part.year}, ${part.hour}:${part.minute}`;
 }
 
 /** A `datetime-local` value ("2026-10-29T10:15") for an instant. */

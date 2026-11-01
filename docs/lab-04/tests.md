@@ -76,7 +76,7 @@ The Final column reads Planned until #75 records results from `main`.
 | UT-03 | AC-08 | Edit policy for each action status and field, with and without a status change | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none; a status change from a terminal status is `INVALID_ACTION_TRANSITION`, checked before fields | `action-edit-policy.unit.test.ts` | Planned |
 | UT-04 | AC-14, AC-15 | Gate counting over action lists: none, all done, one open, one follow-up on a cancelled action, one follow-up on a completed action | Blockers `{open, followUps}` correct; cancelled follow-ups not counted | `resolution-gate.unit.test.ts` | Planned |
 | UT-05 | AC-16 | All 64 (from, to) ticket-status pairs against the spec §5.4 matrix, with the gate flag | Exactly the 18 listed pairs are allowed; the 4 into RESOLVED carry the gate | `ticket-transitions.unit.test.ts` | Planned |
-| UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, and 23:59:59 UTC on a fixed date, and across a month boundary | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
+| UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, 16:59:59.999, 17:00:00, and 23:59:59 UTC on a fixed date, and across a month, a year, and a February boundary. The Bangkok date changes at 17:00 UTC, so 16:59:59.999 and 17:00:00 UTC are the boundary pair | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
 | UT-07 | AC-28 | `status` and `statusGroup` parsing for My Tickets and the Queue: valid, invalid, both together, repeated | Valid accepted; others give a 400 message | `status-group-query.unit.test.ts` | Planned |
 
 ### 2.2 Migration and seed — `server/tests/lab-04/`
@@ -132,6 +132,11 @@ The Final column reads Planned until #75 records results from `main`.
 
 ### 2.5 API — Dashboards
 
+Shared helpers are in `server/tests/helpers/dashboard.ts`: an independent
+window calculation, the status groups, and the conversion of a card `link` to
+its API query. The tests never call the server's own dashboard code to get an
+expected value.
+
 `server/tests/lab-04/requester-dashboard.api.test.ts`
 
 | ID | AC | What it tests | Expected result | Final |
@@ -153,7 +158,7 @@ The Final column reads Planned until #75 records results from `main`.
 | DSS-04 | AC-25 | Open action on a ticket then cancelled | Not counted in `myOpenActions` | Planned |
 | DSS-05 | AC-29 | Requester; IT Staff; Administrator | 403; `users` null; `users` equal to counts from the User table | Planned |
 | DSS-06 | AC-28 | Follow `unassigned.link`, `ownedByMe.link`, one `byStatus` link | Queue `meta.totalItems` equals each count | Planned |
-| DSS-07 | AC-26 | `recentlyUpdated` window boundary, as DSR-04 | Same result | Planned |
+| DSS-07 | AC-26 | `recentlyUpdated` window boundary, as DSR-04. The staff list holds 5 items across all tickets, so the test moves every other in-window ticket's `updatedAt` out of the window for the test and restores it in `afterEach` (the Section 1 exception) | Same result | Planned |
 | PERF-01 | AC-31 | Seed 1,000 extra tickets with actions; 20 calls to each dashboard endpoint | p95 < 500 ms, logged with machine details | Planned (`dashboard.perf.test.ts`) |
 
 ### 2.6 API — Authorization and filters
@@ -168,13 +173,18 @@ The Final column reads Planned until #75 records results from `main`.
 
 ### 2.7 UI component — `client/tests/lab-04/`
 
+Shared mocked responses are in `client/tests/lab-04/action-fixtures.ts`
+(UI-08 to UI-19, STY-01), which extends the Lab 3 fixtures without editing
+them, and `client/tests/lab-04/dashboard-fixtures.ts` (UI-01 to UI-07, UI-20,
+UI-21).
+
 | ID | AC | What it tests | Expected result | File | Final |
 |---|---|---|---|---|---|
-| UI-01 | AC-28 | Staff dashboard renders cards, tables, and lists from a mocked response | Values shown; each card is a link to its `link`; list items link to Ticket Detail | `StaffDashboard.test.tsx` | Planned |
+| UI-01 | AC-28 | Staff dashboard renders cards, tables, and lists from a mocked response | Values shown; each card is a link to its `link`; list items link to Ticket Detail; My open actions uses the Actions Taken status badge (ui-spec §4.3) | `StaffDashboard.test.tsx` | Planned |
 | UI-02 | AC-27 | All-zero response | 0 and empty messages; no blank region | `StaffDashboard.test.tsx` | Planned |
 | UI-03 | AC-30 | Pending, 500, and 403 responses | Skeleton with `aria-busy`; error callout with Retry (Retry refetches); forbidden state | `StaffDashboard.test.tsx` | Planned |
 | UI-04 | AC-29 | Administrator response with `users`; IT Staff with `users: null` | User accounts card only for the Administrator | `StaffDashboard.test.tsx` | Planned |
-| UI-05 | AC-24, AC-28 | Requester dashboard populated | Four cards with accessible names "{Label}: {n}. View list"; three lists | `RequesterDashboard.test.tsx` | Planned |
+| UI-05 | AC-24, AC-28 | Requester dashboard populated | Four cards: Open tickets and Waiting for you are links with accessible names "{Label}: {n}. View list"; Updated recently and Resolved recently have `link: null` and render as sections with no link and no "View list" (Amendment 7); three lists | `RequesterDashboard.test.tsx` | Planned |
 | UI-06 | AC-27 | Requester all-zero | Empty messages and the "Create a ticket" link | `RequesterDashboard.test.tsx` | Planned |
 | UI-07 | AC-30 | Requester pending, 500, 403 | As UI-03 | `RequesterDashboard.test.tsx` | Planned |
 | UI-08 | AC-02, AC-10 | Actions list renders in the given order, with "(inactive)" and "Recorded by" | Row order matches; suffix and line shown | `ActionsTaken.test.tsx` | Planned |
@@ -187,30 +197,38 @@ The Final column reads Planned until #75 records results from `main`.
 | UI-15 | AC-09 | Staff view for NEW and RESOLVED tickets | Record button replaced by the locked message | `ActionsTaken.test.tsx` | Planned |
 | UI-16 | AC-22 | Detail with `resolutionBlockers` | Resolve disabled; reason text linked by `aria-describedby`; "Go to Actions Taken" link | `TicketWorkflow.test.tsx` | Planned |
 | UI-17 | AC-14 | Resolve returns 409 `RESOLUTION_BLOCKED` | Conflict callout with the server message; detail refetched | `TicketWorkflow.test.tsx` | Planned |
-| UI-18 | AC-18, AC-21 | Status, owner, and IT Priority requests; a reopen returning `STALE_UPDATE` | Each body carries the detail's `version`; Reload shown; reopen reason kept in the dialog | `TicketWorkflow.test.tsx` | Planned |
+| UI-18 | AC-18, AC-21 | Status, owner, and IT Priority requests; a reopen returning `STALE_UPDATE` | Each body carries the detail's `version`; Reload shown; reopen reason kept in the dialog. One more case: after an action save, the next ticket write carries the returned `ticketVersion` (Amendment 5 extended to action saves) | `TicketWorkflow.test.tsx` | Planned |
 | UI-19 | AC-23 | History tab | Sentences oldest first; "System" for a null actor; arrow keys move between the three tabs | `TicketWorkflow.test.tsx` | Planned |
 | UI-20 | AC-29 | Shell for each role | Dashboard nav first, with the right route; `aria-current` on the active item | `navigation.test.tsx` | Planned |
 | UI-21 | AC-28 | My Tickets and Queue opened with `?statusGroup=ACTIVE` | Chip "Showing: Open tickets"; Clear removes the parameter and refetches | `DrilldownFilter.test.tsx` | Planned |
 | UI-31 | AC-18 | Claim, assign, IT Priority, or status succeeds while the detail re-fetch is still pending, then a second operation is sent (Amendment 5) | The second request carries the `version` from the first write's response, not the version loaded before it | `staff-detail-version.test.tsx` | Planned |
+| UI-32 | — (ui-spec §4.2, §9) | Ticket Date on Requester and Staff Ticket Detail; Public Comment and Internal Note times (added in #74, from the #72 browser check) | Bangkok format "1 Sep 2026, 20:24", the same as action dates and History; `<time>` keeps the ISO value in `datetime` and `title` | `bangkok-times.test.tsx` | Planned |
 
-### 2.8 UI style — `client/tests/lab-04/theme.style.test.tsx`
+### 2.8 UI style — `client/tests/lab-04/`
 
-| ID | AC | What it tests | Expected result | Final |
-|---|---|---|---|---|
-| STY-01 | AC-38 | Action status badges and follow-up indicator | Glyph and text present; computed colours equal ui-spec §4.3 tokens | Planned |
-| STY-02 | AC-38, AC-39 | Metric card idle and focused | Token colours; focus border `--zg-primary` 2px | Planned |
-| STY-03 | AC-38 | Every computed colour on the Lab 4 screens | All in the token table | Planned |
-| STY-04 | AC-40 | Static scan of `client/src` | No `console.log`, "TODO", "lorem", or "coming soon"; no hex colour outside the token file | Planned |
+jsdom resolves no CSS custom property. Like the Lab 2 and Lab 3 style suites,
+STY-01 and STY-02 therefore assert the rendered text and class, and read the
+rule's token declarations from the stylesheet source. RSP-01 and RSP-05 check
+the painted result in a real browser. STY-03 needs resolved colours, so it runs
+in Playwright (`e2e/lab-04/theme.spec.ts`), in the desktop project.
+
+| ID | AC | What it tests | Expected result | File | Final |
+|---|---|---|---|---|---|
+| STY-01 | AC-38 | Action status badges and follow-up indicator | Glyph and text present; colours equal ui-spec §4.3 tokens | `actions-theme.style.test.tsx` | Planned |
+| STY-02 | AC-38, AC-39 | Metric card idle and focused | Token colours; focus border `--zg-primary` 2px | `dashboard-theme.style.test.tsx` | Planned |
+| STY-03 | AC-38 | Every computed colour on the Lab 4 screens (both dashboards, the Administrator dashboard, Staff Ticket Detail with History, the action dialog with errors, Requester Ticket Detail): text, background, drawn borders, shown outlines, and the accent colour of checkboxes | All in the token table | `e2e/lab-04/theme.spec.ts` | Planned |
+| STY-04 | AC-40 | Static scan of `client/src` | No `console.log`, "TODO", "lorem", or "coming soon"; no hex colour outside the token file | `theme.style.test.tsx` | Planned |
 
 ### 2.9 Responsive and accessibility — `e2e/lab-04/responsive.spec.ts`
 
 | ID | AC | What it tests | Expected result | Final |
 |---|---|---|---|---|
 | RSP-01 | AC-37 | Both dashboards at 1440, 834, and 390 px | `scrollWidth <= clientWidth`; no overlapping metric cards; screenshots saved | Planned |
-| RSP-02 | AC-37 | Staff Ticket Detail with 4 actions at three widths | Table at desktop and tablet, cards at mobile; no overflow | Planned |
+| RSP-02 | AC-37 | Staff Ticket Detail with 4 actions at three widths | Table at desktop and tablet, cards at mobile; no overflow; no button label broken across lines (added in #74 after "Detail / s" was found in the desktop capture) | Planned |
 | RSP-03 | AC-37 | Requester Ticket Detail with actions at three widths | No overflow; read-only | Planned |
 | RSP-04 | AC-37 | Action dialog at 390 px | Fully visible; actions stacked | Planned |
 | RSP-05 | AC-39 | Keyboard-only: Tab through both dashboards and the action dialog | Every control reached; visible focus ring; dialog traps focus and returns it to the opener | Planned |
+| RSP-06 | AC-37 | My Tickets and the Ticket Queue at 834 px, on the first page and on a ticket with a long summary (added in #74, from the #73 browser check) | Each table fits its 800 px container with the L2 §7 and L3 §9 tablet columns; the one-line Summary is capped at 240 px with the full text in `title` | Planned |
 
 ### 2.10 End-to-end — `e2e/lab-04/`
 
@@ -223,7 +241,7 @@ The Final column reads Planned until #75 records results from `main`.
 | E2E-05 | AC-23 | History tab after E2E-03; Requester view of the same ticket | Entries oldest first; no History tab or Internal Notes for the Requester | `ticket-resolution.spec.ts` | Planned |
 | E2E-06 | AC-24, AC-28 | Napat opens the dashboard and clicks "Waiting for you"; Pimchanok opens hers | Filtered My Tickets with the chip, row count equal to the card; all zeros for Pimchanok | `dashboards.spec.ts` | Planned |
 | E2E-07 | AC-28 | Arisa opens the dashboard, follows "Owned by me", then an item in "My open actions" | Queue filtered with the matching count; Ticket Detail opens scrolled to `#actions` | `dashboards.spec.ts` | Planned |
-| E2E-08 | AC-40 | For each role, visit every navigation item and dashboard link | No console error or warning; no not-found screen | `dashboards.spec.ts` | Planned |
+| E2E-08 | AC-40 | For each role, visit every navigation item and dashboard link | No console error or warning, except the two kinds Amendment 8 excludes; no not-found or forbidden screen | `dashboards.spec.ts` | Planned |
 | E2E-09 | AC-36 | Representative regression per role: Requester creates a ticket, uploads, downloads, comments; IT Staff claims, assigns, adds a note, transitions; Administrator creates and deactivates a user | Each step succeeds | `regression.spec.ts` | Planned |
 
 ### 2.11 Regression — existing suites
@@ -248,8 +266,8 @@ retargeted and no conflict is resolved repeatedly.
 | #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03, UI-31 (47) |
 | #71 | Dashboard API | #70 | AC-24–AC-29, AC-31 | UT-06, DSR-01–06, DSS-01–07, PERF-01 (15) |
 | #72 | Actions Taken and workflow UI | #70 | AC-01, AC-02, AC-05, AC-07–AC-12, AC-14, AC-18, AC-20–AC-23, AC-38 | UI-08–19, STY-01 (13) |
-| #73 | Dashboards UI, navigation, and drill-down filters | #71 | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
-| #74 | Final hardening: E2E, responsive, accessibility, regression, polish | #72, #73 | AC-03, AC-11, AC-14, AC-15, AC-18, AC-21–AC-24, AC-28, AC-35–AC-40 | STY-03, STY-04, RSP-01–05, E2E-01–09, REG-01–03 (19) |
+| #73 | Dashboards UI, navigation, and drill-down filters | #70 (Amendment 6) | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
+| #74 | Final hardening: E2E, responsive, accessibility, regression, polish | #72, #73 | AC-03, AC-11, AC-14, AC-15, AC-18, AC-21–AC-24, AC-28, AC-35–AC-40 | STY-03, STY-04, RSP-01–06, E2E-01–09, REG-01–03, UI-32 (21) |
 | #75 | Release: reviewer.md, ai-use.md, final results, `lab4-staging` → `main` | #74 | — | Runs every suite on `main` and fills Section 8 |
 
 **Boundaries.**
@@ -272,6 +290,8 @@ superseded. Their assertions about behaviour stay the same.
 | `e2e/lab-03/capture.ts`, `e2e/lab-03/responsive.spec.ts` (direct API setup calls) | #70 (Amendment 4): setup calls send `version` through a new `versioned()` helper in `capture.ts`. Edited: `ensureRealisticQueue()` and `workedTicket()` setup, and the CLOSED-ticket setup in `responsive.spec.ts`. | Unchanged |
 | `server/tests/lab-03/seed.api.test.ts` | Checked in #70. Lab 3 fixtures are unchanged, so no edit is expected. Any edit is recorded here. | Unchanged |
 | `server/tests/lab-03/migration.api.test.ts` | `lab3Migration()` filter bounded by `LAB3_LAST`, so the Lab 4 migration is not counted as a Lab 3 one. Edited: MIG-01 to MIG-04 (via the helper). Its drift check now runs against the Lab 4 schema. | Unchanged |
+
+| `e2e/lab-03/helpers.ts` `signIn()` | #74 (Issue #66): after the shell appears, it also waits until no element is `aria-busy`, so the landing screen's list request has finished before a caller navigates away. Every Lab 3 spec that signs in uses it; no test body changed. | Unchanged |
 
 #70 records the final list of edited test names in this table before it merges.
 
@@ -328,23 +348,26 @@ Every AC maps to at least one test. Status is filled in #75.
 
 ## 6. Visual and accessibility checklist
 
-Filled in #74 from the `ui-spec.md` §11 screenshots. ✓ = verified at that width.
+Filled in #74 from the `ui-spec.md` §11 screenshots, every one of which was
+looked at. Paths are relative to `artifacts/lab-04/screenshots/`.
+✓ = seen in the named screenshot at that width. T = proved at that width by
+the named test, with no screenshot at that width. — = not checked at that width.
 L2 rows 1–21 and L3 rows 23–31 are re-checked on the regression screenshots.
 
 | # | Check (ui-spec §12) | Desktop | Tablet | Mobile | Evidence |
 |---|---|---|---|---|---|
-| 32 | Dashboard nav present and active | | | | |
-| 33 | Metric cards: label, value, "View list" | | | | |
-| 34 | Zero metrics show 0 and a message | | | | |
-| 35 | Action and follow-up badges: glyph and text | | | | |
-| 36 | Read-only fields look read-only | | | | |
-| 37 | Validation under fields in the action dialog | | | | |
-| 38 | Disabled Resolve shows its reason | | | | |
-| 39 | Visible focus on cards, rows, toggles, dialogs | | | | |
-| 40 | No clipping or overlap in actions table and cards | | | | |
-| 41 | No horizontal scrolling at 390 px | | | | |
-| 42 | No private content on Requester screens | | | | |
-| 43 | No placeholder text, console errors, obsolete controls | | | | |
+| 32 | Dashboard nav present and active | ✓ | ✓ | T | `staff-dashboard/{desktop,tablet}-it-staff.png`, `requester-dashboard/{desktop,tablet}-populated.png`, `staff-dashboard/desktop-administrator.png` (Dashboard first, underlined). Mobile: the nav is behind Menu in `mobile-*.png`; UI-20 proves order and `aria-current` |
+| 33 | Metric cards: label, value, "View list" | ✓ | ✓ | ✓ | `staff-dashboard/{desktop,tablet,mobile}-it-staff.png`, `requester-dashboard/{desktop,tablet,mobile}-populated.png`. Cards with `link: null` (My open actions, Updated and Resolved recently) correctly have no "View list" (Amendment 7) |
+| 34 | Zero metrics show 0 and a message | ✓ | ✓ | ✓ | `requester-dashboard/desktop-empty.png`, `staff-dashboard/desktop-zero-open-actions.png`; "Updated recently 0 / No updates this week." in `requester-dashboard/{tablet,mobile}-populated.png` |
+| 35 | Action and follow-up badges: glyph and text | ✓ | ✓ | ✓ | `actions-taken/{desktop,tablet,mobile}-list.png` (◌ Planned, ◐ In Progress, ✓ Completed, ✕ Cancelled; ⚑ Follow-up required on desktop and mobile). At tablet the follow-up indicator is inside Details (ui-spec §7), so only the action badges show; STY-01 covers the indicator |
+| 36 | Read-only fields look read-only | ✓ | T | T | `actions-taken/desktop-requester-readonly.png`, `actions-taken/desktop-edit-complete.png` (status as a badge, performer as filled text), ticket information in `regression/desktop-staff-detail.png`. Tablet and mobile: RSP-03 (no input, select, or textarea in the Requester actions card) |
+| 37 | Validation under fields in the action dialog | ✓ | — | — | `actions-taken/desktop-validation.png`, `actions-taken/desktop-inactive-performer.png`; E2E-02 (`aria-describedby`, focus on the field). The dialog has one layout at every width, but no error state was captured at tablet or mobile |
+| 38 | Disabled Resolve shows its reason | ✓ | — | — | `workflow/desktop-resolve-blocked.png`; E2E-03 (`aria-describedby`). Not captured at tablet or mobile |
+| 39 | Visible focus on cards, rows, toggles, dialogs | T | — | — | RSP-05 at desktop: every control on both dashboards is reached by Tab and changes its look on focus; the action dialog traps focus and returns it to Record action. Focus rings are also visible on the focused fields in `regression/desktop-login.png` and `actions-taken/desktop-edit-complete.png` |
+| 40 | No clipping or overlap in actions table and cards | ✓ | ✓ | ✓ | `actions-taken/{desktop,tablet,mobile}-list.png`; RSP-02 at all three widths, including button labels on one line ("Details" wrapped to "Detail / s" at desktop until #74) |
+| 41 | No horizontal scrolling at 390 px | — | — | ✓ | `staff-dashboard/mobile-it-staff.png`, `requester-dashboard/mobile-populated.png`, `actions-taken/mobile-list.png`, `actions-taken/mobile-dialog.png`; RSP-01, RSP-02, RSP-04 (`scrollWidth` equals the viewport). The row applies to 390 px only |
+| 42 | No private content on Requester screens | ✓ | ✓ | ✓ | `actions-taken/desktop-requester-readonly.png` and `regression/desktop-requester-detail.png` (no Internal Notes or History tab); `requester-dashboard/{desktop,tablet,mobile}-populated.png`; E2E-05 |
+| 43 | No placeholder text, console errors, obsolete controls | ✓ | ✓ | ✓ | No placeholder or unfinished control in any §11 screenshot; STY-04 (static scan); E2E-08 (no console error or warning except Amendment 8's two, desktop only) |
 
 ---
 
@@ -406,4 +429,14 @@ Filled in #75 from a clean checkout of `main`.
 
 - **Ticket creation is not idempotent across a network retry** (L3-DEC-17 still holds). The busy state prevents double clicks. A retry after a lost response could create a duplicate ticket. This is not tested, because no protection exists to test.
 - **PERF-01 is a smoke test on one development machine**, not a load test. It catches an accidental N+1 query, not production capacity.
+- **An action recorded in a ticket's first minute is refused with its default date.** The action dialog defaults "Action date and time" to now, to the minute (a `datetime-local` field has no seconds). For a ticket filed less than a minute earlier, that is before the ticket's `createdAt`, and the server answers "The action cannot be earlier than the ticket." (BR-05). The user can choose the next minute. The E2E suite sets the next minute for this reason (`actionAtNextMinute` in `e2e/lab-04/lab4.ts`). Found in #74.
+- **The action dialog scrolls inside itself on short windows** (#72 browser check). At 900 px or less of height the dialog is taller than the window, so it is capped at the window height and scrolls. Nothing is clipped, and RSP-04 proves it fits the 390×844 viewport. After a `422`, focus moves to the failing field, which can scroll the title out of view.
+- **After Claim, the follow-up re-fetch resets an in-progress "Assign to" selection on Staff Ticket Detail.** A user who picks an assignee before the re-fetch lands must pick again. E2E-09 repeats the choice until it holds. Found by the #74 full E2E run.
+- **Visual notes from the #74 screenshot review, left unchanged.** None is clipping, overlap, or horizontal scrolling, so AC-37 holds, and each would change a Lab 2 or Lab 3 screen or the ui-spec wording:
+  - At 834 px the Requester header wraps "My Tickets", "Create Ticket", "Change password", and "Log out" onto two lines now that Dashboard is a fourth item (`requester-dashboard/tablet-populated.png`). The Lab 3 shell switches to the Menu button only below 768 px.
+  - The Actions Taken summary line reads "1 actions" for a single action, because ui-spec §4.2 gives the text as "{total} actions".
+  - The Ticket Queue's ticket-number links use the framework's default link blue (Lab 3 screen; STY-03 covers Lab 4 screens only).
+  - In the action dialog's conflict state, Reload ticket sits directly on the next field label with no gap.
+  - On the IT Staff Dashboard at desktop, the left column leaves a gap under "Tickets by status" when the right column is taller.
+- **The development database keeps the tickets the E2E suites create.** Every run adds tickets named after their test (for example "E2E-04 stale screen …"). They appear in dashboard lists in later screenshots. Re-running the seed restores the fixtures but does not remove them.
 - **Two new `TicketEventType` values survive rollback** (spec §7.4). MIG-05 proves they are the only difference between a rolled-back database and the Lab 3 schema. It compares schemas rather than running the Lab 3 suite, because that would need a second install of the Lab 3 dependencies (Amendment 2).

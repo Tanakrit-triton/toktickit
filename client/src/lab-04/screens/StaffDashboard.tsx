@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ItPriorityBadge, StatusBadge, priorityText, statusText } from "../../lab-03/components/Badges.js";
 import { fetchStaffDashboard, type StaffDashboardData, type UserCounts } from "../dashboard-api.js";
-import { DashboardActionBadge } from "../dashboard/DashboardActionBadge.js";
+import { ActionStatusBadge } from "../components/ActionBadges.js";
 import { DashboardFrame, DashboardList, MetricCard, MetricGrid, bangkokDate, useDashboard } from "../dashboard/parts.js";
 
 // IT Staff Dashboard, /staff/dashboard -- docs/lab-04/ui-spec.md section 3.3,
@@ -88,7 +88,7 @@ function Content({ data }: { data: StaffDashboardData }) {
       <>
         <span className="zg-mono">{a.ticketNumber}</span>
         <span className="zg-dash-row-text">{a.description}</span>
-        <DashboardActionBadge status={a.status} />
+        <ActionStatusBadge status={a.status} />
         <span className="zg-helper">{bangkokDate(a.actionAt)}</span>
       </>
     ),
