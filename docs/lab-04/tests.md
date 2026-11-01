@@ -299,50 +299,55 @@ superseded. Their assertions about behaviour stay the same.
 
 ## 5. Acceptance-criterion traceability
 
-Every AC maps to at least one test. Status is filled in #75.
+Every AC maps to at least one test. Status is filled in #75 from the final
+results on `lab4-staging` at `78e6ac4`: the server suite (48 files, 919 passed)
+and client suite (27 files, 412 passed) run in #75, and the #74 final E2E run
+on `76ece41` (92 tests: 76 passed, 0 failed, 16 skipped, all the declared
+Lab 2 viewport guards). `78e6ac4` and `76ece41` have identical trees. Passed
+means every test in the row passed in those runs; none of them is skipped.
 
 | AC | Tests | Status |
 |---|---|---|
-| AC-01 | ACT-01, ACT-17, UI-09, E2E-01 | Planned |
-| AC-02 | ACT-02, UI-08, E2E-01 | Planned |
-| AC-03 | ACT-03, E2E-02 | Planned |
-| AC-04 | ACT-04 | Planned |
-| AC-05 | UT-02, ACT-05, UI-10 | Planned |
-| AC-06 | UT-02, ACT-06 | Planned |
-| AC-07 | UT-01, ACT-07, UI-11 | Planned |
-| AC-08 | UT-03, ACT-08, UI-11 | Planned |
-| AC-09 | ACT-09, UI-15 | Planned |
-| AC-10 | ACT-10, UI-08 | Planned |
-| AC-11 | ACT-11, AUZ-01, AUZ-02, UI-13, E2E-01 | Planned |
-| AC-12 | ACT-12, UI-14 | Planned |
-| AC-13 | ACT-13, ACT-16, WF-11 | Planned |
-| AC-14 | UT-04, WF-01, WF-02, UI-17, E2E-03 | Planned |
-| AC-15 | UT-04, WF-03, E2E-03 | Planned |
-| AC-16 | UT-05, WF-04 | Planned |
-| AC-17 | WF-05 | Planned |
-| AC-18 | ACT-15, WF-06, WF-07, UI-18, UI-31, E2E-04 | Planned |
-| AC-19 | WF-08 | Planned |
-| AC-20 | ACT-14, UI-09 | Planned |
-| AC-21 | UI-12, UI-18, E2E-04 | Planned |
-| AC-22 | WF-09, WF-12, UI-16, E2E-03 | Planned |
-| AC-23 | WF-10, AUZ-01, UI-19, E2E-05 | Planned |
-| AC-24 | DSR-02, WF-11, UI-05, E2E-06 | Planned |
-| AC-25 | DSR-01, DSS-01, DSS-02, DSS-04 | Planned |
-| AC-26 | UT-06, DSR-04, DSS-07 | Planned |
-| AC-27 | DSR-03, DSS-03, UI-02, UI-06 | Planned |
-| AC-28 | UT-07, DSR-06, DSS-06, FLT-01–03, UI-01, UI-05, UI-21, E2E-06, E2E-07 | Planned |
-| AC-29 | DSR-05, DSS-05, AUZ-01, UI-04, UI-20 | Planned |
-| AC-30 | UI-03, UI-07 | Planned |
-| AC-31 | PERF-01 | Planned |
-| AC-32 | MIG-01–04 | Planned |
-| AC-33 | MIG-05 | Planned |
-| AC-34 | SEED-01, SEED-02 | Planned |
-| AC-35 | REG-01, REG-02, REG-03 | Planned |
-| AC-36 | E2E-09, REG-03 | Planned |
-| AC-37 | RSP-01–04 | Planned |
-| AC-38 | STY-01, STY-02, STY-03 | Planned |
-| AC-39 | STY-02, RSP-05 | Planned |
-| AC-40 | STY-04, E2E-08 | Planned |
+| AC-01 | ACT-01, ACT-17, UI-09, E2E-01 | Passed |
+| AC-02 | ACT-02, UI-08, E2E-01 | Passed |
+| AC-03 | ACT-03, E2E-02 | Passed |
+| AC-04 | ACT-04 | Passed |
+| AC-05 | UT-02, ACT-05, UI-10 | Passed |
+| AC-06 | UT-02, ACT-06 | Passed |
+| AC-07 | UT-01, ACT-07, UI-11 | Passed |
+| AC-08 | UT-03, ACT-08, UI-11 | Passed |
+| AC-09 | ACT-09, UI-15 | Passed |
+| AC-10 | ACT-10, UI-08 | Passed |
+| AC-11 | ACT-11, AUZ-01, AUZ-02, UI-13, E2E-01 | Passed |
+| AC-12 | ACT-12, UI-14 | Passed |
+| AC-13 | ACT-13, ACT-16, WF-11 | Passed |
+| AC-14 | UT-04, WF-01, WF-02, UI-17, E2E-03 | Passed |
+| AC-15 | UT-04, WF-03, E2E-03 | Passed |
+| AC-16 | UT-05, WF-04 | Passed |
+| AC-17 | WF-05 | Passed |
+| AC-18 | ACT-15, WF-06, WF-07, UI-18, UI-31, E2E-04 | Passed |
+| AC-19 | WF-08 | Passed |
+| AC-20 | ACT-14, UI-09 | Passed |
+| AC-21 | UI-12, UI-18, E2E-04 | Passed |
+| AC-22 | WF-09, WF-12, UI-16, E2E-03 | Passed |
+| AC-23 | WF-10, AUZ-01, UI-19, E2E-05 | Passed |
+| AC-24 | DSR-02, WF-11, UI-05, E2E-06 | Passed |
+| AC-25 | DSR-01, DSS-01, DSS-02, DSS-04 | Passed |
+| AC-26 | UT-06, DSR-04, DSS-07 | Passed |
+| AC-27 | DSR-03, DSS-03, UI-02, UI-06 | Passed |
+| AC-28 | UT-07, DSR-06, DSS-06, FLT-01–03, UI-01, UI-05, UI-21, E2E-06, E2E-07 | Passed |
+| AC-29 | DSR-05, DSS-05, AUZ-01, UI-04, UI-20 | Passed |
+| AC-30 | UI-03, UI-07 | Passed |
+| AC-31 | PERF-01 | Passed |
+| AC-32 | MIG-01–04 | Passed |
+| AC-33 | MIG-05 | Passed |
+| AC-34 | SEED-01, SEED-02 | Passed |
+| AC-35 | REG-01, REG-02, REG-03 | Passed |
+| AC-36 | E2E-09, REG-03 | Passed |
+| AC-37 | RSP-01–04 | Passed |
+| AC-38 | STY-01, STY-02, STY-03 | Passed |
+| AC-39 | STY-02, RSP-05 | Passed |
+| AC-40 | STY-04, E2E-08 | Passed |
 
 ---
 
@@ -414,7 +419,8 @@ Screenshots are written to `artifacts/lab-04/screenshots/` by
 
 ## 8. Final results
 
-Filled in #75 from a clean checkout of `main`.
+Filled from a clean checkout of `main` after the release PR merges. The
+#75 docs PR merges before the release, so this table is still empty in it.
 
 | Suite | Files | Tests | Passed | Failed | Skipped | Commit |
 |---|---|---|---|---|---|---|
