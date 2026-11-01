@@ -98,6 +98,42 @@ describe("UI-05 (AC-24, AC-28) - populated Requester Dashboard", () => {
   });
 });
 
+describe("UI-05 (AC-28, Amendment 7) - Requester cards without a drill-down", () => {
+  it("renders Updated recently and Resolved recently with link null as sections with no link and no View list", async () => {
+    const base = requesterDashboard();
+    const data = {
+      ...base,
+      metrics: {
+        ...base.metrics,
+        updatedRecently: { ...base.metrics.updatedRecently, link: null },
+        resolvedRecently: { ...base.metrics.resolvedRecently, link: null },
+      },
+    };
+    await open(ok(data));
+    await screen.findByTestId("metric-openTickets");
+
+    for (const [key, label, count] of [
+      ["updatedRecently", "Updated recently", 2],
+      ["resolvedRecently", "Resolved recently", 1],
+    ] as const) {
+      const card = screen.getByTestId(`metric-${key}`);
+      expect(card.tagName, key).toBe("SECTION");
+      expect(card, key).not.toHaveAttribute("href");
+      expect(within(card).queryByRole("link"), key).not.toBeInTheDocument();
+      expect(card, key).not.toHaveTextContent(/View list/);
+      expect(card, key).toHaveTextContent(label);
+      expect(screen.getByTestId(`metric-value-${key}`), key).toHaveTextContent(String(count));
+    }
+
+    // The cards that keep a link are unchanged.
+    expect(screen.getByRole("link", { name: "Open tickets: 3. View list" })).toHaveAttribute("href", "/tickets?statusGroup=ACTIVE");
+    expect(screen.getByRole("link", { name: "Waiting for you: 1. View list" })).toHaveAttribute(
+      "href",
+      "/tickets?status=WAITING_FOR_REQUESTER",
+    );
+  });
+});
+
 describe("UI-06 (AC-27) - all-zero Requester Dashboard", () => {
   it("shows 0 with each card's empty message and each list's empty message", async () => {
     await open(ok(EMPTY_REQUESTER_DASHBOARD()));
