@@ -1,0 +1,391 @@
+/*
+ * Dashboards and the drill-down filter chip (#73).
+ * docs/lab-04/ui-spec.md sections 1, 3, 7, and 8. No new tokens: every value
+ * is a Zen Green token from src/lab-02/styles/zen-green.css.
+ *
+ * Breakpoints follow the Lab 2 and Lab 3 stylesheets: desktop >= 992px,
+ * tablet 768-991px, mobile < 768px.
+ */
+
+/* ---- Shared layout (ui-spec 3.1) -------------------------------------- */
+
+.zg-dash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zg-space-4);
+  min-width: 0;
+}
+
+.zg-dash > .zg-title {
+  margin-bottom: 0;
+}
+
+.zg-dash-window {
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+  margin: 0;
+}
+
+.zg-dash-empty {
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+  margin: 0;
+}
+
+/* ---- Metric cards ------------------------------------------------------ */
+
+.zg-dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--zg-space-4);
+}
+
+.zg-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zg-space-1);
+  min-width: 0;
+  min-height: 136px;
+  /* One pixel of padding is given back when the border grows to 2px, so a
+     hovered or focused card does not shift its contents. */
+  padding: var(--zg-space-4);
+  background: var(--zg-surface);
+  border: 1px solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  box-shadow: var(--zg-shadow-card);
+  color: var(--zg-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+a.zg-metric-card:hover {
+  border: 2px solid var(--zg-primary);
+  padding: calc(var(--zg-space-4) - 1px);
+  color: var(--zg-text);
+  text-decoration: none;
+}
+
+a.zg-metric-card:focus-visible {
+  border: 2px solid var(--zg-primary);
+  padding: calc(var(--zg-space-4) - 1px);
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+.zg-metric-label {
+  font: var(--zg-font-label);
+  color: var(--zg-text-muted);
+  margin: 0;
+}
+
+.zg-metric-value {
+  font: var(--zg-font-h1);
+  color: var(--zg-primary);
+}
+
+.zg-dash-view {
+  margin-top: auto;
+  font: var(--zg-font-small);
+  color: var(--zg-primary);
+}
+
+/* Skeleton cards keep the final card size (ui-spec 3.4). */
+.zg-dash-skeleton {
+  background: var(--zg-readonly-bg);
+  box-shadow: none;
+}
+
+.zg-dash-skeleton-text {
+  grid-column: 1 / -1;
+}
+
+/* ---- Administrator user accounts (DEC-10: no link) --------------------- */
+
+.zg-dash-users .zg-metric-label {
+  font: var(--zg-font-label);
+}
+
+.zg-dash-users-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--zg-space-2) var(--zg-space-3);
+  margin: 0;
+}
+
+.zg-dash-users-list dt {
+  font: var(--zg-font-small);
+  color: var(--zg-text-muted);
+  font-weight: 400;
+}
+
+.zg-dash-users-list dd {
+  font: var(--zg-font-h3);
+  color: var(--zg-primary);
+  margin: 0;
+}
+
+/* ---- List and table cards ---------------------------------------------- */
+
+.zg-dash-card {
+  background: var(--zg-surface);
+  border: 1px solid var(--zg-border);
+  border-radius: var(--zg-radius-md);
+  box-shadow: var(--zg-shadow-card);
+  padding: var(--zg-space-4);
+  min-width: 0;
+}
+
+.zg-dash-card-title {
+  font: var(--zg-font-h3);
+  color: var(--zg-text);
+  margin: 0 0 var(--zg-space-3);
+}
+
+.zg-dash-lists {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--zg-space-4);
+}
+
+.zg-dash-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.zg-dash-rows li + li {
+  border-top: 1px solid var(--zg-border);
+}
+
+.zg-dash-row {
+  display: flex;
+  align-items: center;
+  gap: var(--zg-space-3);
+  min-height: 44px;
+  padding: var(--zg-space-2) 0;
+  color: var(--zg-text);
+  text-decoration: none;
+  min-width: 0;
+}
+
+/* The Ticket Number never breaks inside itself. */
+.zg-dash-row .zg-mono {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.zg-dash-row:hover .zg-dash-row-text {
+  text-decoration: underline;
+}
+
+.zg-dash-row:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Summary or description: one line with an ellipsis (ui-spec 3.1). */
+.zg-dash-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zg-dash-count-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.zg-dash-count-table th {
+  font: var(--zg-font-label);
+  color: var(--zg-text-muted);
+  text-align: left;
+  padding: var(--zg-space-1) 0;
+}
+
+.zg-dash-count-table th:last-child,
+.zg-dash-count-table td:last-child {
+  text-align: right;
+}
+
+.zg-dash-count-table td {
+  border-top: 1px solid var(--zg-border);
+  padding: var(--zg-space-2) 0;
+}
+
+.zg-dash-count-table a {
+  display: inline-block;
+  min-width: 44px;
+  min-height: 32px;
+  font-weight: 600;
+  color: var(--zg-primary);
+}
+
+.zg-dash-count-table a:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---- IT Staff layout (ui-spec 3.3) --------------------------------------
+ * DOM order is the one-column order. On desktop the tables move to the left
+ * column (4/12) and the lists to the right (8/12). The flexible third row
+ * takes up the difference in column heights, so each column packs tightly
+ * instead of opening a gap under a short list. */
+
+.zg-dash-staff-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "status actions"
+    "status urgent"
+    "status recent"
+    "priority recent";
+  gap: var(--zg-space-4);
+  align-items: start;
+}
+
+.zg-dash-area-actions { grid-area: actions; min-width: 0; }
+.zg-dash-area-urgent { grid-area: urgent; min-width: 0; }
+.zg-dash-area-status { grid-area: status; min-width: 0; }
+.zg-dash-area-priority { grid-area: priority; min-width: 0; }
+.zg-dash-area-recent { grid-area: recent; min-width: 0; }
+
+/* ---- Action status badge, dashboard-only (ui-spec 4.3) -----------------
+ * Replaced by #72's badge in #74. */
+
+.zg-dash-action-badge--planned {
+  background: var(--zg-surface);
+  color: var(--zg-secondary);
+  border: 1px solid var(--zg-secondary);
+}
+
+.zg-dash-action-badge--in-progress {
+  background: var(--zg-secondary);
+  color: var(--zg-surface);
+}
+
+.zg-dash-action-badge--completed {
+  background: var(--zg-pale);
+  color: var(--zg-success);
+}
+
+.zg-dash-action-badge--cancelled {
+  background: var(--zg-disabled-bg);
+  color: var(--zg-text-muted);
+  border: 1px solid var(--zg-border);
+}
+
+/* ---- Drill-down filter chip (ui-spec 3.5, 7) ---------------------------- */
+
+.zg-dash-chip-row {
+  margin: 0 0 var(--zg-space-3);
+}
+
+.zg-dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zg-space-2);
+  max-width: 100%;
+  padding: var(--zg-space-1) var(--zg-space-1) var(--zg-space-1) var(--zg-space-3);
+  background: var(--zg-pale);
+  color: var(--zg-primary);
+  border: 1px solid var(--zg-primary);
+  border-radius: var(--zg-radius-lg);
+  font: var(--zg-font-small);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.zg-dash-chip-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  background: transparent;
+  color: var(--zg-primary);
+  border: 0;
+  border-radius: var(--zg-radius-sm);
+  font: var(--zg-font-body);
+  cursor: pointer;
+}
+
+.zg-dash-chip-clear:hover {
+  background: var(--zg-surface);
+}
+
+.zg-dash-chip-clear:focus-visible {
+  outline: 3px solid var(--zg-focus-ring);
+  outline-offset: 1px;
+}
+
+/* ---- Tablet ------------------------------------------------------------ */
+
+@media (max-width: 991.98px) {
+  .zg-dash-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .zg-dash-lists,
+  .zg-dash-staff-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: none;
+  }
+
+  .zg-dash-area-actions,
+  .zg-dash-area-urgent,
+  .zg-dash-area-status,
+  .zg-dash-area-priority,
+  .zg-dash-area-recent {
+    grid-area: auto;
+  }
+}
+
+/* ---- Mobile ------------------------------------------------------------ */
+
+@media (max-width: 767.98px) {
+  .zg-dash-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .zg-metric-card {
+    min-height: 0;
+  }
+
+  /* Number and badge on the first line, the summary on its own line. */
+  .zg-dash-row {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: var(--zg-space-1);
+  }
+
+  .zg-dash-row .zg-dash-row-text {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .zg-dash-count-table a {
+    min-height: 44px;
+    line-height: 44px;
+  }
+
+  .zg-dash-chip-row,
+  .zg-dash-chip {
+    display: flex;
+    width: 100%;
+  }
+
+  .zg-dash-chip > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .zg-dash-chip-clear {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

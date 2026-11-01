@@ -1,12 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import * as api from "../api.js";
 import type { ReferenceItem, TicketListPage, TicketListParams } from "../api.js";
 import { useAuth } from "../../lab-03/AuthContext.js";
 import { MOBILE_QUERY, useMediaQuery } from "../useMediaQuery.js";
-import { StatusBadge } from "../../lab-03/components/Badges.js";
+import { StatusBadge, statusText } from "../../lab-03/components/Badges.js";
+import { FilterChip } from "../../lab-04/FilterChip.js";
+import {
+  TICKET_STATUSES,
+  groupLabel,
+  parseOneOf,
+  parseStatusGroup,
+  useSearchParamChanges,
+  withPatch,
+  type StatusGroup,
+} from "../../lab-04/drilldown.js";
 
 // My Tickets -- ui-spec.md section 5.4.
+//
+// Lab 4 (#73): reads the dashboard drill-down parameters `status`,
+// `statusGroup`, `sortBy`, and `sortOrder` from the URL (docs/lab-04/ui-spec.md
+// section 3.5). This screen has no status select, so either status filter is
+// shown by the filter chip.
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZES = [10, 20, 50] as const;
@@ -57,6 +72,9 @@ interface Filters {
   categoryId: string;
   relatedSystemId: string;
   requestedPriority: string;
+  /** Drill-down only (Lab 4): set from the URL, never both at once. */
+  status: string;
+  statusGroup: StatusGroup | "";
   sort: SortKey;
   page: number;
   pageSize: number;
@@ -67,10 +85,34 @@ const DEFAULTS: Filters = {
   categoryId: "",
   relatedSystemId: "",
   requestedPriority: "",
+  status: "",
+  statusGroup: "",
   sort: DEFAULT_SORT,
   page: 1,
   pageSize: 10,
 };
+
+/** The URL parameters a Requester Dashboard link may carry (docs/lab-04/api-spec.md 5.1). */
+const URL_KEYS = ["status", "statusGroup", "sortBy", "sortOrder"] as const;
+
+/**
+ * The drill-down part of the filters, from the URL. An unknown value is
+ * ignored rather than sent, and `status` wins over `statusGroup` so the two
+ * are never sent together (api-spec 4.1).
+ */
+function fromUrl(params: URLSearchParams): Pick<Filters, "status" | "statusGroup" | "sort"> {
+  const status = parseOneOf(params.get("status"), TICKET_STATUSES);
+  const sortBy = params.get("sortBy");
+  const sortOrder = params.get("sortOrder");
+  const sort = (Object.keys(SORTS) as SortKey[]).find(
+    (key) => SORTS[key].sortBy === sortBy && SORTS[key].sortOrder === sortOrder,
+  );
+  return {
+    status,
+    statusGroup: status === "" ? parseStatusGroup(params.get("statusGroup")) : "",
+    sort: sort ?? DEFAULT_SORT,
+  };
+}
 
 /** True when anything has been applied, which is what reveals Clear Filters. */
 function isFiltered(f: Filters): boolean {
@@ -79,17 +121,21 @@ function isFiltered(f: Filters): boolean {
     f.categoryId !== "" ||
     f.relatedSystemId !== "" ||
     f.requestedPriority !== "" ||
+    f.status !== "" ||
+    f.statusGroup !== "" ||
     f.sort !== DEFAULT_SORT
   );
 }
 
-function toParams(f: Filters): TicketListParams {
+function toParams(f: Filters): TicketListParams & { status?: string; statusGroup?: string } {
   const sort = SORTS[f.sort];
   return {
     ...(f.q.trim() === "" ? {} : { q: f.q.trim() }),
     ...(f.categoryId === "" ? {} : { categoryId: Number(f.categoryId) }),
     ...(f.relatedSystemId === "" ? {} : { relatedSystemId: Number(f.relatedSystemId) }),
     ...(f.requestedPriority === "" ? {} : { requestedPriority: f.requestedPriority }),
+    ...(f.status === "" ? {} : { status: f.status }),
+    ...(f.statusGroup === "" ? {} : { statusGroup: f.statusGroup }),
     sortBy: sort.sortBy,
     sortOrder: sort.sortOrder,
     page: f.page,
@@ -101,7 +147,36 @@ export function MyTickets() {
   // The signed-in Requester (Lab 3 #38); the route guard admits no other role.
   const { user: requester } = useAuth();
   const isMobile = useMediaQuery(MOBILE_QUERY);
-  const [filters, setFilters] = useState<Filters>(DEFAULTS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filters, setFilters] = useState<Filters>(() => ({ ...DEFAULTS, ...fromUrl(searchParams) }));
+
+  // A later URL change (the chip, or a link to this same screen) updates only
+  // the drill-down fields it changed; the other controls keep their values.
+  useSearchParamChanges(URL_KEYS, (changed, params) => {
+    const next = fromUrl(params);
+    setFilters((prev) =>
+      withPatch(prev, {
+        ...(changed.has("status") || changed.has("statusGroup")
+          ? { status: next.status, statusGroup: next.statusGroup }
+          : {}),
+        ...(changed.has("sortBy") || changed.has("sortOrder") ? { sort: next.sort } : {}),
+      }),
+    );
+  });
+
+  /** Removes drill-down parameters from the URL; the hook above applies it. */
+  const dropFromUrl = useCallback(
+    (keys: readonly string[]) =>
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const key of keys) next.delete(key);
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
   const [debouncedQ, setDebouncedQ] = useState("");
   const [categories, setCategories] = useState<ReferenceItem[]>([]);
   const [systems, setSystems] = useState<ReferenceItem[]>([]);
@@ -185,7 +260,11 @@ export function MyTickets() {
   function clearFilters() {
     setFilters(DEFAULTS);
     setDebouncedQ("");
+    dropFromUrl(URL_KEYS);
   }
+
+  const chipLabel =
+    filters.statusGroup !== "" ? groupLabel(filters.statusGroup) : filters.status !== "" ? statusText(filters.status) : null;
 
   const meta = result?.meta;
   const rows = result?.data ?? [];
@@ -303,6 +382,8 @@ export function MyTickets() {
       </div>
 
       {controlBar}
+
+      {chipLabel !== null && <FilterChip label={chipLabel} onClear={() => dropFromUrl(["status", "statusGroup"])} />}
 
       {loading && (
         <div className="zg-skeleton-list" data-testid="state-loading" aria-busy="true">

@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../AuthContext.js";
+import { FilterChip } from "../../lab-04/FilterChip.js";
+import {
+  groupLabel,
+  parseOneOf,
+  parseStatusGroup,
+  useSearchParamChanges,
+  withPatch,
+  type StatusGroup,
+} from "../../lab-04/drilldown.js";
 import { landingFor } from "../routes.js";
 import { AppearsResolvedIndicator, ItPriorityBadge, StatusBadge, priorityText, statusText } from "../components/Badges.js";
 import { Callout } from "../components/Callout.js";
@@ -15,6 +24,10 @@ import { MOBILE_QUERY, useMediaQuery } from "../../lab-02/useMediaQuery.js";
 // IT Staff Ticket Queue -- docs/lab-03/ui-spec.md section 6.4, against
 // api-spec.md section 5.1. The control bar, states, and pagination follow My
 // Tickets (L2 ui-spec 5.4) and reuse its test hooks.
+//
+// Lab 4 (#73): reads the IT Staff Dashboard drill-down parameters from the URL
+// (docs/lab-04/ui-spec.md section 3.5). `status`, `itPriority`, and `owner`
+// set their selects; `statusGroup` has no select, so the filter chip shows it.
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZES = [10, 20, 50] as const;
@@ -44,6 +57,8 @@ interface Filters {
   itPriority: string;
   categoryId: string;
   owner: string;
+  /** Drill-down only (Lab 4): from the URL, and never sent with `status`. */
+  statusGroup: StatusGroup | "";
   sort: SortKey;
   page: number;
   pageSize: number;
@@ -55,16 +70,39 @@ const DEFAULTS: Filters = {
   itPriority: "",
   categoryId: "",
   owner: "",
+  statusGroup: "",
   sort: DEFAULT_SORT,
   page: 1,
   pageSize: 20,
 };
+
+/** The URL parameters an IT Staff Dashboard link may carry (docs/lab-04/api-spec.md 5.2). */
+const URL_KEYS = ["status", "statusGroup", "itPriority", "owner"] as const;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * The drill-down part of the filters, from the URL. Unknown values are
+ * ignored rather than sent, and `status` wins over `statusGroup` so the two
+ * are never sent together (api-spec 4.2).
+ */
+function fromUrl(params: URLSearchParams): Pick<Filters, (typeof URL_KEYS)[number]> {
+  const status = parseOneOf(params.get("status"), STATUSES);
+  const owner = params.get("owner") ?? "";
+  return {
+    status,
+    statusGroup: status === "" ? parseStatusGroup(params.get("statusGroup")) : "",
+    itPriority: parseOneOf(params.get("itPriority"), PRIORITIES),
+    owner: owner === "me" || owner === "unassigned" || UUID.test(owner) ? owner : "",
+  };
+}
 
 /** True when anything has been applied, which is what reveals Clear Filters. */
 function isFiltered(f: Filters): boolean {
   return (
     f.q.trim() !== "" ||
     f.status !== "" ||
+    f.statusGroup !== "" ||
     f.itPriority !== "" ||
     f.categoryId !== "" ||
     f.owner !== "" ||
@@ -72,11 +110,12 @@ function isFiltered(f: Filters): boolean {
   );
 }
 
-function toParams(f: Filters): QueueParams {
+function toParams(f: Filters): QueueParams & { statusGroup?: string } {
   const sort = SORTS[f.sort];
   return {
     ...(f.q.trim() === "" ? {} : { q: f.q.trim() }),
     ...(f.status === "" ? {} : { status: f.status }),
+    ...(f.statusGroup === "" ? {} : { statusGroup: f.statusGroup }),
     ...(f.itPriority === "" ? {} : { itPriority: f.itPriority }),
     ...(f.categoryId === "" ? {} : { categoryId: Number(f.categoryId) }),
     ...(f.owner === "" ? {} : { owner: f.owner }),
@@ -91,10 +130,34 @@ type LoadState = "loading" | "ready" | "failed" | "forbidden";
 export function StaffTicketQueue() {
   const { user } = useAuth();
   const isMobile = useMediaQuery(MOBILE_QUERY);
-  const [filters, setFilters] = useState<Filters>(DEFAULTS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filters, setFilters] = useState<Filters>(() => ({ ...DEFAULTS, ...fromUrl(searchParams) }));
   const [debouncedQ, setDebouncedQ] = useState("");
   const [categories, setCategories] = useState<ReferenceItem[]>([]);
   const [assignees, setAssignees] = useState<Assignee[]>([]);
+
+  // A later URL change (the chip, or a link to this same screen) updates only
+  // the fields whose parameters changed; the other controls keep their values.
+  useSearchParamChanges(URL_KEYS, (changed, params) => {
+    const next = fromUrl(params);
+    const patch: Partial<Filters> = {};
+    for (const key of URL_KEYS) if (changed.has(key)) Object.assign(patch, { [key]: next[key] });
+    setFilters((prev) => withPatch(prev, patch));
+  });
+
+  /** Removes drill-down parameters from the URL; the hook above applies it. */
+  const dropFromUrl = useCallback(
+    (keys: readonly string[]) =>
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const key of keys) next.delete(key);
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
   const [result, setResult] = useState<QueuePage | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [reloadToken, setReloadToken] = useState(0);
@@ -158,6 +221,13 @@ export function StaffTicketQueue() {
   function clearFilters() {
     setFilters(DEFAULTS);
     setDebouncedQ("");
+    dropFromUrl(URL_KEYS);
+  }
+
+  /** A single status replaces the group: the server refuses both together (api-spec 4.2). */
+  function chooseStatus(status: string) {
+    update({ status, ...(status === "" ? {} : { statusGroup: "" }) });
+    if (status !== "") dropFromUrl(["statusGroup"]);
   }
 
   if (state === "forbidden") {
@@ -204,7 +274,7 @@ export function StaffTicketQueue() {
           onChange={(e) => update({ q: e.target.value })}
         />
       </label>
-      {select("filter-status", "Status", filters.status, (status) => update({ status }), [
+      {select("filter-status", "Status", filters.status, chooseStatus, [
         ["", "All statuses"],
         ...STATUSES.map((s): [string, string] => [s, statusText(s)]),
       ])}
@@ -246,6 +316,10 @@ export function StaffTicketQueue() {
       </div>
 
       {controlBar}
+
+      {filters.statusGroup !== "" && (
+        <FilterChip label={groupLabel(filters.statusGroup)} onClear={() => dropFromUrl(["statusGroup"])} />
+      )}
 
       {state === "loading" && (
         <div className="zg-skeleton-list" data-testid="state-loading" aria-busy="true">
