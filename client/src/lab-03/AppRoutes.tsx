@@ -12,6 +12,8 @@ import { UserManagement } from "./screens/UserManagement.js";
 import { MyTickets } from "../lab-02/screens/MyTickets.js";
 import { CreateTicket } from "../lab-02/screens/CreateTicket.js";
 import { RequesterTicketDetail } from "../lab-02/screens/RequesterTicketDetail.js";
+import { RequesterDashboard } from "../lab-04/screens/RequesterDashboard.js";
+import { StaffDashboard } from "../lab-04/screens/StaffDashboard.js";
 import LegacyLab01App from "../App.js";
 
 // Route tree (docs/lab-03/specification.md section 6, ui-spec.md section 4).
@@ -79,15 +81,17 @@ export function AppRoutes() {
         <Route path="/change-password" element={<ChangePassword />} />
 
         <Route element={<RequireRole roles={["REQUESTER"]} />}>
+          <Route path="/dashboard" element={<RequesterDashboard />} />
           <Route path="/tickets" element={<MyTickets />} />
           <Route path="/tickets/new" element={<CreateTicket />} />
           <Route path="/tickets/:ticketId" element={<RequesterTicketDetail />} />
         </Route>
 
         {/* The Ticket Queue arrived with #43, Staff Ticket Detail with #44,
-            and User Management with #45. Every other role gets the forbidden
-            state. */}
+            User Management with #45, and the dashboards with #73. Every other
+            role gets the forbidden state. */}
         <Route element={<RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]} />}>
+          <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/staff/queue" element={<StaffTicketQueue />} />
           <Route path="/staff/tickets/:ticketId" element={<StaffTicketDetail />} />
         </Route>
