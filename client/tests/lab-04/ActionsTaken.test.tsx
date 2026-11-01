@@ -89,6 +89,15 @@ describe("UI-08 (AC-02, AC-10) - the actions list", () => {
     expect(time).toHaveAttribute("datetime", ACTION_AT);
   });
 
+  it("abbreviates every month to three letters, so September reads Sep, not Sept", async () => {
+    // en-GB in current ICU writes "Sept"; ui-spec 4.2 uses "29 Oct 2026, 10:15".
+    const september = action(actionId(1), { actionAt: "2026-09-24T03:00:00.000Z" });
+    await openStaffDetail(staffRoutes4(staffTicket4(), [september]));
+
+    const time = within(screen.getByTestId(`action-row-${september.id}`)).getByText("24 Sep 2026, 10:00");
+    expect(time.tagName).toBe("TIME");
+  });
+
   it("marks an inactive performer and names the recorder when it is someone else", async () => {
     await openStaffDetail(staffRoutes4(staffTicket4(), [first, second, third]));
 
