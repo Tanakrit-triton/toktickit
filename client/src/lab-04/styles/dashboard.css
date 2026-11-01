@@ -168,6 +168,12 @@ a.zg-metric-card:focus-visible {
   min-width: 0;
 }
 
+/* The Ticket Number never breaks inside itself. */
+.zg-dash-row .zg-mono {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .zg-dash-row:hover .zg-dash-row-text {
   text-decoration: underline;
 }
@@ -223,14 +229,18 @@ a.zg-metric-card:focus-visible {
 
 /* ---- IT Staff layout (ui-spec 3.3) --------------------------------------
  * DOM order is the one-column order. On desktop the tables move to the left
- * column (4/12) and the lists to the right (8/12). */
+ * column (4/12) and the lists to the right (8/12). The flexible third row
+ * takes up the difference in column heights, so each column packs tightly
+ * instead of opening a gap under a short list. */
 
 .zg-dash-staff-grid {
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
     "status actions"
     "status urgent"
+    "status recent"
     "priority recent";
   gap: var(--zg-space-4);
   align-items: start;
@@ -322,6 +332,7 @@ a.zg-metric-card:focus-visible {
   .zg-dash-lists,
   .zg-dash-staff-grid {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
     grid-template-areas: none;
   }
 
@@ -343,6 +354,18 @@ a.zg-metric-card:focus-visible {
 
   .zg-metric-card {
     min-height: 0;
+  }
+
+  /* Number and badge on the first line, the summary on its own line. */
+  .zg-dash-row {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: var(--zg-space-1);
+  }
+
+  .zg-dash-row .zg-dash-row-text {
+    order: 3;
+    flex-basis: 100%;
   }
 
   .zg-dash-count-table a {
