@@ -74,7 +74,13 @@ Test hooks: `nav-dashboard`.
 | List | Recently resolved | "No recently resolved tickets." |
 
 A Requester with no tickets also sees a secondary "Create a ticket" link under
-the title. It is a link, not a primary button.
+the title. It is a link, not a primary button. The api-spec §5.1 response has
+no total ticket count, so "no tickets" is read as every count 0 and every list
+empty. A Requester whose only tickets are old and Done also sees the link,
+which is harmless because it is secondary (decided in #73).
+
+Updated recently and Resolved recently have no drill-down (Amendment 7). They
+render as `<section>` cards with no link and no "View list" (§3.1).
 
 ### 3.3 IT Staff Dashboard (`/staff/dashboard`)
 
@@ -108,8 +114,9 @@ Both dashboards have exactly these states:
 
 My Tickets and the Ticket Queue read `status` and `statusGroup` from the URL
 (api-spec §4).
-- When a dashboard filter is active, a filter chip shows above the list: "Showing: Open tickets ×" or "Showing: Waiting for Requester ×". The × is a button with the accessible name "Clear filter".
-- The status filter select reflects `status`. A `statusGroup` is shown only by the chip, because the select holds single statuses.
+- When a dashboard filter is active, a filter chip shows above the list: "Showing: Open tickets ×" (`statusGroup=ACTIVE`), "Showing: Resolved tickets ×" (`statusGroup=DONE`), or "Showing: Waiting for Requester ×". The × is a button with the accessible name "Clear filter".
+- On the Ticket Queue, the status filter select reflects `status`, so `?status` gets no chip. A `statusGroup` is shown only by the chip, because the select holds single statuses. Choosing a status in the select removes `statusGroup`, because api-spec §4.2 refuses both together (decided in #73).
+- My Tickets has no status select, so its `?status` is shown by the chip (decided in #73).
 
 Test hooks: `requester-dashboard-screen`, `staff-dashboard-screen`,
 `metric-{key}`, `metric-value-{key}`, `list-{key}`, `list-item-{key}-{id}`,
@@ -132,12 +139,12 @@ Test hooks: `requester-dashboard-screen`, `staff-dashboard-screen`,
 | Desktop and tablet | Table: Date/Time · Description · Performed by · Status · Follow-up · Edit |
 | Mobile | One card per action, with fields stacked as label and value pairs |
 
-- **Date/Time** is shown in Bangkok time: "29 Oct 2026, 10:15". The `<time datetime>` attribute holds the ISO value.
+- **Date/Time** is shown in Bangkok time: "29 Oct 2026, 10:15". The `<time datetime>` attribute holds the ISO value. Month names are fixed three-letter forms ("Sep", not "Sept"). Current ICU writes "Sept" in en-GB, so the client formats months itself in `client/src/lab-04/bangkok-time.ts` (decided in #72).
 - **Description** shows the first 2 lines. **Result** and **Attachment Notes** show in an expandable row opened by a "Details" disclosure button (`aria-expanded`). On mobile, the card shows everything.
 - **Performed by:** the full name. If the user is inactive, add " (inactive)" in `--zg-text-muted`. If the performer is not the creator, add "Recorded by {creator}" in `--zg-font-small`.
 - **Follow-up:** the follow-up indicator "⚑ Follow-up required" with the note under it, or "—".
 - **Edit** (secondary, small) appears only for IT Staff and Administrators, and only when the ticket allows action edits (BR-17) and the action is not CANCELLED (BR-16).
-- **Header line:** "{total} actions · {open} open · {followUps} follow-ups outstanding", from `actionSummary`.
+- **Header line:** "{total} actions · {open} open · {followUps} follow-ups outstanding", from `actionSummary`. The Requester detail has no `actionSummary`, so the Requester view counts the action list itself, with spec §5.2's meanings of "open" and "outstanding" (decided in #72).
 - **Empty:** "No actions have been recorded yet." For staff, a **Record action** button (secondary) follows.
 - **Ticket state does not allow actions** (staff view): the button is replaced by the text "Actions can be recorded once the ticket is claimed." (NEW), or "This ticket is {status}. Reopen it to record more work." (RESOLVED, CLOSED, CANCELLED).
 - **Requester view:** no buttons. The title "Work done on your ticket" replaces "Actions Taken".
@@ -152,7 +159,10 @@ Test hooks: `requester-dashboard-screen`, `staff-dashboard-screen`,
 | CANCELLED | ✕ Cancelled | `--zg-disabled-bg` | `--zg-text-muted` | 1px `--zg-border` |
 
 `data-testid="badge-action-status"`, `data-status="{STATUS}"`. The glyph and
-the text carry the meaning, not the colour (AC-38).
+the text carry the meaning, not the colour (AC-38). The IT Staff Dashboard's
+"My open actions" list uses the same badge component as Actions Taken. #73
+shipped a dashboard-only copy so that it shared no file with #72; #74 replaced
+it with the Actions Taken badge.
 
 ### 4.4 Create Action and Edit Action dialogs
 
@@ -180,7 +190,7 @@ stacked actions.
 - The dialog generates `clientRequestId` (UUID) once when it opens in create mode, and reuses it for every retry from the same dialog (BR-31).
 - While saving, the primary button reads "Saving…" and is disabled. Every field is read-only (L3 §2).
 - **Validation (422):** messages appear under each field, focus moves to the first failing field, and the input is kept.
-- **Conflict (`STALE_UPDATE`, `ACTION_STATE_CONFLICT`, `INVALID_ACTION_TRANSITION`, `TICKET_STATE_CONFLICT`):** the Conflict callout appears inside the dialog with the server message and a **Reload ticket** button. Input is kept until the user closes the dialog (AC-21). Reload re-fetches the ticket and actions; in edit mode it also reloads the action into the form, after the confirmation "Discard your changes and load the latest version?".
+- **Conflict (`STALE_UPDATE`, `ACTION_STATE_CONFLICT`, `INVALID_ACTION_TRANSITION`, `TICKET_STATE_CONFLICT`):** the Conflict callout appears inside the dialog with the server message and a **Reload ticket** button. Input is kept until the user closes the dialog (AC-21). Reload re-fetches the ticket and actions; in edit mode it also reloads the action into the form, after the confirmation "Discard your changes and load the latest version?". That confirmation is an inline step inside the dialog (`btn-confirm-reload`), not `window.confirm` (decided in #72).
 - **Safe failure (5xx, network):** an error callout in the dialog, "We couldn't save the action. Your input is kept; please try again." Retrying create reuses the same `clientRequestId`.
 - **Success:** the dialog closes, the Success callout "Action saved." shows on the card, and the ticket detail, actions, and history are re-fetched. Focus returns to the opener, or to the card heading if the opener is gone.
 
@@ -204,6 +214,8 @@ Extends L3 ui-spec §6.5.
   - It also offers a link "Go to Actions Taken" to `#actions`.
 - **Server-side refusal** (`RESOLUTION_BLOCKED` from a stale screen): the Conflict callout shows the server message, and the detail is re-fetched.
 - **`STALE_UPDATE` on owner, IT Priority, or status:** the Conflict callout shows "This ticket was changed by someone else." and the **Reload ticket** button. A reason typed into a Cancel or Reopen dialog is kept until the dialog is closed.
+  - The detail is not re-fetched until the user activates Reload ticket, so the screen does not change under the user (E2E-04). Other 409 responses keep the Lab 3 re-fetch, and `RESOLUTION_BLOCKED` re-fetches as stated above (decided in #72).
+  - In a Cancel or Reopen dialog, the stale message shows in the dialog's text line, because the shared confirmation dialog has no callout slot (decided in #72).
 - **After any success**, the header status badge, `resolvedAt` ("Resolved on {date}" under the badge when set), and the history all refresh.
 
 Test hooks: `notice-resolution-blocked`, `btn-reload-ticket`, `resolved-at`.
@@ -218,6 +230,14 @@ Test hooks: `notice-resolution-blocked`, `btn-reload-ticket`, `resolved-at`.
   - "Arisa Kongkaew changed status from In Progress to Resolved."
   - "Arisa Kongkaew completed an action." (ACTION_UPDATED with a status change)
   - "Arisa Kongkaew edited an action (result, follow-up)." (text changes only)
+- Sentences for the other events (decided in #72):
+  - Owner change: "{actor} assigned the ticket to {name}."
+  - IT Priority change: "{actor} changed IT Priority from High to Urgent."
+  - Action create: "{actor} recorded an action.", or "{actor} recorded an action performed by {name}." when the performer is someone else.
+  - Action status change to In Progress or Cancelled: "{actor} started an action." / "{actor} cancelled an action."
+  - Resolution indication: "{actor} said the problem appears resolved."
+  - Owner cleared when the ticket is reopened: "System removed {name} as Ticket Owner."
+  - In "edited an action (…)", the field names are date, description, result, performer, follow-up, and attachment notes. `followUpRequired` and `followUpNote` both count as "follow-up".
 - Entries are oldest first. There are no edit or delete controls.
 - History is read-only, so the tab has no composer and no primary button.
 - Empty: "No history yet."

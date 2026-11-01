@@ -353,21 +353,23 @@ parameters. Every query filters on `requesterId = caller` (BR-39).
     "metrics": {
       "openTickets":      { "count": 3, "link": "/tickets?statusGroup=ACTIVE" },
       "waitingForMe":     { "count": 1, "link": "/tickets?status=WAITING_FOR_REQUESTER" },
-      "updatedRecently":  { "count": 2, "link": "/tickets?sortBy=updatedAt&sortOrder=desc" },
-      "resolvedRecently": { "count": 1, "link": "/tickets?statusGroup=DONE" }
+      "updatedRecently":  { "count": 2, "link": null },
+      "resolvedRecently": { "count": 1, "link": null }
     },
     "lists": {
       "needsAttention":   [ { "id": "…", "ticketNumber": "TKT-2026-00005", "summary": "…", "currentStatus": "WAITING_FOR_REQUESTER", "updatedAt": "…" } ],
       "recentlyUpdated":  [ ],
-      "recentlyResolved": [ { "id": "…", "ticketNumber": "…", "summary": "…", "currentStatus": "RESOLVED", "resolvedAt": "…" } ]
+      "recentlyResolved": [ { "id": "…", "ticketNumber": "…", "summary": "…", "currentStatus": "RESOLVED", "updatedAt": "…", "resolvedAt": "…" } ]
     }
   }
 }
 ```
 
 - `window.from` is 00:00 Asia/Bangkok six days before today, expressed in UTC (the example is 24 Oct 00:00 +07:00).
-- `link` values are client routes. The client renders them as links and never builds them itself.
-- List items use one shape: `{ id, ticketNumber, summary, currentStatus, updatedAt, resolvedAt? }`. At most 5 per list (BR-37).
+- `link` values are client routes. The client renders them as links and never builds them itself. A `null` link means the card has no drill-down.
+- `updatedRecently` and `resolvedRecently` have `link: null` (Amendment 7). No list screen filters by the recent window, so a link would open a list whose count differs from the card. The Recently updated and Recently resolved lists link to each ticket instead.
+- List items use one shape: `{ id, ticketNumber, summary, currentStatus, updatedAt, resolvedAt? }`. `updatedAt` is always present; `resolvedAt` only in `recentlyResolved`. At most 5 per list (BR-37).
+- List order ties are broken by `id` ascending, so the order is stable.
 - Empty lists are `[]`. Zero counts are `0` (BR-38).
 
 **Errors:** `401`, `403`, `500`.
@@ -408,7 +410,8 @@ IT Staff and Administrator. Requesters get `403 FORBIDDEN`. No query parameters.
 
 - `byStatus` always has 8 entries, in the L3 queue lifecycle order (`STATUS_ORDER`). `activeByItPriority` always has 4, from URGENT down to LOW. Zero entries are included.
 - `myOpenActions` items link to `/staff/tickets/{ticketId}#actions`. The client builds that from `ticketId`, because it is a fixed route pattern.
-- `myOpenActions.description` is cut to 120 characters with "…" on the server.
+- `myOpenActions.description` is cut to 120 characters with "…" on the server. The limit is 120 characters in total: a longer description becomes its first 119 characters plus "…", and one of exactly 120 characters is kept whole.
+- List order ties are broken by `id` ascending (for `myOpenActions`, the action `id`), as in §5.1.
 - `users` is `null` for IT Staff. For an Administrator it is:
 
 ```json

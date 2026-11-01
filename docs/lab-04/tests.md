@@ -76,7 +76,7 @@ The Final column reads Planned until #75 records results from `main`.
 | UT-03 | AC-08 | Edit policy for each action status and field, with and without a status change | PLANNED and IN_PROGRESS: all fields; COMPLETED: only the BR-16 list; CANCELLED: none; a status change from a terminal status is `INVALID_ACTION_TRANSITION`, checked before fields | `action-edit-policy.unit.test.ts` | Planned |
 | UT-04 | AC-14, AC-15 | Gate counting over action lists: none, all done, one open, one follow-up on a cancelled action, one follow-up on a completed action | Blockers `{open, followUps}` correct; cancelled follow-ups not counted | `resolution-gate.unit.test.ts` | Planned |
 | UT-05 | AC-16 | All 64 (from, to) ticket-status pairs against the spec §5.4 matrix, with the gate flag | Exactly the 18 listed pairs are allowed; the 4 into RESOLVED carry the gate | `ticket-transitions.unit.test.ts` | Planned |
-| UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, and 23:59:59 UTC on a fixed date, and across a month boundary | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
+| UT-06 | AC-26 | Window start for clock times 00:00:00, 06:59:59, 07:00:00, 16:59:59.999, 17:00:00, and 23:59:59 UTC on a fixed date, and across a month, a year, and a February boundary. The Bangkok date changes at 17:00 UTC, so 16:59:59.999 and 17:00:00 UTC are the boundary pair | `from` = 00:00 +07:00 six days before the Bangkok date | `dashboard-window.unit.test.ts` | Planned |
 | UT-07 | AC-28 | `status` and `statusGroup` parsing for My Tickets and the Queue: valid, invalid, both together, repeated | Valid accepted; others give a 400 message | `status-group-query.unit.test.ts` | Planned |
 
 ### 2.2 Migration and seed — `server/tests/lab-04/`
@@ -132,6 +132,11 @@ The Final column reads Planned until #75 records results from `main`.
 
 ### 2.5 API — Dashboards
 
+Shared helpers are in `server/tests/helpers/dashboard.ts`: an independent
+window calculation, the status groups, and the conversion of a card `link` to
+its API query. The tests never call the server's own dashboard code to get an
+expected value.
+
 `server/tests/lab-04/requester-dashboard.api.test.ts`
 
 | ID | AC | What it tests | Expected result | Final |
@@ -153,7 +158,7 @@ The Final column reads Planned until #75 records results from `main`.
 | DSS-04 | AC-25 | Open action on a ticket then cancelled | Not counted in `myOpenActions` | Planned |
 | DSS-05 | AC-29 | Requester; IT Staff; Administrator | 403; `users` null; `users` equal to counts from the User table | Planned |
 | DSS-06 | AC-28 | Follow `unassigned.link`, `ownedByMe.link`, one `byStatus` link | Queue `meta.totalItems` equals each count | Planned |
-| DSS-07 | AC-26 | `recentlyUpdated` window boundary, as DSR-04 | Same result | Planned |
+| DSS-07 | AC-26 | `recentlyUpdated` window boundary, as DSR-04. The staff list holds 5 items across all tickets, so the test moves every other in-window ticket's `updatedAt` out of the window for the test and restores it in `afterEach` (the Section 1 exception) | Same result | Planned |
 | PERF-01 | AC-31 | Seed 1,000 extra tickets with actions; 20 calls to each dashboard endpoint | p95 < 500 ms, logged with machine details | Planned (`dashboard.perf.test.ts`) |
 
 ### 2.6 API — Authorization and filters
@@ -168,13 +173,18 @@ The Final column reads Planned until #75 records results from `main`.
 
 ### 2.7 UI component — `client/tests/lab-04/`
 
+Shared mocked responses are in `client/tests/lab-04/action-fixtures.ts`
+(UI-08 to UI-19, STY-01), which extends the Lab 3 fixtures without editing
+them, and `client/tests/lab-04/dashboard-fixtures.ts` (UI-01 to UI-07, UI-20,
+UI-21).
+
 | ID | AC | What it tests | Expected result | File | Final |
 |---|---|---|---|---|---|
 | UI-01 | AC-28 | Staff dashboard renders cards, tables, and lists from a mocked response | Values shown; each card is a link to its `link`; list items link to Ticket Detail | `StaffDashboard.test.tsx` | Planned |
 | UI-02 | AC-27 | All-zero response | 0 and empty messages; no blank region | `StaffDashboard.test.tsx` | Planned |
 | UI-03 | AC-30 | Pending, 500, and 403 responses | Skeleton with `aria-busy`; error callout with Retry (Retry refetches); forbidden state | `StaffDashboard.test.tsx` | Planned |
 | UI-04 | AC-29 | Administrator response with `users`; IT Staff with `users: null` | User accounts card only for the Administrator | `StaffDashboard.test.tsx` | Planned |
-| UI-05 | AC-24, AC-28 | Requester dashboard populated | Four cards with accessible names "{Label}: {n}. View list"; three lists | `RequesterDashboard.test.tsx` | Planned |
+| UI-05 | AC-24, AC-28 | Requester dashboard populated | Four cards: Open tickets and Waiting for you are links with accessible names "{Label}: {n}. View list"; Updated recently and Resolved recently have `link: null` and render as sections with no link and no "View list" (Amendment 7); three lists | `RequesterDashboard.test.tsx` | Planned |
 | UI-06 | AC-27 | Requester all-zero | Empty messages and the "Create a ticket" link | `RequesterDashboard.test.tsx` | Planned |
 | UI-07 | AC-30 | Requester pending, 500, 403 | As UI-03 | `RequesterDashboard.test.tsx` | Planned |
 | UI-08 | AC-02, AC-10 | Actions list renders in the given order, with "(inactive)" and "Recorded by" | Row order matches; suffix and line shown | `ActionsTaken.test.tsx` | Planned |
@@ -187,20 +197,25 @@ The Final column reads Planned until #75 records results from `main`.
 | UI-15 | AC-09 | Staff view for NEW and RESOLVED tickets | Record button replaced by the locked message | `ActionsTaken.test.tsx` | Planned |
 | UI-16 | AC-22 | Detail with `resolutionBlockers` | Resolve disabled; reason text linked by `aria-describedby`; "Go to Actions Taken" link | `TicketWorkflow.test.tsx` | Planned |
 | UI-17 | AC-14 | Resolve returns 409 `RESOLUTION_BLOCKED` | Conflict callout with the server message; detail refetched | `TicketWorkflow.test.tsx` | Planned |
-| UI-18 | AC-18, AC-21 | Status, owner, and IT Priority requests; a reopen returning `STALE_UPDATE` | Each body carries the detail's `version`; Reload shown; reopen reason kept in the dialog | `TicketWorkflow.test.tsx` | Planned |
+| UI-18 | AC-18, AC-21 | Status, owner, and IT Priority requests; a reopen returning `STALE_UPDATE` | Each body carries the detail's `version`; Reload shown; reopen reason kept in the dialog. One more case: after an action save, the next ticket write carries the returned `ticketVersion` (Amendment 5 extended to action saves) | `TicketWorkflow.test.tsx` | Planned |
 | UI-19 | AC-23 | History tab | Sentences oldest first; "System" for a null actor; arrow keys move between the three tabs | `TicketWorkflow.test.tsx` | Planned |
 | UI-20 | AC-29 | Shell for each role | Dashboard nav first, with the right route; `aria-current` on the active item | `navigation.test.tsx` | Planned |
 | UI-21 | AC-28 | My Tickets and Queue opened with `?statusGroup=ACTIVE` | Chip "Showing: Open tickets"; Clear removes the parameter and refetches | `DrilldownFilter.test.tsx` | Planned |
 | UI-31 | AC-18 | Claim, assign, IT Priority, or status succeeds while the detail re-fetch is still pending, then a second operation is sent (Amendment 5) | The second request carries the `version` from the first write's response, not the version loaded before it | `staff-detail-version.test.tsx` | Planned |
 
-### 2.8 UI style — `client/tests/lab-04/theme.style.test.tsx`
+### 2.8 UI style — `client/tests/lab-04/`
 
-| ID | AC | What it tests | Expected result | Final |
-|---|---|---|---|---|
-| STY-01 | AC-38 | Action status badges and follow-up indicator | Glyph and text present; computed colours equal ui-spec §4.3 tokens | Planned |
-| STY-02 | AC-38, AC-39 | Metric card idle and focused | Token colours; focus border `--zg-primary` 2px | Planned |
-| STY-03 | AC-38 | Every computed colour on the Lab 4 screens | All in the token table | Planned |
-| STY-04 | AC-40 | Static scan of `client/src` | No `console.log`, "TODO", "lorem", or "coming soon"; no hex colour outside the token file | Planned |
+jsdom resolves no CSS custom property. Like the Lab 2 and Lab 3 style suites,
+STY-01 and STY-02 therefore assert the rendered text and class, and read the
+rule's token declarations from the stylesheet source. RSP-01 and RSP-05 check
+the painted result in a real browser.
+
+| ID | AC | What it tests | Expected result | File | Final |
+|---|---|---|---|---|---|
+| STY-01 | AC-38 | Action status badges and follow-up indicator | Glyph and text present; colours equal ui-spec §4.3 tokens | `actions-theme.style.test.tsx` | Planned |
+| STY-02 | AC-38, AC-39 | Metric card idle and focused | Token colours; focus border `--zg-primary` 2px | `dashboard-theme.style.test.tsx` | Planned |
+| STY-03 | AC-38 | Every computed colour on the Lab 4 screens | All in the token table | `theme.style.test.tsx` | Planned |
+| STY-04 | AC-40 | Static scan of `client/src` | No `console.log`, "TODO", "lorem", or "coming soon"; no hex colour outside the token file | `theme.style.test.tsx` | Planned |
 
 ### 2.9 Responsive and accessibility — `e2e/lab-04/responsive.spec.ts`
 
@@ -248,7 +263,7 @@ retargeted and no conflict is resolved repeatedly.
 | #70 | Actions Taken and workflow foundation: migration, seed, actions API, version, gate, history, filters | #69 | AC-01–AC-20, AC-22 (API), AC-23 (API), AC-28 (filters), AC-32–AC-34 | UT-01–05, UT-07, MIG-01–05, SEED-01–02, ACT-01–17, WF-01–12, AUZ-01–02, FLT-01–03, UI-31 (47) |
 | #71 | Dashboard API | #70 | AC-24–AC-29, AC-31 | UT-06, DSR-01–06, DSS-01–07, PERF-01 (15) |
 | #72 | Actions Taken and workflow UI | #70 | AC-01, AC-02, AC-05, AC-07–AC-12, AC-14, AC-18, AC-20–AC-23, AC-38 | UI-08–19, STY-01 (13) |
-| #73 | Dashboards UI, navigation, and drill-down filters | #71 | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
+| #73 | Dashboards UI, navigation, and drill-down filters | #70 (Amendment 6) | AC-24, AC-27–AC-30, AC-38, AC-39 | UI-01–07, UI-20, UI-21, STY-02 (10) |
 | #74 | Final hardening: E2E, responsive, accessibility, regression, polish | #72, #73 | AC-03, AC-11, AC-14, AC-15, AC-18, AC-21–AC-24, AC-28, AC-35–AC-40 | STY-03, STY-04, RSP-01–05, E2E-01–09, REG-01–03 (19) |
 | #75 | Release: reviewer.md, ai-use.md, final results, `lab4-staging` → `main` | #74 | — | Runs every suite on `main` and fills Section 8 |
 
