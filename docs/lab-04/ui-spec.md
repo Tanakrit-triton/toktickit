@@ -296,7 +296,7 @@ differs is fixed in the hardening Issue (#74).
 
 ## 10. Final polish removals
 
-Removed in #74, and checked by STY-10 and E2E-07:
+Removed in #74, and checked by STY-04 and E2E-08:
 - any placeholder or lorem text, "TODO", or "coming soon" text;
 - any `console.log` left in client code, and every console error or warning on normal use;
 - duplicate or obsolete navigation items, buttons, or routes from earlier labs;
