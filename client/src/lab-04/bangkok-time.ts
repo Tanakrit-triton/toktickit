@@ -4,9 +4,11 @@
 
 const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000;
 
-const DISPLAY = new Intl.DateTimeFormat("en-GB", {
+// Numeric parts only: month names come from the table below, because en-GB
+// abbreviations differ between ICU versions (current ones write "Sept").
+const PARTS = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
-  month: "short",
+  month: "numeric",
   year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
@@ -14,8 +16,13 @@ const DISPLAY = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Bangkok",
 });
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 /** "29 Oct 2026, 10:15". */
-export const formatBangkok = (iso: string) => DISPLAY.format(new Date(iso));
+export function formatBangkok(iso: string): string {
+  const part = Object.fromEntries(PARTS.formatToParts(new Date(iso)).map((p) => [p.type, p.value]));
+  return `${part.day} ${MONTHS[Number(part.month) - 1]} ${part.year}, ${part.hour}:${part.minute}`;
+}
 
 /** A `datetime-local` value ("2026-10-29T10:15") for an instant. */
 export function toBangkokInput(instant: string | Date): string {
