@@ -1,4 +1,5 @@
-import { screen } from "@testing-library/react";
+import { expect } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
 import { IT_STAFF, REQUESTER, mockStartupSession, renderApp } from "../lab-03/helpers.js";
 import { TICKET_ID, fakeApi, ok, requesterRoutes, requesterTicket, staffRoutes, staffTicket } from "../lab-03/ticket-fixtures.js";
 
@@ -95,7 +96,7 @@ export async function openStaffDetail(routes: ReturnType<typeof staffRoutes4>) {
   mockStartupSession(IT_STAFF);
   renderApp(STAFF_DETAIL);
   await screen.findByTestId("operations-card");
-  await screen.findByTestId("actions-card");
+  await actionsLoaded();
   return api;
 }
 
@@ -104,7 +105,7 @@ export async function openRequesterDetail(routes: ReturnType<typeof requesterRou
   mockStartupSession(REQUESTER);
   renderApp(`/tickets/${TICKET_ID}`);
   await screen.findByTestId("ticket-information");
-  await screen.findByTestId("actions-card");
+  await actionsLoaded();
   return api;
 }
 
@@ -133,4 +134,14 @@ export function useMobileLayout() {
   return () => {
     window.matchMedia = original;
   };
+}
+
+/**
+ * Waits until the Actions Taken card has finished loading its list. The card
+ * renders at once with a skeleton (`aria-busy="true"`) while GET /actions is in
+ * flight, so finding the card alone does not mean its rows are there yet.
+ */
+export async function actionsLoaded() {
+  const card = await screen.findByTestId("actions-card");
+  await waitFor(() => expect(card.querySelector("[aria-busy='true']")).toBeNull());
 }
