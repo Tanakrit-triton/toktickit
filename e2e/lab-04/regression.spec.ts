@@ -65,7 +65,14 @@ test("E2E-09 IT Staff: claim, assign, add an Internal Note, and transition", asy
   await expect(page.getByTestId("ticket-owner")).toHaveText(ACCOUNTS.staff.fullName);
   await expect(status).toHaveAttribute("data-status", "OPEN");
 
-  await page.getByTestId("field-assignee").selectOption({ label: LAB4.arisa.fullName });
+  // The claim's follow-up re-fetch resets "Assign to" to "Choose a person"
+  // (StaffTicketDetail: each re-fetch shows the server's values again). A
+  // choice made before it lands is wiped, so the choice is repeated until the
+  // visible state holds: Arisa selected and Assign enabled.
+  await expect(async () => {
+    await page.getByTestId("field-assignee").selectOption({ label: LAB4.arisa.fullName });
+    await expect(page.getByTestId("btn-assign")).toBeEnabled({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
   await page.getByTestId("btn-assign").click();
   await expect(page.getByTestId("ticket-owner")).toHaveText(LAB4.arisa.fullName);
 
